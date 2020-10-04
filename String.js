@@ -7,22 +7,15 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
-// Extend built-in types...
-require('./Object')
-require('./Array')
-require('./Set')
-require('./String')
-require('./RegExp')
-module.patchDate = require('./Date').patchDate
-
-
-// Additional types...
-module.containers = require('./containers')
 
 
 
 /*********************************************************************/
 
+String.prototype.capitalize = function(){
+	return this == '' ? 
+		this 
+		: this[0].toUpperCase() + this.slice(1) }
 
 
 

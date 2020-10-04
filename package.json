@@ -1,0 +1,27 @@
+{
+  "name": "ig-types",
+  "version": "1.0.0",
+  "description": "Generic JavaScript types and type extensions...",
+  "main": "types.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flynx/types.js.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "types"
+  ],
+  "author": "Alex A. Naanou <alex.nanou@gmail.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/flynx/types.js/issues"
+  },
+  "homepage": "https://github.com/flynx/types.js#readme",
+  "dependencies": {
+    "ig-object": "^5.2.8",
+    "object-run": "^1.0.1"
+  }
+}

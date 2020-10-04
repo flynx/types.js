@@ -7,21 +7,22 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
-// Extend built-in types...
-require('./Object')
-require('./Array')
-require('./Set')
-require('./String')
-require('./RegExp')
-module.patchDate = require('./Date').patchDate
-
-
-// Additional types...
-module.containers = require('./containers')
 
 
 
 /*********************************************************************/
+
+// Set set operation shorthands...
+Set.prototype.unite = function(other){ 
+	return new Set([...this, ...other]) }
+Set.prototype.intersect = function(other){
+	var test = other.has ?  'has' : 'includes'
+	return new Set([...this]
+		.filter(function(e){ return other[test](e) })) }
+Set.prototype.subtract = function(other){
+	other = new Set(other)
+	return new Set([...this]
+		.filter(function(e){ return !other.has(e) })) }
 
 
 

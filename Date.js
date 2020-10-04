@@ -1,0 +1,101 @@
+/**********************************************************************
+* 
+*
+*
+**********************************************************************/
+((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
+(function(require){ var module={} // make module AMD/node compatible...
+/*********************************************************************/
+
+
+
+
+/*********************************************************************/
+
+// NOTE: repatching a date should not lead to any side effects as this
+// 		does not add any state...
+// NOTE: this is done differently as there are contexts where there may 
+// 		be multiple Date objects in different contexts (nw/electron/..)
+var patchDate =
+module.patchDate = function(date){
+	date = date || Date
+
+	date.prototype.toShortDate = function(show_ms){
+		return '' 
+			+ this.getFullYear()
+			+'-'+ ('0'+(this.getMonth()+1)).slice(-2)
+			+'-'+ ('0'+this.getDate()).slice(-2)
+			+' '+ ('0'+this.getHours()).slice(-2)
+			+':'+ ('0'+this.getMinutes()).slice(-2)
+			+':'+ ('0'+this.getSeconds()).slice(-2)
+			+ (show_ms ? 
+				':'+(('000'+this.getMilliseconds()).slice(-3))
+				: '') }
+
+	date.prototype.getTimeStamp = function(show_ms){
+		return '' 
+			+ this.getFullYear()
+			+ ('0'+(this.getMonth()+1)).slice(-2)
+			+ ('0'+this.getDate()).slice(-2)
+			+ ('0'+this.getHours()).slice(-2)
+			+ ('0'+this.getMinutes()).slice(-2)
+			+ ('0'+this.getSeconds()).slice(-2)
+			+ (show_ms ? 
+				('000'+this.getMilliseconds()).slice(-3)
+				: '') }
+
+	date.prototype.setTimeStamp = function(ts){
+		ts = ts.replace(/[^0-9]*/g, '')
+		this.setFullYear(ts.slice(0, 4))
+		this.setMonth(ts.slice(4, 6)*1-1)
+		this.setDate(ts.slice(6, 8))
+		this.setHours(ts.slice(8, 10))
+		this.setMinutes(ts.slice(10, 12))
+		this.setSeconds(ts.slice(12, 14))
+		this.setMilliseconds(ts.slice(14, 17) || 0)
+		return this }
+
+	date.timeStamp = function(...args){
+		return (new this()).getTimeStamp(...args) }
+
+	date.fromTimeStamp = function(ts){
+		return (new this()).setTimeStamp(ts) }
+
+	// convert string time period to milliseconds...
+	date.str2ms = function(str, dfl){
+		dfl = dfl || 'ms'
+
+		if(typeof(str) == typeof(123)){
+			var val = str
+			str = dfl
+
+		} else {
+			var val = parseFloat(str)
+			str = str.trim()
+			// check if a unit is given...
+			str = str == val ? dfl : str }
+		
+		var c = /(m(illi)?(-)?s(ec(ond(s)?)?)?)$/i.test(str) ? 
+				1
+			: /s(ec(ond(s)?)?)?$/i.test(str) ? 
+				1000
+			: /m(in(ute(s)?)?)?$/i.test(str) ? 
+				1000*60
+			: /h(our(s)?)?$/i.test(str) ? 
+				1000*60*60
+			: /d(ay(s)?)?$/i.test(str) ? 
+				1000*60*60*24
+			: null
+
+		return c ? 
+			val * c 
+			: NaN }
+
+	return date }
+// patch the root date...
+patchDate()
+
+
+
+/**********************************************************************
+* vim:set ts=4 sw=4 :                               */ return module })
