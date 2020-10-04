@@ -13,9 +13,6 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
-// XXX should we have the restriction of requiring unique elements??? 
-// XXX move this to browse2 and use it as an option/basis for list...
-// XXX BUG: UniqueKeyMap([['a', 123], ...]) breaks...
 var UniqueKeyMap = 
 module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 
@@ -28,9 +25,11 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	// 		...
 	// 	])
 	//
-	// XXX might be a good idea to change the value to a list of original 
-	// 		names...
-	__keys: null,
+	// XXX should .__keys_index be non-enumerable???
+	get __keys(){
+		return (this.__keys_index = 
+			this.__keys_index || new Map()) },
+
 
 	// Patter to be used to generate unique key...
 	__key_pattern__: '$KEY ($COUNT)',
@@ -55,7 +54,8 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		this.__keys.set(elem, 
 			names = this.__keys.get(elem) || new Set())
 		// key/elem already exists...
-		if(this.__unique_key_value__ && names.has(key)){
+		if(this.__unique_key_value__ 
+				&& names.has(key)){
 			return this }
 		names.add(key)
 		// make name unique...
@@ -94,9 +94,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 					return res }, []) }
 		// get keys used to set the values...
 		return [...(this.__keys.get(elem) || [])] },
-
-	__init__: function(){
-		this.__keys = new Map() },
 })
 
 
