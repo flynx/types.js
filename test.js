@@ -29,6 +29,42 @@ var tests = test.Tests({
 
 
 var cases = test.Cases({
+	UniqueKeyMap: function(assert){
+		var a = assert(containers.UniqueKeyMap(), '')
+		var b = assert(containers.UniqueKeyMap([]), '')
+		var c = assert(containers.UniqueKeyMap([
+			['a', 111],
+			['b', 222],
+			['a', 333],
+		]), '')
+		
+		assert(a.size == 0)
+		assert(b.size == 0)
+		assert(c.size == 3)
+
+		assert(c.get('a') == 111)
+
+		assert(c.has('a (1)'))
+		assert(c.get('a (1)') == 333)
+
+
+		var n
+
+		assert((n = c.set('a', 444, true)) == 'a (2)')
+		assert(c.get(n) == 444)
+
+		assert(c.reset(n, 555))
+		assert(c.get(n) == 555)
+
+		assert(c.delete('a (1)'))
+		assert(!c.has('a (1)'))
+
+		assert((n = c.set('a', 222, true)) == 'a (1)')
+
+		assert(c.keysOf(222).sort().cmp(['b', 'a'].sort()))
+
+		assert((n = c.rename('a', 'b', true)) == 'b (1)')
+	},
 })
 
 
