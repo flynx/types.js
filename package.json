@@ -4,7 +4,9 @@
   "description": "Generic JavaScript types and type extensions...",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "c8 node ./test.js",
+    "cover": "c8 -r text -r lcov node ./test.js",
+    "prepublishOnly": "npm test"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
     "object-run": "^1.0.1"
   },
   "devDependencies": {
+    "c8": "*",
     "ig-test": "*",
     "color": "*"
   }
