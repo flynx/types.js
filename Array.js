@@ -183,19 +183,48 @@ Array.prototype.setCmp = function(other){
 				.sort()) }
 
 
+// Sort as the other array...
+//
+// This will sort the intersecting items in the head keeping the rest 
+// of the items in the same relative order...
+//
+// NOTE: if an item is in the array multiple times only the first index 
+// 		is used...
 Array.prototype.sortAs = function(other){
+	// NOTE: the memory overhead here is better than the time overhead 
+	// 		when using .indexOf(..)...
+	other = other.toMap()
+	var orig = this.toMap()
 	return this.sort(function(a, b){
-		var i = other.indexOf(a)
-		var j = other.indexOf(b)
-		return i < 0 && j < 0 ? 0
-			: i < 0 ? 1
-			: j < 0 ? -1
+		var i = other.get(a)
+		var j = other.get(b)
+		return i == null && j == null ?
+				orig.get(a) - orig.get(b)
+			: i == null ? 
+				1
+			: j == null ? 
+				-1
 			: i - j }) }
 
 
+// Same as .sortAs(..) but will not change indexes of items not in other...
+//
+// XXX not sure if this is the best way to do this...
+Array.prototype.inplaceSortAs = function(other){
+	// sort only the intersection...
+	var sorted = this
+		.filter(function(e){ 
+			return other.includes(e) })
+		.sortAs(other)
+	// zip the sorted items back into this...
+	this.forEach(function(e, i, l){
+		other.includes(e) 
+			&& (l[i] = sorted.shift()) })
+	return this }
 
-// Equivalent to .map(..) / .filter(..) / .reduce(..) / .forEach(..) that
-// process the contents in chunks asynchronously...
+
+// Equivalent to .map(..) / .filter(..) / .reduce(..) that process the 
+// contents in chunks asynchronously...
 //
 //	.mapChunks(func)
 //	.mapChunks(chunk_size, func)

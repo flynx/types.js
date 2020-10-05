@@ -29,6 +29,29 @@ var tests = test.Tests({
 
 
 var cases = test.Cases({
+	// Array.js
+	// 	- flat
+	// 	- includes
+	// 	- first
+	// 	- last
+	// 	- compact
+	// 	- len
+	// 	- toKeys
+	// 	- toMap
+	// 	- unique
+	// 	- tailUnique
+	// 	- cmp
+	// 	- setCmp
+	// 	- sortAs
+	// 	- mapChunks
+	// 	- filterChunks
+	// 	- reduceChunks
+	Array: function(assert){
+	},
+	
+	// Date.js
+
+	// containers.js
 	UniqueKeyMap: function(assert){
 		var a = assert(containers.UniqueKeyMap(), '')
 		var b = assert(containers.UniqueKeyMap([]), '')
