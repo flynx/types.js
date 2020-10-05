@@ -49,25 +49,29 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 
 	// Extended API...
 	//
-	set: function(key, elem){
+	set: function(key, elem, return_key=false){
 		var names
+		var n
+		// index
 		this.__keys.set(elem, 
 			names = this.__keys.get(elem) || new Set())
 		// key/elem already exists...
 		if(this.__unique_key_value__ 
 				&& names.has(key)){
-			return this }
+			return return_key ?
+				key
+				: this }
 		names.add(key)
-		// make name unique...
-		var n = key
-		var i = 0
-		while(this.has(n)){
-			i++
-			n = this.__key_pattern__
-				.replace(/\$KEY/, key)
-				.replace(/\$COUNT/, i) }
 		// add the elem with the unique name...
-		return object.parentCall(UniqueKeyMap.prototype, 'set', this, n, elem) },
+		var res = object.parentCall(
+			UniqueKeyMap.prototype, 
+			'set', 
+			this, 
+			n = this.uniqieKey(key), 
+			elem) 
+		return return_key ?
+			n
+			: res },
 	delete: function(key){
 		var s = this.__keys.get(this.get(key))
 		if(s){
@@ -79,6 +83,15 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 
 	// New API...
 	//
+	uniqieKey: function(key){
+		var n = key
+		var i = 0
+		while(this.has(n)){
+			i++
+			n = this.__key_pattern__
+				.replace(/\$KEY/, key)
+				.replace(/\$COUNT/, i) }
+		return n },
 	rename: function(from, to){
 		var e = this.get(from)
 		this.delete(from)
