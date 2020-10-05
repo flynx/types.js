@@ -92,10 +92,10 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 				.replace(/\$KEY/, key)
 				.replace(/\$COUNT/, i) }
 		return n },
-	rename: function(from, to){
+	rename: function(from, to, return_key=false){
 		var e = this.get(from)
 		this.delete(from)
-		return this.set(to, e) },
+		return this.set(to, e, return_key) },
 	keysOf: function(elem, mode='original'){
 		// get unique keys...
 		if(mode == 'unique'){
