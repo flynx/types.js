@@ -47,8 +47,7 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	__unique_key_value__: false,
 
 
-	// Extended API...
-	//
+	// NOTE: this will never overwrite a key's value, to overwrite use .reset(..)
 	set: function(key, elem, return_key=false){
 		var names
 		var n
@@ -72,6 +71,8 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		return return_key ?
 			n
 			: res },
+	reset: function(key, elem){
+		return object.parentCall(UniqueKeyMap.prototype, 'set', this, key, elem) },
 	delete: function(key){
 		var s = this.__keys.get(this.get(key))
 		if(s){
@@ -79,10 +80,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 			s.size == 0
 				& this.__keys.delete(this.get(key)) }
 		return object.parentCall(UniqueKeyMap.prototype, 'delete', this, key) },
-
-
-	// New API...
-	//
 	uniqieKey: function(key){
 		var n = key
 		var i = 0
