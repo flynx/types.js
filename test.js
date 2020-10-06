@@ -10,6 +10,7 @@
 
 var colors = require('colors')
 var test = require('ig-test')
+var object = require('ig-object')
 
 var types = require('./main')
 var containers = require('./containers')
@@ -29,6 +30,21 @@ var tests = test.Tests({
 
 
 var cases = test.Cases({
+	// Object.js
+	// 	- flatCopy
+	Object: function(assert){
+		var o = Object.assign(
+			Object.create({
+				x: 111,
+				y: 222,
+			}), {
+				y: 333,
+				z: 444,
+			})
+		var oo = Object.flatCopy(o)
+
+		assert(Object.match(oo, {x: 111, y: 333, z: 444}), '')
+	},
 	// Array.js
 	// 	- flat
 	// 	- includes
