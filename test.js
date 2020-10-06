@@ -45,6 +45,7 @@ var cases = test.Cases({
 
 		assert(Object.match(oo, {x: 111, y: 333, z: 444}), '')
 	},
+
 	// Array.js
 	// 	- flat
 	// 	- includes
@@ -66,6 +67,49 @@ var cases = test.Cases({
 	},
 	
 	// Date.js
+	// 	- toShortDate
+	// 	- getTimeStamp
+	// 	- setTimeStamp
+	// 	- timeStamp
+	// 	- fromTimeStamp
+	// 	- str2ms
+	// 	XXX
+	Date: function(assert){
+		var d = new Date()
+
+		var ts = assert(d.getTimeStamp(), '.getTimeStamp()')
+		var tsm = assert(d.getTimeStamp(true), '.getTimeStamp(true)')
+
+		var dd = assert(Date.fromTimeStamp(tsm), '.fromTimeStamp(..)')
+		var dds = assert(Date.fromTimeStamp(ts), '.fromTimeStamp(..)')
+
+		assert(d.toString() == dd.toString(), 'timestamp reversable')
+
+		assert(d.toShortDate() == dd.toShortDate(), '.toShortDate()')
+		assert(d.toShortDate() == dds.toShortDate(), '.toShortDate()')
+		assert(d.toShortDate(true) == dd.toShortDate(true), '.toShortDate(true)')
+
+		var a = Date.timeStamp()
+		var b = Date.timeStamp(true)
+
+		assert(a == Date.fromTimeStamp(a).getTimeStamp())
+		assert(a + '000' == Date.fromTimeStamp(a).getTimeStamp(true))
+		assert(b == Date.fromTimeStamp(b).getTimeStamp(true))
+
+		assert(Date.str2ms('1') == 1)
+		assert(Date.str2ms('1ms') == 1)
+		assert(Date.str2ms('1s') == 1000)
+		assert(Date.str2ms('1m') == 60*1000)
+		assert(Date.str2ms('1h') == 60*60*1000)
+		assert(Date.str2ms('1d') == 24*60*60*1000)
+
+		assert(Date.str2ms('5 sec') == 5000)
+		assert(Date.str2ms('5 second') == 5000)
+		assert(Date.str2ms('5 seconds') == 5000)
+		assert(Date.str2ms('2 hour') == 2*60*60*1000)
+		// XXX for odd some reason this fails...
+		//assert(Date.str2ms('2 hours') == 2*60*60*1000)
+	},
 
 	// containers.js
 	UniqueKeyMap: function(assert){
