@@ -67,7 +67,23 @@ var cases = test.Cases({
 	// 	- reduceChunks
 	Array: function(assert){
 	},
+
+	// Set.js
+	// 	- unite
+	// 	- intersect
+	// 	- subtract
+	Array: function(assert){
+	},
 	
+	String: function(assert){
+		assert(''.capitalize() == '')
+		assert('a'.capitalize() == 'A')
+		assert('abc'.capitalize() == 'Abc')
+	},
+
+	RegExp: function(assert){
+	},
+
 	// Date.js
 	Date: function(assert){
 		var d = new Date()
@@ -106,6 +122,9 @@ var cases = test.Cases({
 		assert(Date.str2ms('2hour') == 2*60*60*1000, 'Date.str2ms("1hour")')
 		assert(Date.str2ms('2 Hour') == 2*60*60*1000, 'Date.str2ms("1 Hour")')
 		assert(Date.str2ms('2 hours') == 2*60*60*1000, 'Date.str2ms("1 hours")')
+
+		assert(Number.isNaN(Date.str2ms('moo')), 'Date.str2ms("moo")')
+		assert(Number.isNaN(Date.str2ms('123 moo')), 'Date.str2ms("moo")')
 	},
 
 	// containers.js
