@@ -3,7 +3,9 @@
 A library of JavaScript type extensions, types and type utilities.
 
 - [types.js](#typesjs)
-  - [Built-in type extenstions](#built-in-type-extenstions)
+  - [Installation](#installation)
+  - [Basic usage](#basic-usage)
+  - [Built-in type extensions](#built-in-type-extensions)
     - [`Object`](#object)
       - [`Object.deepKeys(..)`](#objectdeepkeys)
       - [`Object.match(..)`](#objectmatch)
@@ -43,13 +45,52 @@ A library of JavaScript type extensions, types and type utilities.
     - [`RegExp`](#regexp)
       - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
   - [Containers](#containers)
-    - [`UniqueKeyMap()` (`Map`)](#uniquekeymap-map)
+    - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.reset(..)`](#unique-key-mapreset)
       - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.rename(..)`](#unique-key-maprename)
       - [`<unique-key-map>.keysOf(..)`](#unique-key-mapkeysof)
+      - [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__)
+  - [License](#license)
 
-## Built-in type extenstions
+## Installation
+
+```shell
+$ npm install -s 'ig-types'
+```
+
+
+## Basic usage
+
+To extend everything:
+```javascript
+require('ig-types')
+```
+
+To have access to library types and utilities:
+```javascript
+var types = require('ig-types')
+```
+
+`types.js` is organized so as to be able to import/extend only specific 
+sub-modules mostly independently so...
+
+In case there is a need to only extend a specific constructor:
+```javascript
+// require `ig-types/<constructor-name>`...
+require('ig-types/Array')
+```
+
+And to import specific library modules only:
+```javascript
+var containers = require('ig-types/containers')
+```
+
+Note that though mostly independent now some sub-modules may import 
+others in the future.
+
+
+## Built-in type extensions
 
 ### `Object`
 
@@ -62,6 +103,40 @@ A library of JavaScript type extensions, types and type utilities.
 #### `Object.flatCopy(..)`
 
 #### `<object>.run(..)`
+
+```
+<object>.run(<func>)
+    -> <object>
+    -> <other>
+```
+
+Run a function in the context of `<object>` returning either `<object>` 
+itself (if returning `undefined`) or the result.
+
+Note that this is accessible from all JavaScript non-primitive objects, 
+i.e. everything that inherits from `Object`.
+
+Example:
+```javascript
+var L = [1, 2, 3]
+    .map(function(e){
+        return e * 2 })
+    // see if the first element is 1 and prepend 1 if it is not...
+    .run(function(){
+        if(this[0] != 1){
+            this.unshift(1) } })
+
+console.log(L) // -> [1, 2, 6, 8]
+```
+
+`.run(..)` is also available standalone via:
+
+```shell
+$ npm install -s object-run
+```
+
+For more info see:  
+https://github.com/flynx/object-run.js
 
 
 ### `Array`
@@ -148,14 +223,80 @@ Generate an array with all duplicate elements removed.
 
 ## Containers
 
-### `UniqueKeyMap()` (`Map`)
+```javascript
+var containers = require('ig-types').containers
+```
+or, to only import containers:
+```javascript
+var containers = require('ig-types/containers')
+```
 
-`UniqueKeyMap` extends the `Map` constructor.
+### `containers.UniqueKeyMap()` (`Map`)
 
-XXX
+`UniqueKeyMap` implements a key-value container (i.e. `Map`) that supports
+and maintains _duplicate_ keys by appending an index to them.  
+The original keys are stored internally thus the renaming mechanics are 
+stable.
+
+`UniqueKeyMap` extends the `Map` constructor, so all the usual `Map` 
+methods and properties apply here.
+
+To construct an instance:
+```javascript
+var x = new UniqueKeyMap()
+```
+or:
+```javascript
+// new is optional...
+var y = UniqueKeyMap()
+```
+
+`UniqueKeyMap` supports the same initialization signature as `Map` but 
+treats repeating keys differently.
+```javascript
+var z = UniqueKeyMap([['a', 1], ['a', 2], ['b', 1]])
+```
+
+The second `"a"` item will automatically get re-keyed as `"a (1)"`:
+```javascript
+console.log([...z.keys()]) // -> ['a', 'a (1)', 'b']
+```
+
+Note that `.set(..)` will never rewrite an element:
+```javascript
+z.set('a', 3)
+
+console.log([...z.keys()]) // -> ['a', 'a (1)', 'b', 'a (2)']
+
+z.get('a') // -> 1
+z.get('a (1)') // -> 2
+```
+
+To get the generated key:
+```javascript
+var k = z.set('a', 4, true)
+
+console.log(k) // -> 'a (3)'
+```
+
+To explicitly rewrite an item:
+```javascript
+z.reset('a (1)', 4)
+
+z.get('a (1)') // -> 4
+```
+
+And we can _rename_ items, i.e. change their key:
+```javascript
+z.rename('a (2)', 'c')
+
+console.log([...z.keys()]) // -> ['a', 'a (1)', 'b', 'a (3)', 'c']
+```
+
 
 For more info on `Map` see:  
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+
 
 #### `<unique-key-map>.reset(..)`
 
@@ -165,7 +306,16 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 
 #### `<unique-key-map>.keysOf(..)`
 
+#### `<unique-key-map>.__key_pattern__`
 
+
+
+## License
+
+[BSD 3-Clause License](./LICENSE)
+
+Copyright (c) 2020, Alex A. Naanou,  
+All rights reserved.
 
 
 <!-- vim:set ts=4 sw=4 spell : -->

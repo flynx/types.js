@@ -26,9 +26,21 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	// 	])
 	//
 	// XXX should .__keys_index be non-enumerable???
+	__keys_index: null,
 	get __keys(){
 		return (this.__keys_index = 
 			this.__keys_index || new Map()) },
+
+	// Format:
+	// 	Map([
+	// 		[<unique-key>, <orig-key>],
+	// 		...
+	// 	])
+	//
+	__reverse_index: null,
+	get __reverse(){
+		return (this.__reverse_index = 
+			this.__reverse_index || new Map()) },
 
 
 	// Patter to be used to generate unique key...
@@ -47,39 +59,10 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	__unique_key_value__: false,
 
 
-	// NOTE: this will never overwrite a key's value, to overwrite use .reset(..)
-	set: function(key, elem, return_key=false){
-		var names
-		var n
-		// index
-		this.__keys.set(elem, 
-			names = this.__keys.get(elem) || new Set())
-		// key/elem already exists...
-		if(this.__unique_key_value__ 
-				&& names.has(key)){
-			return return_key ?
-				key
-				: this }
-		names.add(key)
-		// add the elem with the unique name...
-		var res = object.parentCall(
-			UniqueKeyMap.prototype, 
-			'set', 
-			this, 
-			n = this.uniqieKey(key), 
-			elem) 
-		return return_key ?
-			n
-			: res },
-	reset: function(key, elem){
-		return object.parentCall(UniqueKeyMap.prototype, 'set', this, key, elem) },
-	delete: function(key){
-		var s = this.__keys.get(this.get(key))
-		if(s){
-			s.delete(key)
-			s.size == 0
-				& this.__keys.delete(this.get(key)) }
-		return object.parentCall(UniqueKeyMap.prototype, 'delete', this, key) },
+	// helpers...
+	//
+	originalKey: function(key){
+		return this.__reverse.get(key) },
 	uniqieKey: function(key){
 		var n = key
 		var i = 0
@@ -89,10 +72,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 				.replace(/\$KEY/, key)
 				.replace(/\$COUNT/, i) }
 		return n },
-	rename: function(from, to, return_key=false){
-		var e = this.get(from)
-		this.delete(from)
-		return this.set(to, e, return_key) },
 	keysOf: function(elem, mode='original'){
 		// get unique keys...
 		if(mode == 'unique'){
@@ -104,6 +83,136 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 					return res }, []) }
 		// get keys used to set the values...
 		return [...(this.__keys.get(elem) || [])] },
+	// NOTE: we do not touch .__keys here as no renaming is ever done...
+	// XXX this essentially rewrites the whole map, is there a faster/better 
+	// 		way to do this???
+	sortKeysAs: function(keys){
+		var del = object.parent(UniqueKeyMap.prototype, 'delete').bind(this)
+		var set = object.parent(UniqueKeyMap.prototype, 'set').bind(this)
+		new Set([...keys, ...this.keys()])
+			.forEach(function(k){
+				var v = this.get(k)
+				del(k)
+				set(k, v) }.bind(this))
+		return this },
+
+
+	// NOTE: this will never overwrite a key's value, to overwrite use .reset(..)
+	set: function(key, elem, return_key=false){
+		// index...
+		var names
+		this.__keys.set(elem, 
+			names = this.__keys.get(elem) || new Set())
+		// key/elem already exists...
+		if(this.__unique_key_value__ 
+				&& names.has(key)){
+			return return_key ?
+				key
+				: this }
+		names.add(key)
+		// add the elem with the unique name...
+		var n
+		var res = object.parentCall(
+			UniqueKeyMap.prototype, 
+			'set', 
+			this, 
+			n = this.uniqieKey(key), 
+			elem) 
+		// reverse index...
+		this.__reverse.set(n, key)
+		return return_key ?
+			n
+			: res },
+	// XXX in-place...
+	// XXX feels odd....
+	reset: function(key, elem, in_place=false){
+		// rewrite...
+		if(this.has(key)){
+			// remove old elem/key from .__keys...
+			var o = this.originalKey(key)
+			var s = this.__keys.get(this.get(key))
+			s.delete(o)
+			s.size == 0
+				&& this.__keys.delete(this.get(key))
+			// add new elem/key to .__keys...
+			var n
+			this.__keys.set(elem, (n = this.__keys.get(elem) || new Set()))
+			n.add(o)
+			
+			return object.parentCall(UniqueKeyMap.prototype, 'set', this, key, elem) 
+		// add...
+		} else {
+			return this.set(...arguments) } },
+	// XXX this affects order...
+	_reset: function(key, elem, return_key=false){
+		this.delete(key)
+		return this.set(...arguments) },
+	/*/
+	// XXX this will rewrite the whole thing when it does not have to...
+	_reset: function(key, elem, in_place=false){
+		var keys = [...this.keys()]
+
+		this.delete(key)
+		var res = this.set(...arguments) 
+
+		// keep order...
+		this.sortKeysAs(keys)
+
+		return res },
+	//*/
+	// XXX BUG: index leak...
+	// 		to reproduce:
+	// 			u = UniqueKeyMap([ ['a', 1], ['a', 2], ['a', 3] ])
+	// 			u.delete('a (1)')
+	// 				-> .__keys still contains [2, 'a'] -- should be gone...
+	// 		XXX need a way to get the original key for a specific key, in 
+	// 			this case: 'a (1)' -> 'a'
+	// 			...add a reverse index???
+	delete: function(key){
+		var s = this.__keys.get(this.get(key))
+		if(s){
+			// XXX will this delete if key is with an index???
+			//s.delete(key)
+			s.delete(this.originalKey(key))
+			this.__reverse.delete(key)
+			s.size == 0
+				&& this.__keys.delete(this.get(key)) }
+		return object.parentCall(UniqueKeyMap.prototype, 'delete', this, key) },
+	// XXX this affects order...
+	rename: function(from, to, return_key=false){
+		var e = this.get(from)
+		this.delete(from)
+		return this.set(to, e, return_key) },
+	// XXX in-place...
+	// XXX rename to .rename(..) 
+	/*/ XXX this is ugly...
+	_rename: function(from, to, return_key=false){
+		var res
+		for([k, v] of [...this.entries()]){
+			this.delete(k)
+			if(k == from){
+				res = this.set(to, v, return_key)
+			} else if(k != to) {
+				this.reset(k, v) } }
+		return res },
+	/*/
+	// XXX do not se how can we avoid rewriting the map if we want to 
+	// 		keep order...
+	_rename: function(from, to, return_key=false){
+		var keys = [...this.keys()]
+
+		var e = this.get(from)
+		this.delete(from)
+		var n = this.set(to, e, true) 
+
+		// keep order...
+		keys.splice(keys.indexOf(from), 1, n)
+		this.sortKeysAs(keys)
+
+		return return_key ?
+   			n
+			: this },
+	//*/
 })
 
 

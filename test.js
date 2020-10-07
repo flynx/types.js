@@ -128,6 +128,7 @@ var cases = test.Cases({
 	},
 
 	// containers.js
+	// XXX .reset(..) and .rename(..) should not affect order...
 	UniqueKeyMap: function(assert){
 		var a = assert(containers.UniqueKeyMap(), '')
 		var b = assert(containers.UniqueKeyMap([]), '')
@@ -162,7 +163,12 @@ var cases = test.Cases({
 
 		assert(c.keysOf(222).sort().cmp(['b', 'a'].sort()))
 
+		var k = [...c.keys()]
+
 		assert((n = c.rename('a', 'b', true)) == 'b (1)')
+
+		// XXX should .rename(..) affect element order??
+		//console.log('>>>>>', k, [...c.keys()])
 	},
 })
 
