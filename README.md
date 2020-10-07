@@ -46,10 +46,13 @@ A library of JavaScript type extensions, types and type utilities.
       - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
+      - [`<unique-key-map>.set(..)`](#unique-key-mapset)
       - [`<unique-key-map>.reset(..)`](#unique-key-mapreset)
-      - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.rename(..)`](#unique-key-maprename)
+      - [`<unique-key-map>.unorderedRename(..)`](#unique-key-mapunorderedrename)
       - [`<unique-key-map>.keysOf(..)`](#unique-key-mapkeysof)
+      - [`<unique-key-map>.originalKey(..)`](#unique-key-maporiginalkey)
+      - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__)
   - [License](#license)
 
@@ -298,13 +301,41 @@ For more info on `Map` see:
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
 
+#### `<unique-key-map>.set(..)`
+
+```
+<unique-key-map>.reset(<key>, <item>)
+    -> <unique-key-map>
+
+<unique-key-map>.reset(<key>, <item>, true)
+    -> <new-key>
+```
+
+Add an `<item>` to `<unique-key-map>`.
+
+If `<key>` already exists then add an index to it to make it unique.
+
+Key updating is done via [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__).
+
+
 #### `<unique-key-map>.reset(..)`
 
-#### `<unique-key-map>.uniqueKey(..)`
+```
+<unique-key-map>.reset(<key>, <item>)
+    -> <unique-key-map>
+```
+
+Explicitly write an `<item>` under `<key>` as-is, this is like `Map`'s `.set(..)`.
 
 #### `<unique-key-map>.rename(..)`
 
+#### `<unique-key-map>.unorderedRename(..)`
+
 #### `<unique-key-map>.keysOf(..)`
+
+#### `<unique-key-map>.originalKey(..)`
+
+#### `<unique-key-map>.uniqueKey(..)`
 
 #### `<unique-key-map>.__key_pattern__`
 
