@@ -123,9 +123,8 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		return return_key ?
 			n
 			: res },
-	// XXX in-place...
-	// XXX feels odd....
-	reset: function(key, elem, in_place=false){
+	// NOTE: this will never generate a new name...
+	reset: function(key, elem){
 		// rewrite...
 		if(this.has(key)){
 			// remove old elem/key from .__keys...
@@ -142,32 +141,7 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 			return object.parentCall(UniqueKeyMap.prototype, 'set', this, key, elem) 
 		// add...
 		} else {
-			return this.set(...arguments) } },
-	// XXX this affects order...
-	_reset: function(key, elem, return_key=false){
-		this.delete(key)
-		return this.set(...arguments) },
-	/*/
-	// XXX this will rewrite the whole thing when it does not have to...
-	_reset: function(key, elem, in_place=false){
-		var keys = [...this.keys()]
-
-		this.delete(key)
-		var res = this.set(...arguments) 
-
-		// keep order...
-		this.sortKeysAs(keys)
-
-		return res },
-	//*/
-	// XXX BUG: index leak...
-	// 		to reproduce:
-	// 			u = UniqueKeyMap([ ['a', 1], ['a', 2], ['a', 3] ])
-	// 			u.delete('a (1)')
-	// 				-> .__keys still contains [2, 'a'] -- should be gone...
-	// 		XXX need a way to get the original key for a specific key, in 
-	// 			this case: 'a (1)' -> 'a'
-	// 			...add a reverse index???
+			return this.set(key, elem) } },
 	delete: function(key){
 		var s = this.__keys.get(this.get(key))
 		if(s){
@@ -185,34 +159,20 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		return this.set(to, e, return_key) },
 	// XXX in-place...
 	// XXX rename to .rename(..) 
-	/*/ XXX this is ugly...
-	_rename: function(from, to, return_key=false){
-		var res
-		for([k, v] of [...this.entries()]){
-			this.delete(k)
-			if(k == from){
-				res = this.set(to, v, return_key)
-			} else if(k != to) {
-				this.reset(k, v) } }
-		return res },
-	/*/
 	// XXX do not se how can we avoid rewriting the map if we want to 
 	// 		keep order...
 	_rename: function(from, to, return_key=false){
 		var keys = [...this.keys()]
-
+		// rename the element...
 		var e = this.get(from)
 		this.delete(from)
 		var n = this.set(to, e, true) 
-
 		// keep order...
 		keys.splice(keys.indexOf(from), 1, n)
 		this.sortKeysAs(keys)
-
 		return return_key ?
    			n
 			: this },
-	//*/
 })
 
 
