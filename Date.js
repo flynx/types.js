@@ -73,17 +73,24 @@ module.patchDate = function(date){
 			var val = parseFloat(str)
 			str = str.trim()
 			// check if a unit is given...
-			str = str == val ? dfl : str }
-		
-		var c = /(m(illi)?(-)?s(ec(ond(s)?)?)?)$/i.test(str) ? 
+			str = str == val ? 
+				dfl 
+				: str }
+
+		// NOTE: this is a small hack to avoid overcomplicating the 
+		// 		pattern to still match the passed dfl unit...
+		str = ' '+str
+		var c = 
+			(/[^a-z](m(illi)?(-)?s(ec(ond(s)?)?)?)$/i.test(str)
+		   			|| /^[0-9]*(\.[0-9]+)?$/.test(str) ) ? 
 				1
-			: /s(ec(ond(s)?)?)?$/i.test(str) ? 
+			: /[^a-z]s(ec(ond(s)?)?)?$/i.test(str) ? 
 				1000
-			: /m(in(ute(s)?)?)?$/i.test(str) ? 
+			: /[^a-z]m(in(ute(s)?)?)?$/i.test(str) ? 
 				1000*60
-			: /h(our(s)?)?$/i.test(str) ? 
+			: /[^a-z]h(our(s)?)?$/i.test(str) ? 
 				1000*60*60
-			: /d(ay(s)?)?$/i.test(str) ? 
+			: /[^a-z]d(ay(s)?)?$/i.test(str) ? 
 				1000*60*60*24
 			: null
 

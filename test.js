@@ -19,6 +19,7 @@ var containers = require('./containers')
 
 //---------------------------------------------------------------------
 
+/*
 var setups = test.Setups({
 })
 
@@ -27,6 +28,7 @@ var modifiers = test.Modifiers({
 
 var tests = test.Tests({
 })
+//*/
 
 
 var cases = test.Cases({
@@ -67,13 +69,6 @@ var cases = test.Cases({
 	},
 	
 	// Date.js
-	// 	- toShortDate
-	// 	- getTimeStamp
-	// 	- setTimeStamp
-	// 	- timeStamp
-	// 	- fromTimeStamp
-	// 	- str2ms
-	// 	XXX
 	Date: function(assert){
 		var d = new Date()
 
@@ -96,19 +91,21 @@ var cases = test.Cases({
 		assert(a + '000' == Date.fromTimeStamp(a).getTimeStamp(true))
 		assert(b == Date.fromTimeStamp(b).getTimeStamp(true))
 
-		assert(Date.str2ms('1') == 1)
-		assert(Date.str2ms('1ms') == 1)
-		assert(Date.str2ms('1s') == 1000)
-		assert(Date.str2ms('1m') == 60*1000)
-		assert(Date.str2ms('1h') == 60*60*1000)
-		assert(Date.str2ms('1d') == 24*60*60*1000)
+		assert(Date.str2ms('1') == 1, 'Date.str2ms("1")')
+		assert(Date.str2ms(1) == 1, 'Date.str2ms(1)')
+		assert(Date.str2ms('1ms') == 1, 'Date.str2ms("1ms")')
+		assert(Date.str2ms('1s') == 1000, 'Date.str2ms("1s")')
+		assert(Date.str2ms('1m') == 60*1000, 'Date.str2ms("1m")')
+		assert(Date.str2ms('1h') == 60*60*1000, 'Date.str2ms("1h")')
+		assert(Date.str2ms('1d') == 24*60*60*1000, 'Date.str2ms("1d")')
 
-		assert(Date.str2ms('5 sec') == 5000)
-		assert(Date.str2ms('5 second') == 5000)
-		assert(Date.str2ms('5 seconds') == 5000)
-		assert(Date.str2ms('2 hour') == 2*60*60*1000)
-		// XXX for odd some reason this fails...
-		//assert(Date.str2ms('2 hours') == 2*60*60*1000)
+		assert(Date.str2ms('5 sec') == 5000, 'Date.str2ms("1 sec")')
+		assert(Date.str2ms('5 second') == 5000, 'Date.str2ms("1 second")')
+		assert(Date.str2ms('5 seconds') == 5000, 'Date.str2ms("1 seconds")')
+
+		assert(Date.str2ms('2hour') == 2*60*60*1000, 'Date.str2ms("1hour")')
+		assert(Date.str2ms('2 Hour') == 2*60*60*1000, 'Date.str2ms("1 Hour")')
+		assert(Date.str2ms('2 hours') == 2*60*60*1000, 'Date.str2ms("1 hours")')
 	},
 
 	// containers.js
