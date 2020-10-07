@@ -49,11 +49,13 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
       - [`<unique-key-map>.reset(..)`](#unique-key-mapreset)
       - [`<unique-key-map>.rename(..)`](#unique-key-maprename)
+      - [`<unique-key-map>.orderedRename(..)`](#unique-key-maporderedrename)
       - [`<unique-key-map>.unorderedRename(..)`](#unique-key-mapunorderedrename)
       - [`<unique-key-map>.keysOf(..)`](#unique-key-mapkeysof)
       - [`<unique-key-map>.originalKey(..)`](#unique-key-maporiginalkey)
       - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__)
+      - [`<unique-key-map>.__unordered_rename__`](#unique-key-map__unordered_rename__)
   - [License](#license)
 
 ## Installation
@@ -329,6 +331,25 @@ Explicitly write an `<item>` under `<key>` as-is, this is like `Map`'s `.set(..)
 
 #### `<unique-key-map>.rename(..)`
 
+```
+<unique-key-map>.rename(<from-key>, <to-key>)
+    -> <unique-key-map>
+
+<unique-key-map>.rename(<from-key>, <to-key>, true)
+    -> <new-key>
+```
+
+Rename item key from `<from-key>` to `<to-key>`.
+
+Same mechanics apply as for [`.set(..)`](#unique-key-mapset) for key uniqueness.
+
+Note, if [`.__unordered_rename__`](#unique-key-map__unordered_rename__) is 
+`false` (default) this calls [`.orderedRename(..)`](#unique-key-maporderedrename) 
+otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
+
+
+#### `<unique-key-map>.orderedRename(..)`
+
 #### `<unique-key-map>.unorderedRename(..)`
 
 #### `<unique-key-map>.keysOf(..)`
@@ -338,6 +359,8 @@ Explicitly write an `<item>` under `<key>` as-is, this is like `Map`'s `.set(..)
 #### `<unique-key-map>.uniqueKey(..)`
 
 #### `<unique-key-map>.__key_pattern__`
+
+#### `<unique-key-map>.__unordered_rename__`
 
 
 

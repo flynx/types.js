@@ -58,7 +58,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	//
 	__unique_key_value__: false,
 
-	__unorderd_writes__: false,
 
 
 	// helpers...
@@ -154,12 +153,13 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 			s.size == 0
 				&& this.__keys.delete(this.get(key)) }
 		return object.parentCall(UniqueKeyMap.prototype, 'delete', this, key) },
+
 	// NOTE: this maintains the item order. This is done by rewriting 
 	// 		items in sequence, this may be slow and trigger lots of write 
 	// 		observer callbacks. to avoid this use .unOrderedRename(..)
 	// XXX do not see how can we avoid rewriting the map if we want to 
 	// 		keep order...
-	rename: function(from, to, return_key=false){
+	orderedRename: function(from, to, return_key=false){
 		var keys = [...this.keys()]
 		// rename the element...
 		var e = this.get(from)
@@ -171,11 +171,17 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		return return_key ?
    			n
 			: this },
-	// NOTE: this affects order...
+	// NOTE: the renamed item is appended to the map...
 	unorderedRename: function(from, to, return_key=false){
 		var e = this.get(from)
 		this.delete(from)
 		return this.set(to, e, return_key) },
+
+	__unorderd_rename__: false,
+	rename: function(from, to, return_key=false){
+		return this.__unorderd_writes__ ?
+			this.unorderedRename(...arguments)
+			: this.orderedRename(...arguments) },
 })
 
 
