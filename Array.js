@@ -94,53 +94,6 @@ Array.prototype.compact = function(){
 	})
 
 
-// Convert an array to object...
-//
-// Format:
-// 	{
-// 		<item>: <index>,
-// 		...
-// 	}
-//
-// NOTE: items should be strings, other types will get converted to 
-// 		strings and thus may mess things up.
-// NOTE: this will forget repeating items...
-// NOTE: normalize will slow things down...
-Array.prototype.toKeys = function(normalize){
-	return normalize ? 
-		this.reduce(function(r, e, i){
-			r[normalize(e)] = i
-			return r }, {})
-		: this.reduce(function(r, e, i){
-			r[e] = i
-			return r }, {}) }
-
-
-// Convert an array to a map...
-//
-// This is similar to Array.prototype.toKeys(..) but does not restrict 
-// value type to string.
-//
-// Format:
-// 	Map([
-// 		[<item>, <index>],
-// 		...
-// 	])
-//
-// NOTE: this will forget repeating items...
-// NOTE: normalize will slow things down...
-Array.prototype.toMap = function(normalize){
-	return normalize ? 
-		this
-			.reduce(function(m, e, i){
-				m.set(normalize(e), i)
-				return m }, new Map())
-		: this
-			.reduce(function(m, e, i){
-				m.set(e, i)
-				return m }, new Map()) }
-
-
 // Return an array with duplicate elements removed...
 //
 // NOTE: order is preserved... 
@@ -155,8 +108,10 @@ Array.prototype.tailUnique = function(normalize){
 		.unique(normalize)
 		.reverse() }
 
+
 // Compare two arrays...
 //
+// XXX unify this with ./Object.js (.match(..)) and diff.js
 Array.prototype.cmp = function(other){
 	if(this === other){
 		return true }
@@ -170,17 +125,10 @@ Array.prototype.cmp = function(other){
 
 // Compare two Arrays as sets...
 //
-// This will ignore order
-//
-// XXX should we use Set(..) here???
+// NOTE: this will ignore order and repeating elments...
 Array.prototype.setCmp = function(other){
 	return this === other 
-		|| this
-			.unique()
-			.sort()
-			.cmp(other
-				.unique()
-				.sort()) }
+		|| (new Set([...this, ...other])).length == (new Set(this)).length }
 
 
 // Sort as the other array...
@@ -319,6 +267,53 @@ Array.prototype.reduceChunks = makeChunkIter('reduce',
 				total.pop() 
 				: res, 
 			e[1], e[0], array) })
+
+
+// Convert an array to object...
+//
+// Format:
+// 	{
+// 		<item>: <index>,
+// 		...
+// 	}
+//
+// NOTE: items should be strings, other types will get converted to 
+// 		strings and thus may mess things up.
+// NOTE: this will forget repeating items...
+// NOTE: normalize will slow things down...
+Array.prototype.toKeys = function(normalize){
+	return normalize ? 
+		this.reduce(function(r, e, i){
+			r[normalize(e)] = i
+			return r }, {})
+		: this.reduce(function(r, e, i){
+			r[e] = i
+			return r }, {}) }
+
+
+// Convert an array to a map...
+//
+// This is similar to Array.prototype.toKeys(..) but does not restrict 
+// value type to string.
+//
+// Format:
+// 	Map([
+// 		[<item>, <index>],
+// 		...
+// 	])
+//
+// NOTE: this will forget repeating items...
+// NOTE: normalize will slow things down...
+Array.prototype.toMap = function(normalize){
+	return normalize ? 
+		this
+			.reduce(function(m, e, i){
+				m.set(normalize(e), i)
+				return m }, new Map())
+		: this
+			.reduce(function(m, e, i){
+				m.set(e, i)
+				return m }, new Map()) }
 
 
 

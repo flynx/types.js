@@ -20,6 +20,7 @@ Object.deepKeys =
 		|| object.deepKeys
 
 
+// XXX unify this with ./Array.js (.match(..)) and diff.js
 Object.match = 
 	Object.match 
 		|| object.match
@@ -37,6 +38,22 @@ Object.flatCopy = function(obj){
 			res[key] = obj[key] 
 			return res }, {}) }
 
+
+Object.sort = function(obj, keys){
+	keys = (typeof(keys) == 'function'
+			|| keys === undefined) ? 
+		[...Object.keys(obj)].sort(keys)
+		: keys
+	new Set([...keys, ...Object.keys(obj)])
+		.forEach(function(k){
+			if(k in obj){
+				var v = obj[k]
+				delete obj[k]
+				obj[k] = v } })
+	return obj }
+// keep the null prototype clean...
+//Object.prototype.sort = function(keys){
+//	return Object.sort(this, keys) }
 
 
 

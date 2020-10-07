@@ -7,6 +7,8 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
+require('./Map')
+
 var object = require('ig-object')
 
 
@@ -84,19 +86,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 					return res }, []) }
 		// get keys used to set the values...
 		return [...(this.__keys.get(elem) || [])] },
-	// NOTE: we do not touch .__keys here as no renaming is ever done...
-	// XXX this essentially rewrites the whole map, is there a faster/better 
-	// 		way to do this???
-	sortKeysAs: function(keys){
-		var del = object.parent(UniqueKeyMap.prototype, 'delete').bind(this)
-		var set = object.parent(UniqueKeyMap.prototype, 'set').bind(this)
-		new Set([...keys, ...this.keys()])
-			.forEach(function(k){
-				var v = this.get(k)
-				del(k)
-				set(k, v) }.bind(this))
-		return this },
-
 
 	// NOTE: this will never overwrite a key's value, to overwrite use .reset(..)
 	set: function(key, elem, return_key=false){
@@ -167,7 +156,7 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 		var n = this.set(to, e, true) 
 		// keep order...
 		keys.splice(keys.indexOf(from), 1, n)
-		this.sortKeysAs(keys)
+		this.sort(keys)
 		return return_key ?
    			n
 			: this },

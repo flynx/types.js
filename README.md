@@ -12,12 +12,11 @@ A library of JavaScript type extensions, types and type utilities.
       - [`Object.matchPartial(..)`](#objectmatchpartial)
       - [`Object.flatCopy(..)`](#objectflatcopy)
       - [`<object>.run(..)`](#objectrun)
+      - [`Object.sort(..)`](#objectsort)
     - [`Array`](#array)
       - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
       - [`<array>.compact()`](#arraycompact)
       - [`<array>.len`](#arraylen)
-      - [`<array>.toKeys(..)`](#arraytokeys)
-      - [`<array>.toMap(..)`](#arraytomap)
       - [`<array>.unique(..)` / `<array>.tailUnique(..)`](#arrayunique--arraytailunique)
       - [`<array>.cmp(..)`](#arraycmp)
       - [`<array>.setCmp(..)`](#arraysetcmp)
@@ -26,13 +25,18 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
       - [`<array>.reduceChunks(..)`](#arrayreducechunks)
+      - [`<array>.toKeys(..)`](#arraytokeys)
+      - [`<array>.toMap(..)`](#arraytomap)
     - [`Array` (polyfill)](#array-polyfill)
       - [`<array>.flat()`](#arrayflat)
       - [`<array>.includes()`](#arrayincludes)
+    - [`Map`](#map)
+      - [`<map>.sort(..)`](#mapsort)
     - [`Set`](#set)
       - [`<set>.unite(..)`](#setunite)
       - [`<set>.intersect(..)`](#setintersect)
       - [`<set>.subtract(..)`](#setsubtract)
+      - [`<set>.sort(..)`](#setsort)
     - [`Date`](#date)
       - [`Date.timeStamp(..)`](#datetimestamp)
       - [`Date.fromTimeStamp(..)`](#datefromtimestamp)
@@ -144,14 +148,42 @@ For more info see:
 https://github.com/flynx/object-run.js
 
 
+#### `Object.sort(..)`
+
+
+
 ### `Array`
 
 #### `<array>.first(..)` / `<array>.last(..)`
 
-Get or set the first/last items of `<array>`.
+Get the first/last items of `<array>`.
+```
+<array>.first()
+  -> <item>
+
+<array>.last()
+  -> <item>
+```
+
+Set the first/last items of `<array>`.
+```
+<array>.first(<item>)
+  -> <array>
+
+<array>.last(<item>)
+  -> <array>
+```
+
+Note that these do not affect `<array>` length unless setting items on 
+an empty `<array>`.
 
 
 #### `<array>.compact()`
+
+```
+<array>.compact()
+  -> <compact-array>
+```
 
 Generate a compact `<array>` from a sparse `<array>`, i.e. removing all
 the empty slots.
@@ -161,16 +193,35 @@ the empty slots.
 
 Number of non-empty slots/elements in `<array>`.
 
+This is similar to:
+```javascript
+var L = [,,, 1,, 2, 3,,]
 
-#### `<array>.toKeys(..)`
+// this is the same as L.len...
+L.compact().length 
+```
 
-#### `<array>.toMap(..)`
+Note that this is different from `.length` in that writing to `.len` has
+no effect.
 
 #### `<array>.unique(..)` / `<array>.tailUnique(..)`
 
 Generate an array with all duplicate elements removed.
 
 #### `<array>.cmp(..)`
+
+```
+<array>.cmp(<other>)
+  -> <bool>
+```
+
+Compare `<array>` to `<other>`.
+
+This will return `true` if:
+- `<array>` === `<other>` or,
+- lengths are the same and,
+- values on the same positions are equal.
+
 
 #### `<array>.setCmp(..)`
 
@@ -184,12 +235,21 @@ Generate an array with all duplicate elements removed.
 
 #### `<array>.reduceChunks(..)`
 
+#### `<array>.toKeys(..)`
+
+#### `<array>.toMap(..)`
+
 
 ### `Array` (polyfill)
 
 #### `<array>.flat()`
 
 #### `<array>.includes()`
+
+
+### `Map`
+
+#### `<map>.sort(..)`
 
 
 ### `Set`
@@ -199,6 +259,8 @@ Generate an array with all duplicate elements removed.
 #### `<set>.intersect(..)`
 
 #### `<set>.subtract(..)`
+
+#### `<set>.sort(..)`
 
 
 ### `Date`
@@ -235,6 +297,9 @@ or, to only import containers:
 ```javascript
 var containers = require('ig-types/containers')
 ```
+
+Note that this will also import `Map`.
+
 
 ### `containers.UniqueKeyMap()` (`Map`)
 

@@ -43,9 +43,9 @@ var cases = test.Cases({
 				y: 333,
 				z: 444,
 			})
-		var oo = Object.flatCopy(o)
+		var oo = assert(Object.flatCopy(o), 'Object.flatCopy(..)')
 
-		assert(Object.match(oo, {x: 111, y: 333, z: 444}), '')
+		assert(Object.match(oo, {x: 111, y: 333, z: 444}), 'Object.match(..)')
 	},
 
 	// Array.js

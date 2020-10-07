@@ -12,31 +12,22 @@
 
 /*********************************************************************/
 
-// Set set operation shorthands...
-Set.prototype.unite = function(other){ 
-	return new Set([...this, ...other]) }
-Set.prototype.intersect = function(other){
-	var test = other.has ?  'has' : 'includes'
-	return new Set([...this]
-		.filter(function(e){ return other[test](e) })) }
-Set.prototype.subtract = function(other){
-	other = new Set(other)
-	return new Set([...this]
-		.filter(function(e){ return !other.has(e) })) }
-
-
+// NOTE: we do not touch .__keys here as no renaming is ever done...
+// XXX this essentially rewrites the whole map, is there a faster/better 
+// 		way to do this???
 Map.prototype.sort = function(keys){
 	keys = (typeof(keys) == 'function' 
 			|| keys === undefined) ?
-		[...this].sort(keys)
+		[...this.keys()].sort(keys)
 		: keys
-	var del = Set.prototype.delete.bind(this)
-	var add = Set.prototype.add.bind(this)
-	new Set([...keys, ...this])
-		.forEach(function(e){
-			if(this.has(e)){
-				del(e)
-				add(e) } }.bind(this))
+	var del = Map.prototype.delete.bind(this)
+	var set = Map.prototype.set.bind(this)
+	new Set([...keys, ...this.keys()])
+		.forEach(function(k){
+			if(this.has(k)){
+				var v = this.get(k)
+				del(k)
+				set(k, v) } }.bind(this))
 	return this }
 
 
