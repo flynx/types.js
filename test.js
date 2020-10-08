@@ -33,7 +33,8 @@ var tests = test.Tests({
 
 var cases = test.Cases({
 	// Object.js
-	// 	- flatCopy
+	//
+	// XXX need to test sort with cmp function...
 	Object: function(assert){
 		var o = Object.assign(
 			Object.create({
@@ -46,6 +47,19 @@ var cases = test.Cases({
 		var oo = assert(Object.flatCopy(o), 'Object.flatCopy(..)')
 
 		assert(Object.match(oo, {x: 111, y: 333, z: 444}), 'Object.match(..)')
+
+		var k = ['z', 'x', 'y']
+		assert(Object.keys(Object.sort(oo, k)).cmp(k), 'Object.sort(,,)')
+
+		assert(Object.keys(Object.sort(oo)).cmp(k.slice().sort()), 'Object.sort(,,)')
+
+		var cmp = function(a, b){
+			return a == 'y' ?
+					1
+				: a == 'z' ?
+					-1
+				: 0 }
+		assert(Object.keys(Object.sort(oo, cmp)).cmp(k.slice().sort(cmp)), 'Object.sort(,,)')
 	},
 
 	// Array.js
@@ -72,7 +86,13 @@ var cases = test.Cases({
 	// 	- unite
 	// 	- intersect
 	// 	- subtract
-	Array: function(assert){
+	// 	- sort
+	Set: function(assert){
+	},
+	
+	// Map.js
+	// 	- sort
+	Map: function(assert){
 	},
 	
 	String: function(assert){
@@ -128,7 +148,6 @@ var cases = test.Cases({
 	},
 
 	// containers.js
-	// XXX .reset(..) and .rename(..) should not affect order...
 	UniqueKeyMap: function(assert){
 		var a = assert(containers.UniqueKeyMap(), '')
 		var b = assert(containers.UniqueKeyMap([]), '')
@@ -164,11 +183,15 @@ var cases = test.Cases({
 		assert(c.keysOf(222).sort().cmp(['b', 'a'].sort()))
 
 		var k = [...c.keys()]
+		k[k.indexOf('a')] = 'b (1)'
 
 		assert((n = c.rename('a', 'b', true)) == 'b (1)')
 
-		// XXX should .rename(..) affect element order??
-		//console.log('>>>>>', k, [...c.keys()])
+		// check order...
+		// XXX since we are using Array's .cmp(..) would be nice to be 
+		// 		able to fail this test if that fails to test correctly...
+		// 		...not sure how to do this though...
+		assert(k.cmp([...c.keys()]), '.rename(..) order')
 	},
 })
 
