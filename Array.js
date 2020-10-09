@@ -12,6 +12,9 @@
 
 /*********************************************************************/
 
+// XXX move .zip(..) here from diff.js
+
+
 // Array.prototype.flat polyfill...
 //
 // NOTE: .flat(..) is not yet supported in IE/Edge...
@@ -44,6 +47,9 @@ Array.prototype.includes
 // NOTE: setting a value will overwrite an existing first/last value.
 // NOTE: for an empty array both .first(..)/.last(..) will return undefined 
 // 		when getting a value and set the 0'th value when setting...
+// NOTE: decided to keep these as methods and not props because methods
+// 		have one advantage: they can be chained
+// 		...while you can't chain assignment unless you wrap it in .run(..)
 Array.prototype.first
 	|| (Array.prototype.first = function(value){
 		return arguments.length > 0 ?
@@ -56,27 +62,6 @@ Array.prototype.last
 			: this[this.length - 1]})
 
 
-/*/ XXX not yet sure should these be funcs or props...
-'first' in Array.prototype
-	|| Object.defineProperty(Array.prototype, 'first', {
-		enumerable: false,
-		get : function () {
-			return this[0] },
-		set : function(value){
-			this[0] = value 
-			return this }, })
-
-'last' in Array.prototype
-	|| Object.defineProperty(Array.prototype, 'last', {
-		enumerable: false,
-		get : function () {
-			return this[this.length - 1] },
-		set : function(value){
-			this[this.length - 1 || 0] = value 
-			return this }, })
-//*/
-
-
 // Compact a sparse array...
 //
 // NOTE: this will not compact in-place.
@@ -85,6 +70,7 @@ Array.prototype.compact = function(){
 
 
 // like .length but for sparse arrays will return the element count...
+//
 'len' in Array.prototype
 	|| Object.defineProperty(Array.prototype, 'len', {
 		get : function () {
@@ -111,7 +97,12 @@ Array.prototype.tailUnique = function(normalize){
 
 // Compare two arrays...
 //
-// XXX unify this with ./Object.js (.match(..)) and diff.js
+// NOTE: this is diffectent from Object.match(..) in that this compares 
+// 		self to other (internal) while match compares two entities 
+// 		externally.
+// 		XXX not sure if we need the destinction in name, will have to 
+// 			come back to this when refactoring diff.js -- all three have
+// 			to be similar...
 Array.prototype.cmp = function(other){
 	if(this === other){
 		return true }
@@ -164,7 +155,7 @@ Array.prototype.inplaceSortAs = function(other){
 		.filter(function(e){ 
 			return other.includes(e) })
 		.sortAs(other)
-	// zip the sorted items back into this...
+	// "zip" the sorted items back into this...
 	this.forEach(function(e, i, l){
 		other.includes(e) 
 			&& (l[i] = sorted.shift()) })
