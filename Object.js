@@ -98,11 +98,15 @@ Object.sort = function(obj, keys){
 				delete obj[k]
 				Object.defineProperty(obj, k, v) } })
 	return obj }
+//* XXX for some reason this shadows Map.prototype.sort
 Object.prototype.sort
 	|| Object.defineProperty(Object.prototype, 'sort', {
+		writable: true,
+		configurable: true,
 		enumerable: false,
 		value: function(keys){
 			return Object.sort(this, keys) }, })
+//*/
 
 
 

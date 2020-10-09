@@ -11,6 +11,7 @@
 require('./Object')
 require('./Array')
 require('./Set')
+require('./Map')
 require('./String')
 require('./RegExp')
 module.patchDate = require('./Date').patchDate
