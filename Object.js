@@ -98,7 +98,7 @@ Object.sort = function(obj, keys){
 				delete obj[k]
 				Object.defineProperty(obj, k, v) } })
 	return obj }
-//* XXX for some reason this shadows Map.prototype.sort
+/* XXX this messes up things...
 Object.prototype.sort
 	|| Object.defineProperty(Object.prototype, 'sort', {
 		writable: true,
