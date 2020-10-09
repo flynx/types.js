@@ -13,8 +13,15 @@
 /*********************************************************************/
 
 // NOTE: we do not touch .__keys here as no renaming is ever done...
+//
 // XXX this essentially rewrites the whole map, is there a faster/better 
 // 		way to do this???
+// 		...one way would be to decouple order from the container, i.e.
+// 		store the order in a separate attr/prop but this would require
+// 		a whole new set of ordered "type" that would overload every single
+// 		iteration method, not sure if this is a good idea untill we 
+// 		reach a state whe JS "shuffles" (index-orders) its containers 
+// 		(a-la Python)
 Map.prototype.sort = function(keys){
 	keys = (typeof(keys) == 'function' 
 			|| keys === undefined) ?

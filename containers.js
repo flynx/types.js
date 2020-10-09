@@ -2,7 +2,7 @@
 * 
 *
 *
-**********************************************/  /* c8 ignore next 2 */
+***********************************************/ /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
@@ -27,7 +27,6 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	// 		...
 	// 	])
 	//
-	// XXX should .__keys_index be non-enumerable???
 	__keys_index: null,
 	get __keys(){
 		return (this.__keys_index = 
@@ -45,7 +44,8 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 			this.__reverse_index || new Map()) },
 
 
-	// Patter to be used to generate unique key...
+	// Pattern to be used to generate unique key...
+	//
 	__key_pattern__: '$KEY ($COUNT)',
 
 	// If true then a value can not be stored under the same key more 
@@ -147,7 +147,7 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 	// 		items in sequence, this may be slow and trigger lots of write 
 	// 		observer callbacks. to avoid this use .unOrderedRename(..)
 	// XXX do not see how can we avoid rewriting the map if we want to 
-	// 		keep order...
+	// 		keep the order...
 	orderedRename: function(from, to, return_key=false){
 		var keys = [...this.keys()]
 		// rename the element...

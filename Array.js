@@ -2,6 +2,10 @@
 * 
 *
 *
+* XXX move .zip(..) here from diff.js
+* XXX do we need .at(..) / .to(..) methods here and in Map/Set/...???
+*
+*
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
@@ -11,9 +15,6 @@
 
 
 /*********************************************************************/
-
-// XXX move .zip(..) here from diff.js
-
 
 // Array.prototype.flat polyfill...
 //
@@ -129,6 +130,9 @@ Array.prototype.setCmp = function(other){
 //
 // NOTE: if an item is in the array multiple times only the first index 
 // 		is used...
+//
+// XXX should this extend/patch .sort(..)???
+// 		...currently do not see a clean way to do this...
 Array.prototype.sortAs = function(other){
 	// NOTE: the memory overhead here is better than the time overhead 
 	// 		when using .indexOf(..)...
@@ -148,7 +152,10 @@ Array.prototype.sortAs = function(other){
 
 // Same as .sortAs(..) but will not change indexes of items not in other...
 //
-// XXX not sure if this is the best way to do this...
+// Example:
+// 		['a', 3, 'b', 1, 2, 'c']
+// 			.inplaceSortAs([1, 2, 3, 3]) // -> ['a', 1, 'b', 2, 3, 'c']
+//
 Array.prototype.inplaceSortAs = function(other){
 	// sort only the intersection...
 	var sorted = this
