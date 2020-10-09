@@ -8,9 +8,10 @@ A library of JavaScript type extensions, types and type utilities.
   - [Built-in type extensions](#built-in-type-extensions)
     - [`Object`](#object)
       - [`Object.deepKeys(..)`](#objectdeepkeys)
+      - [`Object.copy(..)`](#objectcopy)
+      - [`Object.flatCopy(..)`](#objectflatcopy)
       - [`Object.match(..)`](#objectmatch)
       - [`Object.matchPartial(..)`](#objectmatchpartial)
-      - [`Object.flatCopy(..)`](#objectflatcopy)
       - [`<object>.run(..)`](#objectrun)
       - [`Object.sort(..)`](#objectsort)
     - [`Array`](#array)
@@ -76,7 +77,7 @@ To extend everything:
 require('ig-types')
 ```
 
-To have access to library types and utilities:
+To have access to additional library types and utilities:
 ```javascript
 var types = require('ig-types')
 ```
@@ -84,19 +85,18 @@ var types = require('ig-types')
 `types.js` is organized so as to be able to import/extend only specific 
 sub-modules mostly independently so...
 
-In case there is a need to only extend a specific constructor:
+In case there is a need to only extend a specific constructor just import 
+the module dealing with that constructor (`Array` in this case):
 ```javascript
 // require `ig-types/<constructor-name>`...
 require('ig-types/Array')
 ```
+Note that type patching modules are mostly independent.
 
 And to import specific library modules only:
 ```javascript
 var containers = require('ig-types/containers')
 ```
-
-Note that though mostly independent now some sub-modules may import 
-others in the future.
 
 
 ## Built-in type extensions
@@ -105,11 +105,36 @@ others in the future.
 
 #### `Object.deepKeys(..)`
 
+```
+Object.deepKeys(<obj>)
+  -> <keys>
+```
+
+Get list of keys from all objects in the prototype chain.
+
+This is different from `Object.keys(..)` which only gets _own_ keys from the 
+current object.
+
+Example:
+```javascript
+var a = { x: 123 }
+var b = Object.create(a)
+b.y = 321
+
+// get own keys of b...
+Object.keys(b) // -> ['y']
+
+// get all keys accessible from b...
+Object.deepKeys(b) // -> ['x', 'y']
+```
+
+#### `Object.copy(..)`
+
+#### `Object.flatCopy(..)`
+
 #### `Object.match(..)`
 
 #### `Object.matchPartial(..)`
-
-#### `Object.flatCopy(..)`
 
 #### `<object>.run(..)`
 

@@ -51,14 +51,34 @@ toObject(
 
 //---------------------------------------------------------------------
 
+// Make a copy of an object...
+//
+// This will:
+// 	- create a new object linked to the same prototype chain as obj
+// 	- copy obj own state
+//
+// NOTE: this will copy prop values and not props...
+Object.copy = function(obj, constructor){
+	return Object.assign(
+		constructor == null ?
+			Object.create(obj.__proto__)
+			: constructor(),
+		obj) }
+
+
 // Make a full key set copy of an object...
 //
+// NOTE: this will copy prop values and not props...
 // NOTE: this will not deep-copy the values...
-Object.flatCopy = function(obj){
+Object.flatCopy = function(obj, constructor){
 	return Object.deepKeys(obj)
-		.reduce(function(res, key){
-			res[key] = obj[key] 
-			return res }, {}) }
+		.reduce(
+			function(res, key){
+				res[key] = obj[key] 
+				return res },
+			constructor == null ?
+				{}
+				: constructor()) }
 
 
 // XXX for some reason neumric keys do not respect order...
