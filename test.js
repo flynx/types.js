@@ -34,7 +34,6 @@ var tests = test.Tests({
 var cases = test.Cases({
 	// Object.js
 	//
-	// XXX need to test sort with cmp function...
 	Object: function(assert){
 		var o = Object.assign(
 			Object.create({
@@ -63,14 +62,12 @@ var cases = test.Cases({
 	},
 
 	// Array.js
-	// 	- flat
-	// 	- includes
+	// 	- flat (???)
+	// 	- includes (???)
 	// 	- first
 	// 	- last
 	// 	- compact
 	// 	- len
-	// 	- toKeys
-	// 	- toMap
 	// 	- unique
 	// 	- tailUnique
 	// 	- cmp
@@ -79,6 +76,8 @@ var cases = test.Cases({
 	// 	- mapChunks
 	// 	- filterChunks
 	// 	- reduceChunks
+	// 	- toKeys
+	// 	- toMap
 	Array: function(assert){
 	},
 

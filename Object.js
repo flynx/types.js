@@ -2,6 +2,14 @@
 * 
 *
 *
+* XXX shoule we add these from object to Object?
+* 		- .parent(..)
+* 		- .parentProperty(..)
+* 		- .parentCall(..)
+* 		- .parentOf(..)
+* 		- .childOf(..)
+* 		- .related(..)
+*
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
@@ -14,20 +22,34 @@ var object = require('ig-object')
 
 
 /*********************************************************************/
+// import stuff from object.js to Object...
 
-Object.deepKeys = 
-	Object.deepKeys 
-		|| object.deepKeys
+var toObject = function(...keys){
+	keys.forEach(function(key){
+		Object[key] 
+			|| (Object[key] = object[key]) }) }
+
+toObject(
+	'deepKeys',
+
+	// XXX these should be called logically relative to Array.js and diff.js...
+	'match',
+	'matchPartial',
+
+	/* XXX not yet sure about these...
+	// XXX EXPERIMENTAL...
+	'parent',
+	'parentProperty',
+	'parentCall',
+
+	'parentOf',
+	'childOf',
+	'related',
+	//*/
+)
 
 
-// XXX unify this with ./Array.js (.match(..)) and diff.js
-Object.match = 
-	Object.match 
-		|| object.match
-Object.matchPartial = 
-	Object.matchPartial 
-		|| object.matchPartil
-
+//---------------------------------------------------------------------
 
 // Make a full key set copy of an object...
 //
@@ -39,6 +61,11 @@ Object.flatCopy = function(obj){
 			return res }, {}) }
 
 
+// XXX for some reason neumric keys do not respect order...
+// 		to reproduce:
+// 			Object.keys({a:0, x:1, 10:2, 0:3, z:4, ' 1 ':5})
+// 			// -> ["0", "10", "a", "x", "z", " 1 "]
+// 		...this is the same across Chrome and Firefox...
 Object.sort = function(obj, keys){
 	keys = (typeof(keys) == 'function'
 			|| keys === undefined) ? 
@@ -47,13 +74,16 @@ Object.sort = function(obj, keys){
 	new Set([...keys, ...Object.keys(obj)])
 		.forEach(function(k){
 			if(k in obj){
-				var v = obj[k]
+				var v = Object.getOwnPropertyDescriptor(obj, k)
 				delete obj[k]
-				obj[k] = v } })
+				Object.defineProperty(obj, k, v) } })
 	return obj }
-// keep the null prototype clean...
-//Object.prototype.sort = function(keys){
-//	return Object.sort(this, keys) }
+Object.prototype.sort
+	|| Object.defineProperty(Object.prototype, 'sort', {
+		enumerable: false,
+		value: function(keys){
+			return Object.sort(this, keys) }, })
+
 
 
 
