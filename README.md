@@ -327,7 +327,7 @@ This will return `true` if:
 Iterating over very large `Array` instances in JavaScript can block execution,
 to avoid this `types.js` implements `.map(..)`/`.filter(..)`/`.reduce(..)`
 equivalent methods that split the array into chunks and iterate through
-them asynchroniosly giving the runtime a chance to run in between.
+them asynchronously giving the runtime a chance to run in between.
 
 #### `<array>.mapChunks(..)`
 
