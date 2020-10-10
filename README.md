@@ -386,7 +386,7 @@ or, to only import containers:
 var containers = require('ig-types/containers')
 ```
 
-Note that this will also import `Map`.
+Note that this will also import `ig-types/Map`.
 
 
 ### `containers.UniqueKeyMap()` (`Map`)
