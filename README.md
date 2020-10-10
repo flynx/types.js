@@ -317,15 +317,23 @@ This will return `true` if:
 
 #### `<array>.inplaceSortAs(..)`
 
+#### `<array>.toKeys(..)`
+
+#### `<array>.toMap(..)`
+
+
+### Large `Array` iteration (chunked)
+
+Iterating over very large `Array` instances in JavaScript can block execution,
+to avoid this `types.js` implements `.map(..)`/`.filter(..)`/`.reduce(..)`
+equivalent methods that split the array into chunks and iterate through
+them asynchroniosly giving the runtime a chance to run in between.
+
 #### `<array>.mapChunks(..)`
 
 #### `<array>.filterChunks(..)`
 
 #### `<array>.reduceChunks(..)`
-
-#### `<array>.toKeys(..)`
-
-#### `<array>.toMap(..)`
 
 
 ### `Array` (polyfill)
