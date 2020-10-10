@@ -142,7 +142,7 @@ This will:
 - link `<obj-copy>` to the same prototype chain
 - copy all _own_ keys from `<obj>` to `<obj-copy>`
 
-Note that this will make to attempt to clone object type.
+Note that this will make no attempt to clone object type.
 
 _XXX not yet sure how useful this is._
 
