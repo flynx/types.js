@@ -8,7 +8,7 @@ A library of JavaScript type extensions, types and type utilities.
   - [Built-in type extensions](#built-in-type-extensions)
     - [`Object`](#object)
       - [`Object.deepKeys(..)`](#objectdeepkeys)
-      - [`Object.copy(..)`](#objectcopy)
+      - [`Object.copy(..)` (EXPERIMENTAL)](#objectcopy-experimental)
       - [`Object.flatCopy(..)`](#objectflatcopy)
       - [`Object.match(..)`](#objectmatch)
       - [`Object.matchPartial(..)`](#objectmatchpartial)
@@ -128,9 +128,34 @@ Object.keys(b) // -> ['y']
 Object.deepKeys(b) // -> ['x', 'y']
 ```
 
-#### `Object.copy(..)`
+#### `Object.copy(..)` (EXPERIMENTAL)
+
+```
+Object.copy(<obj>)
+  -> <obj-copy>
+```
+
+Create a copy of `<obj>`
+
+This will:
+- create a blank `<obj-copy>`
+- link `<obj-copy>` to the same prototype chain
+- copy all _own_ keys from `<obj>` to `<obj-copy>`
+
+Note that this will make to attempt to clone object type.
+
+_XXX not yet sure how useful this is._
+
 
 #### `Object.flatCopy(..)`
+
+```
+Object.flatCopy(<obj>)
+  -> <new-obj>
+```
+
+Copy all attributes from the prototype chain of `<obj>` into `<new-obj>`.
+
 
 #### `Object.match(..)`
 
@@ -174,6 +199,44 @@ https://github.com/flynx/object-run.js
 
 
 #### `Object.sort(..)`
+
+Sort `<obj>` attributes (same as `Array`'s `.sort(..)`)
+```
+Object.sort(<obj>)
+  -> <obj>
+```
+
+Sort `<obj>` attributes via `<cmp>` function.
+```
+Object.sort(<obj>, <cmp>)
+  -> <obj>
+```
+
+Sort `<obj>` attributes to the same order of `<order-list>`.
+```
+Object.sort(<obj>, <order-list>)
+  -> <obj>
+```
+
+Note that this rewrites all the keys of `<obj>` thus for very large
+sets of keys/attributes this may be quite expensive.
+
+Note that some keys of `Object` may misbehave in JavaScript, currently keys
+that are string values of numbers are sorted automatically by _number value_
+and are not affected by `.sort(..)`, this affects both _Chrome_ and _Firefox_.
+
+Example:
+```javascript
+var o = {x: 0, a: 1, '100':2, '0':3, ' 27 ':4, b:5}
+
+// notice that the order is already different to the order of attributes above...
+Object.keys(o) 
+//    -> ['0', '100', 'x', 'a', ' 27 ', 'b']
+
+// '0' and '100' are not affected by .sort(..) while ' 27 ' is...
+Object.keys(Object.sort(o, ['x', 'a', '100'])) 
+//    -> [ '0', '100', 'x', 'a', ' 27 ', 'b' ]
+```
 
 
 
