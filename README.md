@@ -23,11 +23,13 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.setCmp(..)`](#arraysetcmp)
       - [`<array>.sortAs(..)`](#arraysortas)
       - [`<array>.inplaceSortAs(..)`](#arrayinplacesortas)
+      - [`<array>.toKeys(..)`](#arraytokeys)
+      - [`<array>.toMap(..)`](#arraytomap)
+    - [Large `Array` iteration (chunked)](#large-array-iteration-chunked)
+      - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
       - [`<array>.reduceChunks(..)`](#arrayreducechunks)
-      - [`<array>.toKeys(..)`](#arraytokeys)
-      - [`<array>.toMap(..)`](#arraytomap)
     - [`Array` (polyfill)](#array-polyfill)
       - [`<array>.flat()`](#arrayflat)
       - [`<array>.includes()`](#arrayincludes)
@@ -326,10 +328,58 @@ This will return `true` if:
 
 Iterating over very large `Array` instances in JavaScript can block execution,
 to avoid this `types.js` implements `.map(..)`/`.filter(..)`/`.reduce(..)`
-equivalent methods that split the array into chunks and iterate through
-them asynchronously giving the runtime a chance to run in between.
+equivalent methods that iterate the array in chunks and do it asynchronously 
+giving the runtime a chance to run in between.
+
+In the simplest cases these are almost a drop-in replacements for the equivalent
+methods but return a promise.
+```javascript
+var a = [1,2,3,4,5]
+    .map(function(e){ 
+        return e*2 })
+
+var b
+;[1,2,3,4,5]
+    .mapChunks(function(e){ 
+        return e*2 })
+    .then(function(res){
+        b = res })
+
+// or with await...
+var c = await [1,2,3,4,5]
+    .mapChunks(function(e){ 
+        return e*2 })
+```
+
+These support setting the chunk size (default: `50`) as the first argument:
+```javascript
+```
+
+#### `<array>.CHUNK_SIZE`
+
 
 #### `<array>.mapChunks(..)`
+
+```
+<array>.mapChunks(<func>)
+<array>.mapChunks(<chunk-size>, <func>)
+  -> <promise>
+
+<func>(<item>, <index>, <array>)
+  -> <new-item>
+```
+
+```
+<array>.mapChunks([<func>, <chunk-handler>])
+<array>.mapChunks(<chunk-size>, [<func>, <chunk-handler>])
+  -> <promise>
+
+<func>(<item>, <index>, <array>)
+  -> <new-item>
+
+<chunk-handler>(<chunk>, <result>, <offset>)
+```
+
 
 #### `<array>.filterChunks(..)`
 
