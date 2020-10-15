@@ -16,6 +16,9 @@
 
 /*********************************************************************/
 
+
+
+
 // Array.prototype.flat polyfill...
 //
 // NOTE: .flat(..) is not yet supported in IE/Edge...
@@ -313,6 +316,49 @@ Array.prototype.toMap = function(normalize){
 				m.set(e, i)
 				return m }, new Map()) }
 
+
+// 	zip(array, array, ...)
+// 		-> [[item, item, ...], ...]
+//
+// 	zip(func, array, array, ...)
+// 		-> [func(i, [item, item, ...]), ...]
+//
+Array.zip = 
+function(func, ...arrays){
+	var i = arrays[0] instanceof Array ? 
+		0 
+		: arrays.shift()
+	if(func instanceof Array){
+		arrays.splice(0, 0, func)
+		func = null }
+	// build the zip item...
+	// NOTE: this is done this way to preserve array sparseness...
+	var s = arrays
+		.reduce(function(res, a, j){
+			//a.length > i
+			i in a
+				&& (res[j] = a[i])
+			return res
+		}, new Array(arrays.length))
+	return arrays
+			// check that at least one array is longer than i...
+			.reduce(function(res, a){ 
+				return Math.max(res, i, a.length) }, 0) > i ?
+		// collect zip item...
+		[func ? func(i, s) : s]
+			// get next...
+			.concat(this.zip(func, i+1, ...arrays))
+		// done...
+		: [] }
+// XXX would be nice for this to use the instance .zip(..) in recursion...
+// 		...this might be done by reversign the current implementation, i.e.
+// 		for instance .zip(..) to be the main implementation and for 
+// 		Array.zip(..) to be a proxy to that...
+Array.prototype.zip =
+function(func, ...arrays){
+	return func instanceof Array ?
+		this.constructor.zip(this, func, ...arrays)
+		: this.constructor.zip(func, this, ...arrays) }
 
 
 

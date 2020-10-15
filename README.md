@@ -25,6 +25,7 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.inplaceSortAs(..)`](#arrayinplacesortas)
       - [`<array>.toKeys(..)`](#arraytokeys)
       - [`<array>.toMap(..)`](#arraytomap)
+      - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
     - [Large `Array` iteration (chunked)](#large-array-iteration-chunked)
       - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)`](#arraymapchunks)
@@ -322,6 +323,8 @@ This will return `true` if:
 #### `<array>.toKeys(..)`
 
 #### `<array>.toMap(..)`
+
+#### `Array.zip(..)` / `<array>.zip(..)`
 
 
 ### Large `Array` iteration (chunked)
