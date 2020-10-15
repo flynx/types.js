@@ -334,12 +334,13 @@ function(func, ...arrays){
 	// build the zip item...
 	// NOTE: this is done this way to preserve array sparseness...
 	var s = arrays
-		.reduce(function(res, a, j){
-			//a.length > i
-			i in a
-				&& (res[j] = a[i])
-			return res
-		}, new Array(arrays.length))
+		.reduce(
+			function(res, a, j){
+				//a.length > i
+				i in a
+					&& (res[j] = a[i])
+				return res }, 
+			new Array(arrays.length))
 	return arrays
 			// check that at least one array is longer than i...
 			.reduce(function(res, a){ 
@@ -359,6 +360,7 @@ function(func, ...arrays){
 	return func instanceof Array ?
 		this.constructor.zip(this, func, ...arrays)
 		: this.constructor.zip(func, this, ...arrays) }
+
 
 
 
