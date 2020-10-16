@@ -147,6 +147,7 @@ var cases = test.Cases({
 	},
 
 	// containers.js
+	// XXX move this out to a separate test set...
 	UniqueKeyMap: function(assert){
 		var a = assert(containers.UniqueKeyMap(), '')
 		var b = assert(containers.UniqueKeyMap([]), '')
@@ -193,6 +194,23 @@ var cases = test.Cases({
 		assert(k.cmp([...c.keys()]), '.rename(..) order')
 	},
 })
+
+
+
+//---------------------------------------------------------------------
+// UniqueKeyMap testing...
+
+var UniqueKeyMap_test = test.TestSet()
+test.Case('UniqueKeyMap-new', UniqueKeyMap_test)
+	
+// XXX
+UniqueKeyMap_test.setups({
+})
+
+// XXX
+UniqueKeyMap_test.tests({
+})
+
 
 
 //---------------------------------------------------------------------

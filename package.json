@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "c8": "*",
-    "ig-test": "*",
-    "color": "*"
+    "color": "*",
+    "ig-test": "^1.4.6"
   }
 }
