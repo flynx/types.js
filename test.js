@@ -200,15 +200,92 @@ var cases = test.Cases({
 //---------------------------------------------------------------------
 // UniqueKeyMap testing...
 
-var UniqueKeyMap_test = test.TestSet()
-test.Case('UniqueKeyMap-new', UniqueKeyMap_test)
+var UniqueKeyMap = test.TestSet()
+test.Case('UniqueKeyMap-new', UniqueKeyMap)
 	
 // XXX
-UniqueKeyMap_test.setups({
+UniqueKeyMap.setups({
+	empty: function(assert){
+		return {
+			value: assert(containers.UniqueKeyMap()),
+			// metadata...
+			size: 0,
+		}},
+	'empty-input': function(assert){
+		return {
+			value: assert(containers.UniqueKeyMap([])), 
+			// metadata...
+			size: 0,
+		}},
+	// XXX non-empty input...
+	// XXX intersecting unput...
 })
 
 // XXX
-UniqueKeyMap_test.tests({
+UniqueKeyMap.modifiers({
+	set: function(assert, e, k='a', o){
+		o = o || {}
+		var n
+
+		var exists = e.value.has(k)
+		var expected = e.value.uniqieKey(k)
+
+		assert(n = e.value.set(k, o, true), '.set(..)')
+
+		// key update...
+		assert(n.startsWith(k), 'key prefix')
+		assert(n == expected, 'unexpected key')
+		exists
+			|| assert(n == k, 'key unexpectedly changed')
+
+		// size...
+		e.size += 1
+		assert(e.value.size == e.size, 'inc size')
+
+		return e },
+	reset: function(assert, e, k='a', o){
+		o = o || {}
+
+		var exists = e.value.has(k)
+
+		assert(e.value.reset(k, o))
+		assert(e.value.get(k) === o)
+
+		// size...
+		exists
+			|| (e.size += 1)
+		assert(e.value.size == e.size)
+
+		return e },
+	delete: function(assert, e, k='a'){
+
+		var exists = e.value.has(k)
+
+		assert(e.value.delete(k) == exists, '.delete(..)')
+		assert(!e.value.has(k), 'delete successful')
+
+		// size...
+		exists
+			&& (e.size -= 1)
+		assert(e.value.size == e.size)
+
+		return e },
+
+	'set-set': function(assert, e){
+		this.set(assert, e, 'x')
+		this.set(assert, e, 'y')
+		this.set(assert, e, 'x')
+		return e },
+})
+
+// XXX
+UniqueKeyMap.tests({
+	consistent: function(assert, e){
+
+		assert(e.value.size == e.size, '.size')
+		assert([...e.value.keys()].length == e.value.size, '.keys() same size as .size')
+
+		return e }
 })
 
 
