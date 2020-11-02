@@ -12,6 +12,7 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
+var CooperativePromise =
 module.CooperativePromise =
 Promise.cooperative =
 object.Constructor('CooperativePromise', Promise, {
