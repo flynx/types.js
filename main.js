@@ -19,6 +19,7 @@ module.patchDate = require('./Date').patchDate
 
 // Additional types...
 module.containers = require('./containers')
+module.promise = require('./promise')
 
 
 
