@@ -12,8 +12,8 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
-var CooperativePromise =
 module.CooperativePromise =
+Promise.cooperative =
 object.Constructor('CooperativePromise', Promise, {
 	// XXX do we actually need this???
 	__promise: null,
