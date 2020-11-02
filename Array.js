@@ -227,17 +227,17 @@ var makeChunkIter = function(iter, wrapper){
 		func = args.shift()
 		;[func, postChunk] = func instanceof Array ? func : [func]
 		rest = args
-		var res = []
-		var _wrapper = wrapper.bind(this, res, func, this)
 
 		// special case...
 		// no need to setTimeout(..) if smaller than size...
 		if(this.length <= size){
-			var res = this[iter](_wrapper, ...rest)
-			return Promise.all(
-				postChunk ?
-					postChunk.call(this, this, res, 0) 
-					: res) }
+			var res = this[iter](func, ...rest)
+			postChunk
+				&& postChunk.call(this, this, res, 0) 
+			return Promise.all(res) }
+
+		var res = []
+		var _wrapper = wrapper.bind(this, res, func, this)
 
 		return new Promise(function(resolve, reject){
 				var next = function(chunks){
