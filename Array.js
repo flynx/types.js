@@ -230,12 +230,22 @@ var makeChunkIter = function(iter, wrapper){
 		var res = []
 		var _wrapper = wrapper.bind(this, res, func, this)
 
+		// special case...
+		// no need to setTimeout(..) if smaller than size...
+		if(this.length <= size){
+			var res = this[iter](_wrapper, ...rest)
+			return Promise.all(
+				postChunk ?
+					postChunk.call(this, this, res, 0) 
+					: res) }
+
 		return new Promise(function(resolve, reject){
 				var next = function(chunks){
 					setTimeout(function(){
 						var chunk, val
 						res.push(
 							val = (chunk = chunks.shift())[iter](_wrapper, ...rest))
+						// handle chunk...
 						postChunk
 							&& postChunk.call(that, 
 								chunk.map(function([i, v]){ return v }), 
