@@ -103,6 +103,27 @@ var cases = test.Cases({
 	RegExp: function(assert){
 	},
 
+	Promise: function(assert){
+		var p = assert(Promise.cooperative())
+
+		var RESOLVE = 123
+
+		var then
+		p.then(function(v){
+			console.log('then')
+			then = RESOLVE })
+
+		var fin
+		p.finally(function(){
+			console.log('finally')
+			fin = true })
+
+		p.set(123)
+
+		assert(then == RESOLVE, '.then(..)')
+		assert(fin, '.finally(..)')
+	},
+
 	// Date.js
 	Date: function(assert){
 		var d = new Date()
