@@ -106,6 +106,8 @@ var cases = test.Cases({
 	Promise: function(assert){
 		var p = assert(Promise.cooperative())
 
+		assert(!p.isSet, '.isSet is false')
+
 		var RESOLVE = 123
 
 		var then
@@ -113,13 +115,19 @@ var cases = test.Cases({
 			console.log('then')
 			then = RESOLVE })
 
+		assert(!p.isSet, '.isSet is false')
+
 		var fin
 		p.finally(function(){
 			console.log('finally')
 			fin = true })
 
+		assert(!p.isSet, '.isSet is false')
+
+		// XXX for some reason this does not resolve p...
 		p.set(123)
 
+		assert(p.isSet, '.isSet')
 		assert(then == RESOLVE, '.then(..)')
 		assert(fin, '.finally(..)')
 	},
