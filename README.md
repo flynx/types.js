@@ -52,6 +52,8 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<string>.capitalize()`](#stringcapitalize)
     - [`RegExp`](#regexp)
       - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
+    - ['Promise'](#promise)
+      - [`Promise.cooperative(..)`](#promisecooperative)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -435,6 +437,11 @@ These support setting the chunk size (default: `50`) as the first argument:
 ### `RegExp`
 
 #### `RegExp.quoteRegExp(..)`
+
+### 'Promise'
+
+#### `Promise.cooperative(..)`
+
 
 
 ## Containers
