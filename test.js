@@ -14,6 +14,7 @@ var object = require('ig-object')
 
 var types = require('./main')
 var containers = require('./containers')
+var promise = require('./Promise')
 
 
 
@@ -104,7 +105,8 @@ var cases = test.Cases({
 	},
 
 	Promise: function(assert){
-		var p = assert(Promise.cooperative())
+		var p = assert(Promise.cooperative(), '.cooperative()')
+		//var p = assert(promise._CooperativePromise())
 
 		assert(!p.isSet, '.isSet is false')
 
@@ -112,24 +114,35 @@ var cases = test.Cases({
 
 		var then
 		p.then(function(v){
-			console.log('then')
-			then = RESOLVE })
+			// XXX this does not get printed for some reason...
+			console.log('!!!!!!!!!!! then')
+			// XXX this seems not to work/print/count a fail...
+			assert(false, 'test fail')
+
+			then = v })
 
 		assert(!p.isSet, '.isSet is false')
 
 		var fin
 		p.finally(function(){
-			console.log('finally')
 			fin = true })
 
 		assert(!p.isSet, '.isSet is false')
 
-		// XXX for some reason this does not resolve p...
-		p.set(123)
+		p.set(RESOLVE)
 
 		assert(p.isSet, '.isSet')
-		assert(then == RESOLVE, '.then(..)')
-		assert(fin, '.finally(..)')
+
+		// XXX without setTimeout(..) these are run before the 
+		// 		.then(..) / .finally(..) have a chance to run...
+		// 		...not yet sure how I feel about this...
+		// XXX with setTimeout(..) these appear not to have ANY effect, 
+		// 		as if setTimeout(..) did not run...
+		setTimeout(function(){
+			assert(false, 'test fail')
+			assert(then == RESOLVE, '.then(..)')
+			assert(fin, '.finally(..)')
+		}, 0)
 	},
 
 	// Date.js
@@ -224,6 +237,31 @@ var cases = test.Cases({
 	},
 })
 
+
+
+//---------------------------------------------------------------------
+
+var PromiseTests = test.TestSet()
+test.Case('PromiseTests', PromiseTests)
+
+PromiseTests.setups({
+	cooperative: function(assert){
+		return {
+			a: assert(Promise.cooperative(), '.cooperative()')
+		} },
+	experimental: function(assert){
+		return {
+			a: assert(promise._CooperativePromise(), 'experimental')
+		} },
+})
+
+PromiseTests.modifiers({
+})
+
+PromiseTests.tests({
+
+})
+	
 
 
 //---------------------------------------------------------------------

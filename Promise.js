@@ -45,12 +45,17 @@ object.Constructor('CooperativePromise', Promise, {
 				methods.resolve = resolve
 				methods.reject = reject
 				if(func){
+					// XXX this can fullfill the promise -- need to keep 
+					// 		things consistent...
 					return func.call(this, ...arguments) } } ], 
 			CooperativePromise)
 		/*/ if we are fulfilled before being set, we are set :)
 		// XXX for some reason this breaks either .__new__(..) if called 
 		// 		outside of setTimeout(..) or hangs the promise on resolve 
 		// 		if inside...
+		//		...the same thing happens if we call .then(..)/.catch(..)
+		//		The odd thing is that calling .finally(..) later works OK...
+		//		...increasing the timeout just delays the hang...
 		setTimeout(function(){
 			obj.finally(function(){
 				delete obj.__resolve
@@ -74,7 +79,8 @@ object.Constructor('CooperativePromise', Promise, {
 			},
 		})
 		return obj },
-	/*
+	/* XXX this for some reason breaks the promise...
+	//		...the same thing happens if we call .then(..)/.catch(..)
 	__init__: function(){
 		// if we are fulfilled before being set, we are set :)
 		this.finally(function(){
@@ -127,7 +133,7 @@ object.Constructor('_CooperativePromise', Promise, {
 			value: function(promise){
 				// get state...
 				if(arguments.length == 0){
-					return !!methods }
+					return !methods }
 				if(methods){
 					// non-promise...
 					if(promise.catch == null && promise.then == null){

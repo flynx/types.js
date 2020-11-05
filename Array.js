@@ -11,13 +11,28 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
+var object = require('ig-object')
 
 
 
 /*********************************************************************/
 
 
+var StopIteration =
+module.StopIteration =
+	object.Constructor('StopIteration', Error, {
+		// NOTE: I do not get why JavaScript's Error implements this 
+		// 		statically...
+		get name(){
+			return this.constructor.name }, 
+		// NOTE: msg is handled by Error(..)
+		__init__: function(msg){
+			this.msg = msg },
+	})
 
+
+
+//---------------------------------------------------------------------
 
 // Array.prototype.flat polyfill...
 //
@@ -201,6 +216,10 @@ Array.prototype.inplaceSortAs = function(other){
 // 	20			- chunk size
 // 	'20'		- chunk size
 // 	'20C'		- number of chunks
+//
+//
+// StopIteration can be thrown in func or chunk_handler at any time to 
+// abort iteration, this will reject the promise.
 //	
 //
 // The main goal of this is to not block the runtime while processing a 
@@ -231,10 +250,20 @@ var makeChunkIter = function(iter, wrapper){
 		// special case...
 		// no need to setTimeout(..) if smaller than size...
 		if(this.length <= size){
-			var res = this[iter](func, ...rest)
-			postChunk
-				&& postChunk.call(this, this, res, 0) 
-			return Promise.all(res) }
+			try {
+				// handle iteration...
+				var res = this[iter](func, ...rest)
+				// handle chunk...
+				postChunk
+					&& postChunk.call(this, this, res, 0) 
+				return Promise.all(res) 
+			// handle StopIteration...
+			} catch(err){
+				if(err === StopIteration){
+					return Promise.reject() 
+				} else if( err instanceof StopIteration){
+					return Promise.reject(err.msg) }
+				throw err } }
 
 		var res = []
 		var _wrapper = wrapper.bind(this, res, func, this)
@@ -243,14 +272,24 @@ var makeChunkIter = function(iter, wrapper){
 				var next = function(chunks){
 					setTimeout(function(){
 						var chunk, val
-						res.push(
-							val = (chunk = chunks.shift())[iter](_wrapper, ...rest))
-						// handle chunk...
-						postChunk
-							&& postChunk.call(that, 
-								chunk.map(function([i, v]){ return v }), 
-								val,
-								chunk[0][0])
+						try {
+							// handle iteration...
+							res.push(
+								val = (chunk = chunks.shift())[iter](_wrapper, ...rest))
+							// handle chunk...
+							postChunk
+								&& postChunk.call(that, 
+									chunk.map(function([i, v]){ return v }), 
+									val,
+									chunk[0][0])
+						// handle StopIteration...
+						} catch(err){
+							if(err === StopIteration){
+								return reject() 
+							} else if( err instanceof StopIteration){
+								return reject(err.msg) }
+							throw err }
+
 						// stop condition...
 						chunks.length == 0 ?
 							resolve(res.flat(2))
