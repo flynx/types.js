@@ -187,6 +187,30 @@ Array.prototype.inplaceSortAs = function(other){
 	return this }
 
 
+// Equivalent to .map(..) / .filter(..) / .reduce(..) / .. with support for
+// StopIteration...
+// 
+// NOTE: these add almost no overhead to the iteration.
+// 
+// XXX should these return a partial result on StopIteration?
+var wrapIterFunc = function(iter){
+	return function(func){
+		try {
+			return this[iter](...arguments)
+		// handle StopIteration...
+		} catch(err){
+			if(err === StopIteration){
+				return
+			} else if( err instanceof StopIteration){
+				return err.msg }
+			throw err } } }
+
+Array.prototype.smap = wrapIterFunc('map')
+Array.prototype.sfilter = wrapIterFunc('filter')
+Array.prototype.sreduce = wrapIterFunc('reduce')
+Array.prototype.sforEach = wrapIterFunc('forEach')
+
+
 // Equivalent to .map(..) / .filter(..) / .reduce(..) that process the 
 // contents in chunks asynchronously...
 //
@@ -225,6 +249,7 @@ Array.prototype.inplaceSortAs = function(other){
 // The main goal of this is to not block the runtime while processing a 
 // very long array by interrupting the processing with a timeout...
 //
+// XXX should these return a partial result on StopIteration?
 var makeChunkIter = function(iter, wrapper){
 	wrapper = wrapper
 		|| function(res, func, array, e){
