@@ -175,6 +175,5 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 
 
 
-
 /**********************************************************************
 * vim:set ts=4 sw=4 :                               */ return module })
