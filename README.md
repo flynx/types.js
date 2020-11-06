@@ -27,6 +27,7 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.toMap(..)`](#arraytomap)
       - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
     - [Large `Array` iteration (chunked)](#large-array-iteration-chunked)
+      - [`StopIteration`](#stopiteration)
       - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
@@ -360,7 +361,48 @@ These support setting the chunk size (default: `50`) as the first argument:
 ```javascript
 ```
 
+#### `StopIteration`
+
+An exception that if raised while iterating will abort further execution and
+correctly exit (reject) the iterator promise.
+
+```javascriot
+var {StopIteration} = require('ig-types/Array')
+```
+
+This can be used in two ways:
+
+1) `throw` as-is to simply stop
+    ```javascript
+    ;[1,2,3,4,5]
+        .mapChunks(function(e){ 
+            // simply abort here and now...
+            throw StopIteration })
+        .catch(function(){
+            console.log('done.') })
+    ```
+
+2) `Throw` an instance and pass a value to `.catch(..)`
+   ```javascript
+    ;[1,2,3,4,5]
+        .mapChunks(function(e){ 
+            if(e > 3){
+              // NOTE: new is optional here...
+              //    ...StopIteratiom is an object.js constructor.
+              throw new StopIteration(e) } })
+        .catch(function(e){
+            console.log('first value greated than 3:', e) })
+   ```
+
+
 #### `<array>.CHUNK_SIZE`
+
+The default iteration chunk size.
+
+Note that the smaller this is the more _responsive_ the code is, especially 
+in UI applications but there is a small overhead added per chunk.
+
+Default value: `50`
 
 
 #### `<array>.mapChunks(..)`
