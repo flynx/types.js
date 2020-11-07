@@ -13,10 +13,13 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
-var makeEvent = function(func){
+var makeEvent = function(func, mode){
 	return Object.assign(
 		func,
-		{__event__: true}) }
+		{__event__: mode || true}) }
+
+var makeActionEvent = function(func){
+	return makeEvent(func, 'action') }
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -42,19 +45,28 @@ module.Queue = object.Constructor('Queue', Array, {
 		value == 'running'
 			&& this._run() },
 
-	start: function(){
+	// events/actions...
+	start: makeActionEvent(function(handler){
+		if(typeof(handler) == 'function'){
+			return this.on('start', handler) }
 		this.state = 'running'
-		return this },
-	stop: function(){
+		return this }),
+	stop: makeActionEvent(function(handler){
+		if(typeof(handler) == 'function'){
+			return this.on('stop', handler) }
 		this.state = 'stopped'
-		return this },
-	clear: function(){
+		return this }),
+	clear: makeActionEvent(function(handler){
+		if(typeof(handler) == 'function'){
+			return this.on('clear', handler) }
 		this.splice(0, this.length) 
-		return this },
+		return this }),
 
 	// event API...
 	// XXX mignt be good to make this a generic mixin...
 	trigger: function(evt, ...args){
+		;(this[evt] || {}).__event__ == 'action'
+			&& this[evt]()
 		var that = this
 		;(this['__'+evt] || [])
 			.forEach(function(handler){
@@ -93,6 +105,8 @@ module.Queue = object.Constructor('Queue', Array, {
 		return this.on('taskStarting', ...arguments) }),
 	taskCompleted: makeEvent(function(func){
 		return this.on('taskCompleted', ...arguments) }),
+	queueEmpty: makeEvent(function(func){
+		return this.on('queueEmpty', ...arguments) }),
 
 	// NOTE: we do not store the exec results... (XXX ???)
 	// NOTE: not intended for direct use and will likely have no effect
@@ -150,6 +164,9 @@ module.Queue = object.Constructor('Queue', Array, {
 		// XXX will this be collected by the GC if it is polling???
 		if(this.length == 0 
 				&& this.state == 'running'){
+			this.trigger('queueEmpty')
+
+			// auto-stop...
 			this.autostop ?
 				this.stop()
 				// pole...
