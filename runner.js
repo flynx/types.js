@@ -89,6 +89,8 @@ module.Queue = object.Constructor('Queue', Array, {
 		return this },
 
 	// events...
+	taskStarting: makeEvent(function(func){
+		return this.on('taskStarting', ...arguments) }),
 	taskCompleted: makeEvent(function(func){
 		return this.on('taskCompleted', ...arguments) }),
 
@@ -109,8 +111,10 @@ module.Queue = object.Constructor('Queue', Array, {
 				&& this.state == 'running'
 				&& running.length < (this.pool_size || Infinity) ){
 
-			// run...
 			var task = this.shift()
+			this.trigger('taskStarting', task)
+
+			// run...
 			var res = typeof(task) == 'function' ?
 				task()
 				: task
