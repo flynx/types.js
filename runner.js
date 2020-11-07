@@ -23,8 +23,8 @@ var makeEvent = function(func){
 
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
-	run: function(){
-	},
+	run: function(...tasks){
+		return this({ state: 'running' }, ...tasks) },
 
 },{
 	pool_size: 8,

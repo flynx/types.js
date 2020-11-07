@@ -26,8 +26,11 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.toKeys(..)`](#arraytokeys)
       - [`<array>.toMap(..)`](#arraytomap)
       - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
+    - [Abortable `Array` iteration](#abortable-array-iteration)
+      - [`array.StopIteration`](#arraystopiteration)
+      - [`<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach)
     - [Large `Array` iteration (chunked)](#large-array-iteration-chunked)
-      - [`StopIteration`](#stopiteration)
+      - [`array.StopIteration`](#arraystopiteration-1)
       - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
@@ -67,6 +70,16 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__)
       - [`<unique-key-map>.__unordered_rename__`](#unique-key-map__unordered_rename__)
+  - [Runner](#runner)
+    - [`runner.Queue(..)` / `runner.Queue.run(..)`](#runnerqueue--runnerqueuerun)
+      - [`<queue>.state`](#queuestate)
+      - [`<queue>.start(..)`](#queuestart)
+      - [`<queue>.pause(..)`](#queuepause)
+      - [`<queue>.abort(..)`](#queueabort)
+      - [`<queue>.on(..)` / `<queue>.one(..)`](#queueon--queueone)
+      - [`<queue>.off(..)`](#queueoff)
+      - [`<queue>.trigger(..)`](#queuetrigger)
+      - [`<queue>.taskCompleted(..)` (event)](#queuetaskcompleted-event)
   - [License](#license)
 
 ## Installation
@@ -330,6 +343,48 @@ This will return `true` if:
 #### `Array.zip(..)` / `<array>.zip(..)`
 
 
+### Abortable `Array` iteration
+
+#### `array.StopIteration`
+
+An exception that if raised while iterating via a supporting iterator method 
+will abort further execution and correctly exit.
+
+```javascript
+var {StopIteration} = require('ig-types/Array')
+```
+
+This can be used in two ways:
+
+1) `throw` as-is to simply stop...
+    ```javascript
+    ;[1,2,3,4,5]
+        .smap(function(e){ 
+            // simply abort here and now...
+            throw StopIteration })
+    ```
+    Since we aborted the iteration without passing any arguments to `StopIteration`,
+    `.smap(..)` will return `undefined`.
+
+2) `throw` an instance and return the argument...
+    ```javascript
+    // this will print "4" -- the value passed to StopIteration...
+    console.log([1,2,3,4,5]
+        .smap(function(e){ 
+            if(e > 3){
+              // NOTE: new is optional here...
+              //    ...StopIteratiom is an object.js constructor.
+              throw new StopIteration(e) } }))
+    ```
+
+
+
+#### `<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`
+
+Like `Array`'s `.map(..)`, `.filter(..)`, `.reduce(..)` and `.forEach(..)` but 
+with added support for aborting iteration by throwing `StopIteration`.
+
+
 ### Large `Array` iteration (chunked)
 
 Iterating over very large `Array` instances in JavaScript can block execution,
@@ -359,18 +414,16 @@ var c = await [1,2,3,4,5]
 
 These support setting the chunk size (default: `50`) as the first argument:
 ```javascript
+var c = await [1,2,3,4,5]
+    .mapChunks(2, function(e){ 
+        return e*2 })
 ```
 
-#### `StopIteration`
+#### `array.StopIteration`
 
-An exception that if raised while iterating will abort further execution and
-correctly exit (reject) the iterator promise.
-
-```javascriot
-var {StopIteration} = require('ig-types/Array')
-```
-
-This can be used in two ways:
+Like for [`<array>.smap(..)` and friends](#abortable-array-iteration) iteration 
+can be stopped by throwing a `array.StopIteration` and as before there are 
+two ways to go:
 
 1) `throw` as-is to simply stop
     ```javascript
@@ -391,7 +444,7 @@ This can be used in two ways:
               //    ...StopIteratiom is an object.js constructor.
               throw new StopIteration(e) } })
         .catch(function(e){
-            console.log('first value greated than 3:', e) })
+            console.log('first value greater than 3:', e) })
    ```
 
 
@@ -624,6 +677,33 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 #### `<unique-key-map>.__key_pattern__`
 
 #### `<unique-key-map>.__unordered_rename__`
+
+
+## Runner
+
+### `runner.Queue(..)` / `runner.Queue.run(..)`
+
+#### `<queue>.state`
+
+#### `<queue>.start(..)`
+
+#### `<queue>.pause(..)`
+
+#### `<queue>.abort(..)`
+
+
+#### `<queue>.on(..)` / `<queue>.one(..)`
+
+####  `<queue>.off(..)`
+
+#### `<queue>.trigger(..)`
+
+Trigger an event.
+
+#### `<queue>.taskCompleted(..)` (event)
+
+Event, triggered when a task is completed passing in its result.
+
 
 
 
