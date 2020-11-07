@@ -12,12 +12,12 @@ var object = require('ig-object')
 
 
 /*********************************************************************/
+// helpers...
 
 var makeEvent = function(func, mode){
 	return Object.assign(
 		func,
 		{__event__: mode || true}) }
-
 var makeActionEvent = function(func){
 	return makeEvent(func, 'action') }
 
@@ -26,51 +26,60 @@ var makeActionEvent = function(func){
 
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
+	// create a running queue...
 	run: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
 
 },{
+	// config...
+	//
 	pool_size: 8,
+
 	poling_delay: 200,
-	autostop: false,
+
+	auto_stop: false,
+
 
 	__state: null,
 	get state(){
 		return this.__state 
 			|| 'stopped' },
 	set state(value){
-		if(!['running', 'stopped'].includes(value)){
-			return }
-		this.__state = value
-		value == 'running'
-			&& this._run() },
+		if(value == 'running'){
+			this.start()
+		} else if(value == 'stopped'){
+			this.stop() } },
 
-	// events/actions...
-	start: makeActionEvent(function(handler){
-		if(typeof(handler) == 'function'){
-			return this.on('start', handler) }
-		this.state = 'running'
-		return this }),
-	stop: makeActionEvent(function(handler){
-		if(typeof(handler) == 'function'){
-			return this.on('stop', handler) }
-		this.state = 'stopped'
-		return this }),
-	clear: makeActionEvent(function(handler){
-		if(typeof(handler) == 'function'){
-			return this.on('clear', handler) }
-		this.splice(0, this.length) 
-		return this }),
 
 	// event API...
+	//
 	// XXX mignt be good to make this a generic mixin...
+	// XXX should we use actions for this???
+	// 		...likely no as it would pull in another dependency...
+	//
+	// NOTE: .trigger(..) will only call the handlers and not the actual 
+	// 		event method unless it is defined as an action event...
+	// NOTE: if '!' is appended to the event name .trigger(..) will not
+	// 		call the event action.
 	trigger: function(evt, ...args){
-		;(this[evt] || {}).__event__ == 'action'
-			&& this[evt]()
 		var that = this
+		// NOTE: needed to break recursion when triggering from an 
+		// 		action event...
+		var handlers_only = evt.endsWith('!')
+		evt = handlers_only ?
+			evt.slice(0, -1) 
+			: evt
+
+		// run the event action...
+		if(!handlers_only
+				&& (this[evt] || {}).__event__ == 'action'){
+			this[evt]()
+
+		// run the handlers...
+		} else {
 		;(this['__'+evt] || [])
 			.forEach(function(handler){
-				handler.call(that, evt, ...args) })
+				handler.call(that, evt, ...args) }) }
 		return this },
 	on: function(evt, handler){
 		if(!handler){
@@ -100,7 +109,50 @@ module.Queue = object.Constructor('Queue', Array, {
 							|| func.original_handler === handler }))
 		return this },
 
+
+	// events/actions - state transitions...
+	//
+	// NOTE: the following are equivalent:
+	// 			.start()
+	// 			.trigger('start')
+	// 			.state = 'running'
+	// 		and similar for 'stop'...
+	start: makeActionEvent(function(handler){
+		// register handler...
+		if(typeof(handler) == 'function'){
+			return this.on('start', handler) }
+		// can't start while running...
+		if(this.state == 'running'){
+			return this }
+		// do the action...
+		this.__state = 'running'
+		this.trigger('start!')
+		this._run()
+		return this }),
+	stop: makeActionEvent(function(handler){
+		// register handler...
+		if(typeof(handler) == 'function'){
+			return this.on('stop', handler) }
+		// can't stop while not running...
+		if(this.state == 'stopped'){
+			return this }
+		// do the action...
+		this.__state = 'stopped'
+		this.trigger('stop!')
+		return this }),
+
+
+	// events/actions - state transitions...
+	//
+	clear: makeActionEvent(function(handler){
+		if(typeof(handler) == 'function'){
+			return this.on('clear', handler) }
+		this.splice(0, this.length) 
+		return this }),
+
+
 	// events...
+	//
 	taskStarting: makeEvent(function(func){
 		return this.on('taskStarting', ...arguments) }),
 	taskCompleted: makeEvent(function(func){
@@ -108,7 +160,10 @@ module.Queue = object.Constructor('Queue', Array, {
 	queueEmpty: makeEvent(function(func){
 		return this.on('queueEmpty', ...arguments) }),
 
-	// NOTE: we do not store the exec results... (XXX ???)
+
+	// main runner...
+	//
+	// NOTE: we do not store the exec results...
 	// NOTE: not intended for direct use and will likely have no effect
 	// 		if called directly... 
 	__running: null,
@@ -167,7 +222,7 @@ module.Queue = object.Constructor('Queue', Array, {
 			this.trigger('queueEmpty')
 
 			// auto-stop...
-			this.autostop ?
+			this.auto_stop ?
 				this.stop()
 				// pole...
 				: (this.poling_delay
@@ -177,6 +232,19 @@ module.Queue = object.Constructor('Queue', Array, {
 
 		return this },
 
+
+	// constructor argument handling...
+	//
+	// 	Queue()
+	// 		-> queue
+	//
+	// 	Queue(..,tasks)
+	// 		-> queue
+	//
+	// 	Queue(options)
+	// 	Queue(options, ..,tasks)
+	// 		-> queue
+	//
 	__init__: function(options){ 
 		if(this[0] instanceof Object 
 				&& typeof(this[0]) != 'function'
