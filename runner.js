@@ -29,6 +29,7 @@ module.Queue = object.Constructor('Queue', Array, {
 },{
 	pool_size: 8,
 	poling_delay: 200,
+	autostop: false,
 
 	__state: null,
 	get state(){
@@ -134,7 +135,7 @@ module.Queue = object.Constructor('Queue', Array, {
 			} else {
 				this.trigger('taskCompleted', task, res) } }
 
-		// pole on empty queue...
+		// empty queue -> pole or stop...
 		//
 		// NOTE: we endup here in two cases:
 		// 		- the pool is full
@@ -144,11 +145,14 @@ module.Queue = object.Constructor('Queue', Array, {
 		//
 		// XXX will this be collected by the GC if it is polling???
 		if(this.length == 0 
-				&& this.state == 'running'
-				&& this.poling_delay){
-			setTimeout(
-				this._run.bind(this), 
-				this.poling_delay || 200) }
+				&& this.state == 'running'){
+			this.autostop ?
+				this.stop()
+				// pole...
+				: (this.poling_delay
+					&& setTimeout(
+						this._run.bind(this), 
+						this.poling_delay || 200)) }
 
 		return this },
 
