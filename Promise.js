@@ -164,9 +164,35 @@ var IterablePromise =
 module.IterablePromise =
 Promise.iter =
 object.Constructor('IterablePromise', Promise, {
-	map: function(){},
-	filter: function(){},
-	reduce: function(){},
+	// XXX
+	__list: null,
+
+	map: function(func){
+		return IterablePromise() },
+	filter: function(func){},
+	reduce: function(func, res){},
+	flat: function(){},
+
+	all: function(){},
+
+	__new__: function(_, list, handler){
+		// instance...
+		var obj = Reflect.construct(IterablePromise.__proto__, [
+			function(resolve, reject){
+				// NOTE: this is here for Promise compatibilty...
+				// XXX this can resolve/reject a promise -- need to 
+				// 		keep things consistent...
+				if(typeof(list) == 'function'){
+					return func.call(this, ...arguments) } 
+
+				// XXX
+				var res = []
+				for(var e of list){
+				}
+			}], 
+			IterablePromise)
+
+		return obj },
 })
 
 

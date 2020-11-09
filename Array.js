@@ -447,6 +447,7 @@ function(func, ...arrays){
 //		-> iterator
 //
 //
+// XXX should this take an argument and be like map??
 // XXX revise name
 Array.prototype.iter = function*(){
 	for(var e of this){
