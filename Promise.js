@@ -156,6 +156,21 @@ object.Constructor('_CooperativePromise', Promise, {
 
 
 
+//---------------------------------------------------------------------
+// promise iterators...
+
+// XXX like Promise.all(..) but creates an iterable promise...
+var IterablePromise =
+module.IterablePromise =
+Promise.iter =
+object.Constructor('IterablePromise', Promise, {
+	map: function(){},
+	filter: function(){},
+	reduce: function(){},
+})
+
+
+
 
 /**********************************************************************
 * vim:set ts=4 sw=4 :                               */ return module })

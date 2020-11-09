@@ -160,6 +160,16 @@ module.Queue = object.Constructor('Queue', Array, {
 	queueEmpty: makeEvent(function(func){
 		return this.on('queueEmpty', ...arguments) }),
 
+	// helpers...
+	//
+	// XXX how do we reference the tasks here???
+	// 		- indexes 
+	// 		- ranges -- simelar to .slice(..)
+	// 		- by value
+	// XXX
+	prioritize: function(){},
+	// XXX same as prioritize but adds stuff to the tail...
+	delay: function(){},
 
 	// main runner...
 	//

@@ -250,6 +250,12 @@ Array.prototype.sforEach = wrapIterFunc('forEach')
 // very long array by interrupting the processing with a timeout...
 //
 // XXX should these return a partial result on StopIteration?
+// XXX add generators:
+// 			.map(..) / .filter(..) / .reduce(..)
+// 		...the basis here should be the chunks, i.e. each cycle should
+// 		go through a chunk...
+//		...the mixin can be generic, i.e. applicable to Array, and 
+//		other stuff...
 var makeChunkIter = function(iter, wrapper){
 	wrapper = wrapper
 		|| function(res, func, array, e){
@@ -434,6 +440,17 @@ function(func, ...arrays){
 	return func instanceof Array ?
 		this.constructor.zip(this, func, ...arrays)
 		: this.constructor.zip(func, this, ...arrays) }
+
+
+//
+//	array.iter()
+//		-> iterator
+//
+//
+// XXX revise name
+Array.prototype.iter = function*(){
+	for(var e of this){
+		yield e } }
 
 
 
