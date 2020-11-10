@@ -11,14 +11,65 @@
 
 
 /*********************************************************************/
+// The generator hirearchy in JS is a bit complicated.
+//
+// Consider the following:
+//
+// 		// this is the generator function (i.e. the constructor)
+// 		var Iter = function*(lst){
+// 			for(var e of lst){
+// 				yield e }}
+//
+// 		// this is the generator instance (constructod instance)...
+// 		var iter = Iter([1,2,3])
+//
+//
+// In this module we need to add methods to be visible from either Iter
+// or iter from the above example, so we need the access the prototypes 
+// of each of them.
+//
+// 	GeneratorPrototype 
+// 		is the prototype of the generator construcotrs (i.e. Iter(..) 
+// 		from the above example)
+//
+// 	GeneratorPrototype.prototype
+// 		is the generator instance prototype (i.e. iter for the above 
+// 		code)
+//
+//
+// Also the following applies:
+//
+//		iter instanceof Iter		// -> true
+//
+// 		Iter instanceof Generator
+//
+//
+// NOTE: there appears no way to test if iter is instnace of some 
+// 		generic Generator...
+//
+//---------------------------------------------------------------------
 
-var Generator =
-module.Generator = 
-	(function*(){}).__proto__
+var GeneratorPrototype =
+	(function*(){}).constructor.prototype
+
+var Generator = 
+module.Generator =
+	(function*(){}).constructor
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// generic generator wrapper...
+var iter = 
+module.iter = 
+function*(lst){
+	for(var e of lst){
+		yield e } }
+
 
 
 //---------------------------------------------------------------------
-// Generator "class" methods...
+// GeneratorPrototype "class" methods...
 //
 // the following are the same:
 // 	1) Wrapper
@@ -57,31 +108,41 @@ var makePromise = function(name){
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// XXX GeneratorPrototype can't be used as a generator constructor...
 
-// XXX need testing...
-Generator.at = makeGenerator('at')
-Generator.slice = makeGenerator('slice')
-Generator.flat = makeGenerator('flat')
-Generator.toArray = function(){
+// XXX should this be a generator???
+GeneratorPrototype.at = makeGenerator('at')
+GeneratorPrototype.slice = makeGenerator('slice')
+GeneratorPrototype.flat = makeGenerator('flat')
+GeneratorPrototype.toArray = function(){
 	var that = this
 	return function(){
 		return that(...arguments).toArray() } } 
+GeneratorPrototype.pop = function(){
+	var that = this
+	return function(){
+		return that(...arguments).toArray().pop() } }
+GeneratorPrototype.shift = function(){
+	var that = this
+	return function(){
+		return that(...arguments).toArray().shift() } }
 
-Generator.map = makeGenerator('map')
-Generator.filter = makeGenerator('filter')
-Generator.reduce = makeGenerator('reduce')
-Generator.flat = makeGenerator('flat')
+GeneratorPrototype.map = makeGenerator('map')
+GeneratorPrototype.filter = makeGenerator('filter')
+GeneratorPrototype.reduce = makeGenerator('reduce')
+GeneratorPrototype.flat = makeGenerator('flat')
 
-Generator.then = makePromise('then')
-Generator.catch = makePromise('catch')
-Generator.finally = makePromise('finally')
+GeneratorPrototype.then = makePromise('then')
+GeneratorPrototype.catch = makePromise('catch')
+GeneratorPrototype.finally = makePromise('finally')
 
 
 
 //---------------------------------------------------------------------
-// Generator instance methods...
+// GeneratorPrototype instance methods...
 
-Generator.prototype.at = function*(i){
+// XXX should this be a generator???
+GeneratorPrototype.prototype.at = function*(i){
 	// sanity check...
 	if(i < 0){
 		throw new Error('.at(..): '
@@ -94,7 +155,7 @@ Generator.prototype.at = function*(i){
 // NOTE: this is different from Array's .slice(..) in that it does not 
 // 		support negative indexes -- this is done because there is no way 
 // 		to judge the length of a generator untill it is fully done...
-Generator.prototype.slice = function*(from=0, to=Infity){
+GeneratorPrototype.prototype.slice = function*(from=0, to=Infity){
 	// sanity check...
 	if(from < 0 || to < 0){
 		throw new Error('.slice(..): '
@@ -108,7 +169,7 @@ Generator.prototype.slice = function*(from=0, to=Infity){
 		if(i >= from){
 			yield e }
 		i++ } },
-Generator.prototype.flat = function*(depth=1){
+GeneratorPrototype.prototype.flat = function*(depth=1){
 	if(depth == 0){
 		return this }
 	for(var e of this){
@@ -123,7 +184,7 @@ Generator.prototype.flat = function*(depth=1){
 						: e[i] } }
 
 		// XXX the test will not work yet...
-		} else if(e instanceof Generator){
+		} else if(e instanceof GeneratorPrototype){
 			if(depth <= 1){
 				// XXX should we expand the generaaator here???
 				yield [...e]
@@ -133,19 +194,19 @@ Generator.prototype.flat = function*(depth=1){
 
 		} else {
 			yield e } } }
-Generator.prototype.toArray = function(){
+GeneratorPrototype.prototype.toArray = function(){
 	return [...this] }
 
-Generator.prototype.map = function*(func){
+GeneratorPrototype.prototype.map = function*(func){
 	var i = 0
 	for(var e of this){
 		yield func(e, i++, this) } }
-Generator.prototype.filter = function*(func){
+GeneratorPrototype.prototype.filter = function*(func){
 	var i = 0
 	for(var e of this){
 		if(func(e, i++, this)){
 			yield e } } }
-Generator.prototype.reduce = function*(func, res){
+GeneratorPrototype.prototype.reduce = function*(func, res){
 	var i = 0
 	for(var e of this){
 		res = func(res, e, i++, this) } 
@@ -154,15 +215,15 @@ Generator.prototype.reduce = function*(func, res){
 // promise results...
 //
 // XXX how do we handle reject(..) / .catch(..)???
-Generator.prototype.promise = function(){
+GeneratorPrototype.prototype.promise = function(){
 	var that = this
 	return new Promise(function(resolve){
 			resolve([...that]) }) }
-Generator.prototype.then = function(func){
+GeneratorPrototype.prototype.then = function(func){
 	return this.promise().then(func) }
-Generator.prototype.catch = function(func){
+GeneratorPrototype.prototype.catch = function(func){
 	return this.promise().catch(func) }
-Generator.prototype.finally = function(func){
+GeneratorPrototype.prototype.finally = function(func){
 	return this.promise().finally(func) }
 
 
