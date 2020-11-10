@@ -59,18 +59,22 @@ A library of JavaScript type extensions, types and type utilities.
       - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
     - ['Promise'](#promise)
       - [`Promise.cooperative(..)`](#promisecooperative)
-  - [`Generator`](#generator)
+  - [Generator extensions and utilities](#generator-extensions-and-utilities)
+    - [The basics](#the-basics)
+      - [`Generator`](#generator)
+      - [`generator.iter(..)`](#generatoriter)
     - [Generator instance iteration](#generator-instance-iteration)
       - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)` / `<generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Generator constructor iteration workflow](#generator-constructor-iteration-workflow)
-    - [`Generator.at(..)`](#generatorat)
-    - [`Generator.slice(..)`](#generatorslice)
-    - [`Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat-1)
-    - [`Generator.toArray()`](#generatortoarray-1)
-    - [`Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
+      - [`Generator.at(..)`](#generatorat)
+      - [`Generator.shift()` / `Generator.pop()`](#generatorshift--generatorpop)
+      - [`Generator.slice(..)`](#generatorslice)
+      - [`Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat-1)
+      - [`Generator.toArray()`](#generatortoarray-1)
+      - [`Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -359,7 +363,7 @@ This will return `true` if:
 
 Return an iterator/generator from the current array.
 
-This is useful in combination with the Generator extensions XXX
+This is mostly useful in combination with the [Generator extensions and utilities](#generator-extensions-and-utilities)
 
 
 ### Abortable `Array` iteration
@@ -559,7 +563,18 @@ Default value: `50`
 
 
 
-## `Generator`
+## Generator extensions and utilities
+
+```javascript
+var generator = require('ig-types/generator')
+```
+
+
+### The basics
+
+#### `Generator`
+
+#### `generator.iter(..)`
 
 
 ### Generator instance iteration
@@ -576,30 +591,44 @@ Default value: `50`
 ### Generator constructor iteration workflow
 
 ```javascript
-var {Generator} = require('ig-types/Generator')
-
-var sumOdds = Generator
+var sumOdds = generator.iter
     .filter(function(e){
         return e % 2 == 1 })
     .reduce(function(r, e){ 
         return r + e }, 0)
     .pop()
 
+console.log(sumOdds([1, 2, 3])) // -> 4
 console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
-
 ```
 
-### `Generator.at(..)`
+The above code is the same in function to:
+```javascript
+var sumOdds = function(lst){
+    return generator.iter(lst)
+        .filter(function(e){
+            return e % 2 == 1 })
+        .reduce(function(r, e){ 
+            return r + e }, 0)
+        .pop() }
 
-### `Generator.slice(..)`
+console.log(sumOdds([1, 2, 3])) // -> 4
+console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
+```
+
+#### `Generator.at(..)`
+
+#### `Generator.shift()` / `Generator.pop()`
+
+#### `Generator.slice(..)`
 
 This is like `Array`'s `.slice(..)` but does not support negative indexes.
 
-### `Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`
+#### `Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`
 
-### `Generator.toArray()`
+#### `Generator.toArray()`
 
-### `Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`
+#### `Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`
 
 
 ## Containers
