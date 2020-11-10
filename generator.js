@@ -7,6 +7,7 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
+var object = require('ig-object')
 
 
 
@@ -62,7 +63,7 @@ module.Generator =
 // generic generator wrapper...
 var iter = 
 module.iter = 
-function*(lst){
+function*(lst=[]){
 	for(var e of lst){
 		yield e } }
 
@@ -88,17 +89,20 @@ function*(lst){
 // 		combined( .. )
 //
 
-// XXX do a better .toString(..)...
-// 			should be of the format:
-// 				<root-gen>(<args>)
-// 					.<name>(<args>)
-// 					...
-// XXX this needs to be of the correct type...
+// XXX this needs to be of the correct type... (???)
 var makeGenerator = function(name){
 	return function(...args){
 		var that = this
-		return function*(){
-			yield* that(...arguments)[name](...args) } } }
+		return Object.assign(
+			function*(){
+				yield* that(...arguments)[name](...args) }, 
+			{ toString: function(){
+				return [
+					that.toString(), 
+					// XXX need to normalize args better...
+					`.${ name }(${ args.join(', ') })`,
+				].join('\n    ') }, }) } }
+// XXX do a better doc...
 var makePromise = function(name){
 	return function(...args){
 		var that = this
@@ -106,32 +110,47 @@ var makePromise = function(name){
 			return that(...arguments)[name](func) } } }
 
 
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-// XXX GeneratorPrototype can't be used as a generator constructor...
 
 // XXX should this be a generator???
 GeneratorPrototype.at = makeGenerator('at')
+
 GeneratorPrototype.slice = makeGenerator('slice')
 GeneratorPrototype.flat = makeGenerator('flat')
-GeneratorPrototype.toArray = function(){
-	var that = this
-	return function(){
-		return that(...arguments).toArray() } } 
-GeneratorPrototype.pop = function(){
-	var that = this
-	return function(){
-		return that(...arguments).toArray().pop() } }
-GeneratorPrototype.shift = function(){
-	var that = this
-	return function(){
-		return that(...arguments).toArray().shift() } }
 
 GeneratorPrototype.map = makeGenerator('map')
 GeneratorPrototype.filter = makeGenerator('filter')
 GeneratorPrototype.reduce = makeGenerator('reduce')
-GeneratorPrototype.flat = makeGenerator('flat')
 
+// non-generators...
+//
+GeneratorPrototype.toArray = function(){
+	var that = this
+	return Object.assign(
+		function(){
+			return that(...arguments).toArray() },
+		{ toString: function(){
+			return that.toString() 
+				+ '\n    .toString()'}, }) } 
+GeneratorPrototype.pop = function(){
+	var that = this
+	return Object.assign(
+		function(){
+			return that(...arguments).toArray().pop() },
+		{ toString: function(){
+			return that.toString() 
+				+ '\n    .pop()'}, }) } 
+GeneratorPrototype.shift = function(){
+	var that = this
+	return Object.assign(
+		function(){
+			return that(...arguments).toArray().shift() }, 
+		{ toString: function(){
+			return that.toString() 
+				+ '\n    .shift()'}, }) } 
+
+// promises...
+//
 GeneratorPrototype.then = makePromise('then')
 GeneratorPrototype.catch = makePromise('catch')
 GeneratorPrototype.finally = makePromise('finally')
@@ -169,10 +188,12 @@ GeneratorPrototype.prototype.slice = function*(from=0, to=Infity){
 		if(i >= from){
 			yield e }
 		i++ } },
+// XXX do we need a version that'll expand generators???
 GeneratorPrototype.prototype.flat = function*(depth=1){
 	if(depth == 0){
 		return this }
 	for(var e of this){
+		// expand array...
 		if(e instanceof Array){
 			for(var i=0; i < e.length; i++){
 				if(depth <= 1){
@@ -182,20 +203,9 @@ GeneratorPrototype.prototype.flat = function*(depth=1){
 					yield* typeof(e[i].flat) == 'function' ?
 						e[i].flat(depth-1)
 						: e[i] } }
-
-		// XXX the test will not work yet...
-		} else if(e instanceof GeneratorPrototype){
-			if(depth <= 1){
-				// XXX should we expand the generaaator here???
-				yield [...e]
-
-			} else {
-				yield* e.flat(depth-1) }
-
+		// item as-is...
 		} else {
 			yield e } } }
-GeneratorPrototype.prototype.toArray = function(){
-	return [...this] }
 
 GeneratorPrototype.prototype.map = function*(func){
 	var i = 0
@@ -212,7 +222,16 @@ GeneratorPrototype.prototype.reduce = function*(func, res){
 		res = func(res, e, i++, this) } 
 	yield res }
 
-// promise results...
+// non-generators...
+//
+GeneratorPrototype.prototype.toArray = function(){
+	return [...this] }
+GeneratorPrototype.prototype.pop = function(){
+	return [...this].pop() }
+GeneratorPrototype.prototype.shift = function(){
+	return [...this].shift() }
+
+// promises...
 //
 // XXX how do we handle reject(..) / .catch(..)???
 GeneratorPrototype.prototype.promise = function(){
