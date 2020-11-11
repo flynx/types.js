@@ -4,7 +4,14 @@
 *
 *
 * XXX would be helpful to define a task api...
-* 		task('abort') vs. task.abort() ...etc.
+* 		task('abort') vs. task.abort(), task state,  ...etc.
+* 	then define Task and TaskQueue(Queue) and extended api to:
+* 		- task state introspection
+* 		- stop/resume tasks (or task queue?)
+* 		- serialize tasks
+* 		- ...
+* 	would be nice to make the task just a slightly extended or better
+* 	defined function/generator, ideally to make them interchangable...
 *
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
