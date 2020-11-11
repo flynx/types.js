@@ -2,6 +2,10 @@
 * 
 *
 *
+*
+* XXX would be helpful to define a task api...
+* 		task('abort') vs. task.abort() ...etc.
+*
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
