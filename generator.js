@@ -63,9 +63,9 @@ module.Generator =
 // generic generator wrapper...
 var iter = 
 module.iter = 
-function*(lst=[]){
-	for(var e of lst){
-		yield e } }
+	function*(lst=[]){
+		for(var e of lst){
+			yield e } }
 
 
 
@@ -244,7 +244,6 @@ GeneratorPrototype.prototype.catch = function(func){
 	return this.promise().catch(func) }
 GeneratorPrototype.prototype.finally = function(func){
 	return this.promise().finally(func) }
-
 
 
 
