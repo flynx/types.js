@@ -2,6 +2,8 @@
 * 
 *
 *
+* XXX should we have .pre/.post events???
+*
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
@@ -134,22 +136,32 @@ var eventMethod = function(name, func, options={}){
 
 
 var EventHandlerMixin = {
-	// XXX add option to force global???
+	__event_handlers__: null,
+
 	on: function(evt, func){
 		// event...
-		if(evt in this){
-			this[evt].__event_handler_add__
-				&& this[evt].__event_handler_add__(this, func)
+		if(evt in this 
+				&& this[evt].__event_handler_add__){
+			this[evt].__event_handler_add__(this, func)
 		// non-event...
 		} else {
 			;((this.__event_handlers__ = this.__event_handlers__ || {})[evt] = 
 					this.__event_handlers__[evt] || [])
 				.push(func) }
 		return this },
-	off: function(event, func){
-	},
-	trigger: function(event, ...args){
+	off: function(evt, func){
+		// event...
+		if(evt in this 
+				&& this[evt].__event_handler_add__){
+			this[evt].__event_handler_remove__(this, func)
+		// non-event...
+		} else {
+			// XXX
+		}
+		return this },
+	trigger: function(evt, ...args){
 		// XXX trigger both the context and the method event handlers...
+		// XXX
 	},
 }
 

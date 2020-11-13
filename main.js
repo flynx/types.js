@@ -20,8 +20,9 @@ module.patchDate = require('./Date').patchDate
 
 // Additional types...
 module.containers = require('./containers')
-module.runner = require('./runner')
 module.generator = require('./generator')
+module.event = require('./event')
+module.runner = require('./runner')
 
 
 

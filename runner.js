@@ -24,6 +24,7 @@ var makeActionEvent = function(func){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// XXX use ./event...
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
 	// create a running queue...
