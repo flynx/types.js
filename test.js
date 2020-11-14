@@ -13,8 +13,11 @@ var test = require('ig-test')
 var object = require('ig-object')
 
 var types = require('./main')
-var containers = require('./containers')
 var promise = require('./Promise')
+
+var containers = require('./containers')
+	var generator = require('./generator')
+var events = require('./event')
 
 
 
@@ -355,6 +358,112 @@ UniqueKeyMap.tests({
 		return e }
 })
 
+
+
+//---------------------------------------------------------------------
+// events...
+
+var Events = test.TestSet()
+test.Case('Events', Events)
+
+Events.cases({
+	base: function(assert){
+		var called = {}
+
+		// object with events...
+		var ObjWithEvents = 
+			assert(
+				object.mixinFlat({
+					bareEventBlank: assert(
+						events.bareEventMethod('bareEventBlank'), 
+						'.bareEventMethod(..): blank'),
+					eventBlank: assert(
+						events.eventMethod('eventBlank'), 
+						'.eventMethod(..): blank'),
+
+					// XXX test aborting handlers...
+					bareEvent: assert(events.bareEventMethod('bareEvent', 
+						function(handle, ...args){
+							called['bareEvent-call'] = true
+							assert(handle(...args), '.bareEventMethod(..) -> handle(..)')
+							return 'bareEvent'
+						}), '.bareEventMethod(..)'),
+					event: assert(events.eventMethod('event', 
+						function(handle, ...args){
+							called['event-call'] = true
+							assert(handle(...args), '.eventMethod(..) -> handle(..)')
+						}), '.eventMethod(..)'),
+				}, events.EventMixin), 
+				'object with event mixin created.')
+		var obj = Object.create(ObjWithEvents)
+
+
+		// test event list...
+		assert.array(obj.events, ['event', 'eventBlank'], '.events')
+		assert.array(obj.eventfull, ['bareEvent', 'bareEventBlank'], '.eventfull')
+
+		// bind...
+		var bind = function(evt){
+			assert(obj.on(evt, function(evt, ...args){
+				called[evt +'-handle'] = true
+			}) === obj, 'bind: <obj-w-events>.on("'+ evt +'", ..)') }
+
+		;['moo', 
+				...obj.events,
+				...obj.eventfull]
+			.forEach(bind)
+
+		assert(obj.event(function(evt, ...args){
+			called['event-handle-2'] = true
+		}) === obj, 'bind: <obj-w-events>.event(<func>)')
+
+
+		// trigger 
+		var trigger = function(evt, triggerd=true, handled=true){
+			var res = assert(obj.trigger(evt), 'trigger: <obj-w-events>.trigger("'+ evt +'")')
+			triggerd
+				&& !evt.endsWith('Blank')
+				&& assert(called[evt +'-call'], 'trigger: "'+ evt +'" event triggered')
+			handled
+				&& assert(called[evt +'-handle'], 'trigger: "'+ evt +'" event handled') 
+			delete called[evt +'-call']
+			delete called[evt +'-handle'] 
+			return res }
+		var call = function(evt, triggered=true, handled=true){
+			var res = assert(obj[evt](), 'trigger: <obj-w-events>.'+ evt +'(..)')
+			triggered
+				&& !evt.endsWith('Blank')
+				&& assert(called[evt +'-call'], 'trigger: "'+ evt +'" event triggered')
+			handled
+				&& assert(called[evt +'-handle'], 'trigger: "'+ evt +'" event handled')
+			delete called[evt +'-call']
+			delete called[evt +'-handle'] 
+			return res }
+
+		trigger('foo', false, false)
+		trigger('moo', false)
+		obj.events
+			.forEach(function(e){ 
+				trigger(e) 
+				call(e) })
+
+		assert(called['event-handle-2'], 'trigger: "event" event handled')
+		delete called['event-handle-2']
+
+		assert(call('event') === obj, '<obj-w-events>.event(..) return value.')
+		assert(call('bareEvent') == 'bareEvent', '<obj-w-events>.bareEvent(..) return value.')
+
+
+
+		// unbind...
+
+		// trigger...
+
+		// re-bind...
+
+		// trigger...
+	},
+})
 
 
 //---------------------------------------------------------------------

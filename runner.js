@@ -20,6 +20,8 @@
 
 var object = require('ig-object')
 
+var events = require('./event')
+
 
 
 /*********************************************************************/
@@ -42,7 +44,7 @@ module.Queue = object.Constructor('Queue', Array, {
 	run: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
 
-},{
+}, {
 	// config...
 	//
 	pool_size: 8,
@@ -89,9 +91,9 @@ module.Queue = object.Constructor('Queue', Array, {
 
 		// run the handlers...
 		} else {
-		;(this['__'+evt] || [])
-			.forEach(function(handler){
-				handler.call(that, evt, ...args) }) }
+			;(this['__'+evt] || [])
+				.forEach(function(handler){
+					handler.call(that, evt, ...args) }) }
 		return this },
 	on: function(evt, handler){
 		if(!handler){
