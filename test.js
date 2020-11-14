@@ -366,6 +366,7 @@ UniqueKeyMap.tests({
 var Events = test.TestSet()
 test.Case('Events', Events)
 
+// XXX test aborting handlers...
 Events.cases({
 	base: function(assert){
 		var called = {}
@@ -374,6 +375,11 @@ Events.cases({
 		var ObjWithEvents = 
 			assert(
 				object.mixinFlat({
+					// NOTE: we will also use virtual events later -- 'moo' 
+					// 		and 'foo', these do not have to be defined to 
+					// 		be usable...
+
+					// blank events...
 					bareEventBlank: assert(
 						events.bareEventMethod('bareEventBlank'), 
 						'.bareEventMethod(..): blank'),
@@ -381,20 +387,22 @@ Events.cases({
 						events.eventMethod('eventBlank'), 
 						'.eventMethod(..): blank'),
 
-					// XXX test aborting handlers...
+					// normal events...
 					bareEvent: assert(events.bareEventMethod('bareEvent', 
 						function(handle, ...args){
 							called['bareEvent-call'] = true
-							assert(handle(...args), '.bareEventMethod(..) -> handle(..)')
+							assert(handle(), '.bareEventMethod(..) -> handle(..)')
 							return 'bareEvent'
 						}), '.bareEventMethod(..)'),
 					event: assert(events.eventMethod('event', 
 						function(handle, ...args){
 							called['event-call'] = true
-							assert(handle(...args), '.eventMethod(..) -> handle(..)')
+							assert(handle(), '.eventMethod(..) -> handle(..)')
 						}), '.eventMethod(..)'),
 				}, events.EventMixin), 
 				'object with event mixin created.')
+
+		// create an "instance"...
 		var obj = Object.create(ObjWithEvents)
 
 
@@ -453,7 +461,7 @@ Events.cases({
 		assert(call('event') === obj, '<obj-w-events>.event(..) return value.')
 		assert(call('bareEvent') == 'bareEvent', '<obj-w-events>.bareEvent(..) return value.')
 
-
+		obj.event(1,2,3)
 
 		// unbind...
 

@@ -41,15 +41,26 @@ function(name, func, options={}){
 
 			// NOTE: this will stop event handling if one of the handlers 
 			// 		explicitly returns false...
-			var handle = function(){
-				return handlers
-					.reduce(function(res, handler){ 
-						return res === true 
-							&& handler(...args) !== false }, true) } 
-			var res
-			func ?
-				(res = func.call(this, handle, ...args))
-				: handle(...args)
+			// NOTE: to explicitly disable calling the handlers func must 
+			// 		call handle(false)
+			// XXX should he user be able to control the args passed to 
+			// 		the handlers???
+			var did_handle = false
+			var handle = function(skip=false){
+				did_handle = skip === true
+				return skip ?
+					undefined
+					: handlers
+						.reduce(function(res, handler){ 
+							return res === true 
+								&& handler(name, ...args) !== false }, true) } 
+
+			var res = func ?
+				func.call(this, handle, ...args)
+				: undefined
+
+			!did_handle
+				&& handle()
 
 			return res },
 		{
