@@ -196,11 +196,11 @@ function(name, func, options={}){
 
 // XXX might be nice to add support to pre/post handlers...
 // XXX still not sure about the builtin-local event control flow...
+// XXX do we need to be able to force global handler???
 var EventHandlerMixin = 
 module.EventHandlerMixin = {
 	__event_handlers__: null,
 
-	// XXX do we need to be able to force global handler???
 	on: function(evt, func){
 		// event...
 		if(evt in this 
@@ -237,7 +237,6 @@ module.EventHandlerMixin = {
 						return h !== func 
 							&& h.__event_original_handler__ !== func })) }
 		return this },
-	// XXX add support for stopping handler execution...
 	trigger: function(evt, ...args){
 		// local handler...
 		evt in this
@@ -271,7 +270,7 @@ module.EventDocMixin = {
 
 var EventMixin = 
 module.EventMixin =
-	object.mixinFlat(
+	object.mixinFlat({},
 		EventHandlerMixin,
 		EventDocMixin)
 
