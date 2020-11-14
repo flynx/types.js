@@ -16,7 +16,32 @@ var object = require('ig-object')
 
 
 /*********************************************************************/
+// Event method wrappers...
 
+// Create an "eventfull" method...
+//
+// The resulting method can be either called directly or via .trigger(..).
+// Handlrs can be bound to it via .on(..) and unbound via .off(..) and 
+// calling it will trigger the handlers either after the user func(..)
+// return or when the user calles the passed handler(..) function.
+//
+// 	bareEventMethod(name[, options])
+// 		-> method
+//
+// 	bareEventMethod(name, func[, options])
+// 		-> method
+//
+//
+//	method(...args)
+//		-> ..
+//
+//
+// 	func(handle, ...args)
+// 		-> ..
+//
+//
+// NOTE: calling handle(false) will exiplicitly disable calling the 
+// 		handlers for that call...
 var bareEventMethod = 
 module.bareEventMethod =
 function(name, func, options={}){
@@ -41,6 +66,8 @@ function(name, func, options={}){
 
 			// NOTE: this will stop event handling if one of the handlers 
 			// 		explicitly returns false...
+			// NOTE: if the user does not call handle() it will be called 
+			// 		after the event action is done but before it returns...
 			// NOTE: to explicitly disable calling the handlers func must 
 			// 		call handle(false)
 			// XXX should he user be able to control the args passed to 
@@ -59,6 +86,8 @@ function(name, func, options={}){
 				func.call(this, handle, ...args)
 				: undefined
 
+			// call the handlers if the user either didn't call handle()
+			// or explicitly called handle(false)...
 			!did_handle
 				&& handle()
 
@@ -91,7 +120,10 @@ function(name, func, options={}){
 					: options.handlerLocation == 'method' ?
 						method.__event_handlers__
 					: (context.__event_handlers__ || {})[name]) || []
-				handlers.splice(handlers.indexOf(func), 1)
+				handlers.splice(0, handlers.length,
+					...handlers.filter(function(h){
+						return h !== func
+							&& h.__event_original_handler__ !== func }))
 				return this },
 			toString: function(){
 				return func.toString()
@@ -100,11 +132,12 @@ function(name, func, options={}){
 
 
 // Extends bareEventMethod(..) adding ability to bind events via the 
-// resulting method directly...
+// resulting method directly by passing it a function...
 //
-//	eventMethod(name, func)
+//	eventMethod(name[, options])
 //		-> method
-//	eventMethod(name, func)
+//
+//	eventMethod(name, func[, options])
 //		-> method
 //
 //
@@ -157,6 +190,10 @@ function(name, func, options={}){
 		}) }
 
 
+
+//---------------------------------------------------------------------
+// Mixins...
+
 // XXX might be nice to add support to pre/post handlers...
 // XXX still not sure about the builtin-local event control flow...
 var EventHandlerMixin = 
@@ -175,18 +212,30 @@ module.EventHandlerMixin = {
 					this.__event_handlers__[evt] || [])
 				.push(func) }
 		return this },
+	one: function(evt, func){
+		var handler
+		this.on(evt, 
+			handler = Object.assing(
+				function(handle, ...args){
+					this.off(evt, handler)
+					return func.call(this, handle, ...args) },
+				{__event_original_handler__: func}))
+		return this },
 	// XXX do we need .off(evt, 'all')
 	off: function(evt, func){
 		// event...
 		if(evt in this 
-				&& this[evt].__event_handler_add__){
+				&& this[evt].__event_handler_remove__){
 			this[evt].__event_handler_remove__(this, func)
 		// non-event...
 		} else {
 			var handlers = this.__event_handlers__
 				&& (this.__event_handlers__[evt] || [])
 			handlers
-				&& handlers.splice(handlers.indexOf(func), 1) }
+				&& handlers.splice(0, handlers.length,
+					...handlers.filter(function(h){
+						return h !== func 
+							&& h.__event_original_handler__ !== func })) }
 		return this },
 	// XXX add support for stopping handler execution...
 	trigger: function(evt, ...args){

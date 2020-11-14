@@ -109,8 +109,8 @@ module.Queue = object.Constructor('Queue', Array, {
 		return handler ?
 			this.on(evt, Object.assign(
 				function(){
-					handler.call(this, ...arguments)
-					that.off(evt, handler) }, 
+					that.off(evt, handler) 
+					handler.call(this, ...arguments) }, 
 				{ original_handler: handler }))
 			: this },
 	off: function(evt, handler){
