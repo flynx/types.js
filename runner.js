@@ -44,7 +44,7 @@ module.Queue = object.Constructor('Queue', Array, {
 	run: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
 
-}, {
+}, object.mixinFlat({
 	// config...
 	//
 	pool_size: 8,
@@ -65,6 +65,7 @@ module.Queue = object.Constructor('Queue', Array, {
 			this.stop() } },
 
 
+	/* XXX LEGACY...
 	// event API...
 	//
 	// XXX mignt be good to make this a generic mixin...
@@ -122,6 +123,7 @@ module.Queue = object.Constructor('Queue', Array, {
 						return func === handler
 							|| func.original_handler === handler }))
 		return this },
+	//*/
 
 
 	// events/actions - state transitions...
@@ -131,6 +133,7 @@ module.Queue = object.Constructor('Queue', Array, {
 	// 			.trigger('start')
 	// 			.state = 'running'
 	// 		and similar for 'stop'...
+	/*/ XXX ASAP migrate to event.js...
 	start: makeActionEvent(function(handler){
 		// register handler...
 		if(typeof(handler) == 'function'){
@@ -143,6 +146,7 @@ module.Queue = object.Constructor('Queue', Array, {
 		this.trigger('start!')
 		this._run()
 		return this }),
+	// XXX ASAP migrate to event.js...
 	stop: makeActionEvent(function(handler){
 		// register handler...
 		if(typeof(handler) == 'function'){
@@ -154,25 +158,52 @@ module.Queue = object.Constructor('Queue', Array, {
 		this.__state = 'stopped'
 		this.trigger('stop!')
 		return this }),
+	/*/
+	start: events.Event('start', function(handle){
+		// can't start while running...
+		if(this.state == 'running'){
+			handle(false)
+			return this }
+		this.__state = 'running'
+		this._run() }),
+	stop: events.Event('stop', function(handle){
+		// can't stop while not running...
+		if(this.state == 'stopped'){
+			handle(false)
+			return this }
+		this.__state = 'stopped'
+		return this }),
+	//*/
 
 
 	// events/actions - state transitions...
 	//
+	/*/ XXX ASAP migrate to event.js...
 	clear: makeActionEvent(function(handler){
 		if(typeof(handler) == 'function'){
 			return this.on('clear', handler) }
 		this.splice(0, this.length) 
 		return this }),
+	/*/
+	clear: events.Event(function(handler){
+		this.splice(0, this.length) }),
+	//*/
 
 
 	// events...
 	//
+	/* XXX LEGACY...
 	taskStarting: makeEvent(function(func){
 		return this.on('taskStarting', ...arguments) }),
 	taskCompleted: makeEvent(function(func){
 		return this.on('taskCompleted', ...arguments) }),
 	queueEmpty: makeEvent(function(func){
 		return this.on('queueEmpty', ...arguments) }),
+	/*/
+	taskStarting: events.Event('taskStarting'),
+	taskCompleted: events.Event('taskCompleted'),
+	queueEmpty: events.Event('queueEmpty'),
+	//*/
 
 	// helpers...
 	//
@@ -275,7 +306,7 @@ module.Queue = object.Constructor('Queue', Array, {
 				&& typeof(this[0].finally) != 'function'){
 			Object.assign(this, this.shift()) }
 		this._run() },
-})
+}, events.EventMixin))
 
 
 

@@ -25,10 +25,10 @@ var object = require('ig-object')
 // calling it will trigger the handlers either after the user func(..)
 // return or when the user calles the passed handler(..) function.
 //
-// 	bareEventMethod(name[, options])
+// 	Eventfull(name[, options])
 // 		-> method
 //
-// 	bareEventMethod(name, func[, options])
+// 	Eventfull(name, func[, options])
 // 		-> method
 //
 //
@@ -42,8 +42,8 @@ var object = require('ig-object')
 //
 // NOTE: calling handle(false) will exiplicitly disable calling the 
 // 		handlers for that call...
-var bareEventMethod = 
-module.bareEventMethod =
+var Eventfull = 
+module.Eventfull =
 function(name, func, options={}){
 	var hidden
 	var method
@@ -131,13 +131,13 @@ function(name, func, options={}){
 		}) } 
 
 
-// Extends bareEventMethod(..) adding ability to bind events via the 
+// Extends Eventfull(..) adding ability to bind events via the 
 // resulting method directly by passing it a function...
 //
-//	eventMethod(name[, options])
+//	Event(name[, options])
 //		-> method
 //
-//	eventMethod(name, func[, options])
+//	Event(name, func[, options])
 //		-> method
 //
 //
@@ -157,8 +157,8 @@ function(name, func, options={}){
 //	func(handle, ...args)
 //
 //
-var eventMethod = 
-module.eventMethod =
+var Event = 
+module.Event =
 function(name, func, options={}){
 	var method
 	options = typeof(func) != 'function' ?
@@ -166,7 +166,7 @@ function(name, func, options={}){
 		: options
 
 	return Object.assign(
-		method = bareEventMethod(name, 
+		method = Eventfull(name, 
 			function(handle, ...args){
 				// add handler...
 				// XXX handle handler tags...
@@ -182,7 +182,7 @@ function(name, func, options={}){
 			options),
    		{
 			__event__: 'full',
-			// NOTE: this is a copy of bareEventMethod's .toString() as we 
+			// NOTE: this is a copy of Eventfull's .toString() as we 
 			// 		still need to base the doc on the user's func...
 			toString: function(){
 				return func.toString()

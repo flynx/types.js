@@ -381,24 +381,24 @@ Events.cases({
 
 					// blank events...
 					bareEventBlank: assert(
-						events.bareEventMethod('bareEventBlank'), 
-						'.bareEventMethod(..): blank'),
+						events.Eventfull('bareEventBlank'), 
+						'.Eventfull(..): blank'),
 					eventBlank: assert(
-						events.eventMethod('eventBlank'), 
-						'.eventMethod(..): blank'),
+						events.Event('eventBlank'), 
+						'.Event(..): blank'),
 
 					// normal events...
-					bareEvent: assert(events.bareEventMethod('bareEvent', 
+					bareEvent: assert(events.Eventfull('bareEvent', 
 						function(handle, ...args){
 							called['bareEvent-call'] = true
-							assert(handle(), '.bareEventMethod(..) -> handle(..)')
+							assert(handle(), '.Eventfull(..) -> handle(..)')
 							return 'bareEvent'
-						}), '.bareEventMethod(..)'),
-					event: assert(events.eventMethod('event', 
+						}), '.Eventfull(..)'),
+					event: assert(events.Event('event', 
 						function(handle, ...args){
 							called['event-call'] = true
-							assert(handle(), '.eventMethod(..) -> handle(..)')
-						}), '.eventMethod(..)'),
+							assert(handle(), '.Event(..) -> handle(..)')
+						}), '.Event(..)'),
 				}, events.EventMixin), 
 				'object with event mixin created.')
 
@@ -461,7 +461,10 @@ Events.cases({
 		assert(call('event') === obj, '<obj-w-events>.event(..) return value.')
 		assert(call('bareEvent') == 'bareEvent', '<obj-w-events>.bareEvent(..) return value.')
 
-		obj.event(1,2,3)
+
+		// XXX test passing args...
+
+		// XXX test .one(..) / .off(..) 
 
 		// unbind...
 
