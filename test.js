@@ -18,6 +18,7 @@ var promise = require('./Promise')
 var containers = require('./containers')
 	var generator = require('./generator')
 var events = require('./event')
+var runner = require('./runner')
 
 
 
