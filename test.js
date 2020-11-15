@@ -472,6 +472,11 @@ Events.cases({
 			.event()
 			.event()
 		assert(called['event-one-time-handler'] == 1, '.one("event", ..) handler cleared.')
+		delete called['event-one-time-handler']
+
+		// special case...
+		obj.trigger('event', function(){ called['trigger-function-called'] = true })
+		assert(called['trigger-function-called'] === undefined, '.trigger(..) should not call it\'s args')
 		
 		// XXX test passing args...
 
@@ -479,6 +484,57 @@ Events.cases({
 
 		// re-bind...
 
+	},
+})
+
+
+//---------------------------------------------------------------------
+// events...
+
+var Runner = test.TestSet()
+test.Case('Runner', Runner)
+
+// XXX test aborting handlers...
+Runner.cases({
+	base: function(assert){
+		//var q = assert(runner.Queue({auto_stop: true}), 'Queue()')
+		var q = assert(runner.Queue(), 'Queue()')
+
+		// empty states...
+		assert(q.state == 'stopped', '.state: stopped')
+
+		q.start()
+
+		assert(q.state == 'running', '.state: running')
+
+		q.start()
+
+		assert(q.state == 'running', '.state: running')
+
+		q.stop()
+
+		assert(q.state == 'stopped', '.state: stopped')
+
+		var tasks_run = []
+		var a = function(){ tasks_run.push('a') }
+		var b = function(){ tasks_run.push('b') }
+		var c = function(){ tasks_run.push('c') }
+
+		q.push(a)
+		q.push(b)
+		q.push(c)
+		
+		assert(q.length == 3, '.length is 3')
+
+		// for some reason this runs the tasks above multiple times...
+		q.start()
+
+		assert.array(tasks_run, ['a', 'b', 'c'], 'all tasks run')
+
+
+
+
+		//console.log('\n>>>', q.state)
 	},
 })
 

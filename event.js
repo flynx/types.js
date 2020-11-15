@@ -131,6 +131,8 @@ function(name, func, options={}){
 		}) } 
 
 
+module.TRIGGER = {doc: 'force event method to trigger'}
+
 // Extends Eventfull(..) adding ability to bind events via the 
 // resulting method directly by passing it a function...
 //
@@ -157,6 +159,16 @@ function(name, func, options={}){
 //	func(handle, ...args)
 //
 //
+// Special case:
+//
+//	Force trigger event...
+//	method(TRIGGER, ...args)
+//		-> this
+//
+// This will pass args to the event action regardless whether the first 
+// arg is a function or not...
+//
+//
 var Event = 
 module.Event =
 function(name, func, options={}){
@@ -169,12 +181,14 @@ function(name, func, options={}){
 		method = Eventfull(name, 
 			function(handle, ...args){
 				// add handler...
-				// XXX handle handler tags...
 				if(typeof(args[0]) == 'function'){
 					method.__event_handler_add__(this, args[0])
 					
 				// call the action...
 				} else {
+					// special case: force trigger -> remove TRIGGER from args...
+					args[0] === module.TRIGGER
+						&& args.shift()
 					func
 						&& func.call(this, handle, ...args) }
 
@@ -240,7 +254,7 @@ module.EventHandlerMixin = {
 	trigger: function(evt, ...args){
 		// local handler...
 		evt in this
-			&& this[evt](...args)
+			&& this[evt](module.TRIGGER, ...args)
 		// global events...
 		this.__event_handlers__
 			&& (this.__event_handlers__[evt] || [])
