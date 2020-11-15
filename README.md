@@ -87,6 +87,18 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<unique-key-map>.uniqueKey(..)`](#unique-key-mapuniquekey)
       - [`<unique-key-map>.__key_pattern__`](#unique-key-map__key_pattern__)
       - [`<unique-key-map>.__unordered_rename__`](#unique-key-map__unordered_rename__)
+  - [Event](#event)
+    - [`event.Eventfull(..)`](#eventeventfull)
+    - [`event.Event(..)`](#eventevent)
+    - [`event.EventHandlerMixin`](#eventeventhandlermixin)
+      - [`<obj>.on(..)`](#objon)
+      - [`<obj>.one(..)`](#objone)
+      - [`<obj>.off(..)`](#objoff)
+      - [`<obj>.trigger(..)`](#objtrigger)
+    - [`event.EventDocMixin`](#eventeventdocmixin)
+      - [`<obj>.eventfull`](#objeventfull)
+      - [`<obj>.events`](#objevents)
+    - [`event.EventMixin`](#eventeventmixin)
   - [Runner](#runner)
     - [`runner.Queue(..)` / `runner.Queue.run(..)`](#runnerqueue--runnerqueuerun)
       - [`<queue>.state`](#queuestate)
@@ -770,6 +782,30 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 
 #### `<unique-key-map>.__unordered_rename__`
 
+
+## Event
+
+### `event.Eventfull(..)`
+
+### `event.Event(..)`
+
+### `event.EventHandlerMixin`
+
+#### `<obj>.on(..)`
+
+#### `<obj>.one(..)`
+
+#### `<obj>.off(..)`
+
+#### `<obj>.trigger(..)`
+
+### `event.EventDocMixin`
+
+#### `<obj>.eventfull`
+
+#### `<obj>.events`
+
+### `event.EventMixin`
 
 ## Runner
 

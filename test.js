@@ -463,17 +463,22 @@ Events.cases({
 		assert(call('bareEvent') == 'bareEvent', '<obj-w-events>.bareEvent(..) return value.')
 
 
+		// unbind: .one(..) / .off(..) 
+		obj.one('event', function(){ 
+			called['event-one-time-handler'] = 
+				(called['event-one-time-handler'] || 0) + 1  })
+		obj
+			.event()
+			.event()
+			.event()
+		assert(called['event-one-time-handler'] == 1, '.one("event", ..) handler cleared.')
+		
 		// XXX test passing args...
 
-		// XXX test .one(..) / .off(..) 
-
-		// unbind...
-
-		// trigger...
+		// XXX test different mode events...
 
 		// re-bind...
 
-		// trigger...
 	},
 })
 

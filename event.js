@@ -215,10 +215,10 @@ module.EventHandlerMixin = {
 	one: function(evt, func){
 		var handler
 		this.on(evt, 
-			handler = Object.assing(
+			handler = Object.assign(
 				function(handle, ...args){
 					this.off(evt, handler)
-					return func.call(this, handle, ...args) },
+					return func.call(this, handle, ...args) }.bind(this),
 				{__event_original_handler__: func}))
 		return this },
 	// XXX do we need .off(evt, 'all')
