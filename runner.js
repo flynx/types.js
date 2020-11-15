@@ -67,99 +67,8 @@ module.Queue = object.Constructor('Queue', Array, {
 			this.stop() } },
 
 
-	/* XXX LEGACY...
-	// event API...
-	//
-	// XXX mignt be good to make this a generic mixin...
-	// XXX should we use actions for this???
-	// 		...likely no as it would pull in another dependency...
-	//
-	// NOTE: .trigger(..) will only call the handlers and not the actual 
-	// 		event method unless it is defined as an action event...
-	// NOTE: if '!' is appended to the event name .trigger(..) will not
-	// 		call the event action.
-	trigger: function(evt, ...args){
-		var that = this
-		// NOTE: needed to break recursion when triggering from an 
-		// 		action event...
-		var handlers_only = evt.endsWith('!')
-		evt = handlers_only ?
-			evt.slice(0, -1) 
-			: evt
-
-		// run the event action...
-		if(!handlers_only
-				&& (this[evt] || {}).__event__ == 'action'){
-			this[evt]()
-
-		// run the handlers...
-		} else {
-			;(this['__'+evt] || [])
-				.forEach(function(handler){
-					handler.call(that, evt, ...args) }) }
-		return this },
-	on: function(evt, handler){
-		if(!handler){
-			throw new Error('.on(..): need a handler') }
-		if(!this[evt] || !this[evt].__event__){
-			throw new Error('.on(..): can\'t register handler for non-event:'+ evt) }
-		evt = '__'+evt
-		handler
-			&& (this[evt] = this[evt] || []).push(handler)
-		return this },
-	one: function(evt, handler){
-		var that = this
-		return handler ?
-			this.on(evt, Object.assign(
-				function(){
-					that.off(evt, handler) 
-					handler.call(this, ...arguments) }, 
-				{ original_handler: handler }))
-			: this },
-	off: function(evt, handler){
-		var handlers = (this['__'+evt] || [])
-		handlers.length > 0
-			&& handlers.splice(0, handlers.length,
-				...handlers
-					.filter(function(func){
-						return func === handler
-							|| func.original_handler === handler }))
-		return this },
-	//*/
-
-
 	// events/actions - state transitions...
 	//
-	// NOTE: the following are equivalent:
-	// 			.start()
-	// 			.trigger('start')
-	// 			.state = 'running'
-	// 		and similar for 'stop'...
-	/* XXX LEGACY...
-	start: makeActionEvent(function(handler){
-		// register handler...
-		if(typeof(handler) == 'function'){
-			return this.on('start', handler) }
-		// can't start while running...
-		if(this.state == 'running'){
-			return this }
-		// do the action...
-		this.__state = 'running'
-		this.trigger('start!')
-		this._run()
-		return this }),
-	stop: makeActionEvent(function(handler){
-		// register handler...
-		if(typeof(handler) == 'function'){
-			return this.on('stop', handler) }
-		// can't stop while not running...
-		if(this.state == 'stopped'){
-			return this }
-		// do the action...
-		this.__state = 'stopped'
-		this.trigger('stop!')
-		return this }),
-	/*/
 	start: events.Event('start', function(handle){
 		// can't start while running...
 		if(this.state == 'running'){
@@ -171,37 +80,19 @@ module.Queue = object.Constructor('Queue', Array, {
 		if(this.state == 'stopped'){
 			return handle(false) }
 		this.__state = 'stopped' }),
-	//*/
 
 
 	// events/actions - state transitions...
 	//
-	/* XXX LEGACY...
-	clear: makeActionEvent(function(handler){
-		if(typeof(handler) == 'function'){
-			return this.on('clear', handler) }
-		this.splice(0, this.length) 
-		return this }),
-	/*/
 	clear: events.Event(function(handler){
 		this.splice(0, this.length) }),
-	//*/
 
 
 	// events...
 	//
-	/* XXX LEGACY...
-	taskStarting: makeEvent(function(func){
-		return this.on('taskStarting', ...arguments) }),
-	taskCompleted: makeEvent(function(func){
-		return this.on('taskCompleted', ...arguments) }),
-	queueEmpty: makeEvent(function(func){
-		return this.on('queueEmpty', ...arguments) }),
-	/*/
 	taskStarting: events.Event('taskStarting'),
 	taskCompleted: events.Event('taskCompleted'),
 	queueEmpty: events.Event('queueEmpty'),
-	//*/
 
 	// helpers...
 	//
