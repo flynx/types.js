@@ -20,26 +20,14 @@
 
 var object = require('ig-object')
 
+require('./Array')
+
 var events = require('./event')
 
 
 
 /*********************************************************************/
-// helpers...
 
-/* XXX LEGACY...
-var makeEvent = function(func, mode){
-	return Object.assign(
-		func,
-		{__event__: mode || true}) }
-var makeActionEvent = function(func){
-	return makeEvent(func, 'action') }
-//*/
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-// XXX use ./event...
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
 	// create a running queue...
@@ -101,9 +89,15 @@ module.Queue = object.Constructor('Queue', Array, {
 	// 		- ranges -- simelar to .slice(..)
 	// 		- by value
 	// XXX
-	prioritize: function(){},
+	prioritize: function(...tasks){
+		return this.sortAs(tasks) },
 	// XXX same as prioritize but adds stuff to the tail...
-	delay: function(){},
+	delay: function(...tasks){
+		this.splice(0, this.length,
+			...this.slice()
+				.reverse()
+				.sortAs(tasks.reverse())) 
+		return this },
 
 	// main runner...
 	//

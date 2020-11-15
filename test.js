@@ -111,7 +111,7 @@ var cases = test.Cases({
 	Promise: function(assert){
 		var p = assert(Promise.cooperative(), '.cooperative()')
 		//var p = assert(promise._CooperativePromise())
-
+		
 		assert(!p.isSet, '.isSet is false')
 
 		var RESOLVE = 123
@@ -252,10 +252,6 @@ PromiseTests.setups({
 	cooperative: function(assert){
 		return {
 			a: assert(Promise.cooperative(), '.cooperative()')
-		} },
-	experimental: function(assert){
-		return {
-			a: assert(promise._CooperativePromise(), 'experimental')
 		} },
 })
 

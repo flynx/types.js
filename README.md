@@ -90,6 +90,7 @@ A library of JavaScript type extensions, types and type utilities.
   - [Event](#event)
     - [`event.Eventfull(..)`](#eventeventfull)
     - [`event.Event(..)`](#eventevent)
+    - [`event.TRIGGER`](#eventtrigger)
     - [`event.EventHandlerMixin`](#eventeventhandlermixin)
       - [`<obj>.on(..)`](#objon)
       - [`<obj>.one(..)`](#objone)
@@ -788,6 +789,11 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 ### `event.Eventfull(..)`
 
 ### `event.Event(..)`
+
+### `event.TRIGGER`
+
+Special value when passed to an event method as first argument will force it 
+to trigger event if the first argument was a function.
 
 ### `event.EventHandlerMixin`
 
