@@ -99,7 +99,7 @@ Array.prototype.compact = function(){
 	})
 
 
-// Return an array with duplicate elements removed...
+// Return a new array with duplicate elements removed...
 //
 // NOTE: order is preserved... 
 Array.prototype.unique = function(normalize){
@@ -143,6 +143,15 @@ Array.prototype.setCmp = function(other){
 
 // Sort as the other array...
 //
+// 	Sort as array placing the sorted items at head...
+// 	.sortAs(array)
+// 	.sortAs(array, 'head')
+// 		-> sorted
+//
+// 	Sort as array placing the sorted items at tail...
+// 	.sortAs(array, 'tail')
+// 		-> sorted
+//
 // This will sort the intersecting items in the head keeping the rest 
 // of the items in the same relative order...
 //
@@ -150,8 +159,10 @@ Array.prototype.setCmp = function(other){
 // 		is used...
 //
 // XXX should this extend/patch .sort(..)???
-// 		...currently do not see a clean way to do this...
-Array.prototype.sortAs = function(other){
+// 		...currently do not see a clean way to do this without extending 
+// 		and replacing Array or directly re-wrapping .sort(..)...
+Array.prototype.sortAs = function(other, place='head'){
+	place = place == 'tail' ? -1 : 1 
 	// NOTE: the memory overhead here is better than the time overhead 
 	// 		when using .indexOf(..)...
 	other = other.toMap()
@@ -162,9 +173,9 @@ Array.prototype.sortAs = function(other){
 		return i == null && j == null ?
 				orig.get(a) - orig.get(b)
 			: i == null ? 
-				1
+				place
 			: j == null ? 
-				-1
+				-place
 			: i - j }) }
 
 

@@ -93,11 +93,7 @@ module.Queue = object.Constructor('Queue', Array, {
 		return this.sortAs(tasks) },
 	// XXX same as prioritize but adds stuff to the tail...
 	delay: function(...tasks){
-		this.splice(0, this.length,
-			...this.slice()
-				.reverse()
-				.sortAs(tasks.reverse())) 
-		return this },
+		return this.sortAs(tasks, true) },
 
 	// main runner...
 	//
