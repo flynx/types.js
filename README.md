@@ -16,6 +16,7 @@ A library of JavaScript type extensions, types and type utilities.
       - [`Object.sort(..)`](#objectsort)
     - [`Array`](#array)
       - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
+      - [`<array>.rol(..)`](#arrayrol)
       - [`<array>.compact()`](#arraycompact)
       - [`<array>.len`](#arraylen)
       - [`<array>.unique(..)` / `<array>.tailUnique(..)`](#arrayunique--arraytailunique)
@@ -315,6 +316,21 @@ Note that these do not affect `<array>` length unless setting items on
 an empty `<array>`.
 
 
+#### `<array>.rol(..)`
+
+Roll `<array>` in-place left.
+```
+<array>.rol()
+<array>.rol(1)
+  -> <array>
+
+<array>.rol(n)
+  -> <array>
+```
+
+To roll right pass a negative `n` to `.rol(..)`.
+
+
 #### `<array>.compact()`
 
 ```
@@ -344,6 +360,7 @@ no effect.
 #### `<array>.unique(..)` / `<array>.tailUnique(..)`
 
 Generate an array with all duplicate elements removed.
+
 
 #### `<array>.cmp(..)`
 
@@ -381,10 +398,8 @@ This is mostly useful in combination with the [Generator extensions and utilitie
 
 ### Abortable `Array` iteration
 
-#### `array.StopIteration`
-
-An exception that if raised while iterating via a supporting iterator method 
-will abort further execution and correctly exit.
+A an alternative to `Array`'s `.map(..)` / `.filter(..)` / .. methods with ability to
+stop the iteration process by `throw`ing `StopIteration`.
 
 ```javascript
 var {StopIteration} = require('ig-types/Array')
@@ -413,6 +428,13 @@ This can be used in two ways:
               throw new StopIteration(e) } }))
     ```
 
+Note that no partial result is returned unless passed through `StopIteration(..)`.
+
+
+#### `array.StopIteration`
+
+An exception that if raised while iterating via a supporting iterator method 
+will abort further execution and correctly exit.
 
 
 #### `<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`

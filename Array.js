@@ -81,6 +81,27 @@ Array.prototype.last
 			: this[this.length - 1]})
 
 
+// Roll left/right (in-place)...
+//
+// NOTE: to .rol(..) left just pass a negative n value...
+// NOTE: we can't use ...[..] for sparse arrays as the will expand undefined
+// 		inplace of empty positions, this is thereason the .splice(..) 
+// 		implementation was replaced by a less clear (but faster)
+// 		.copyWithin(..) version...
+Array.prototype.rol
+	|| (Array.prototype.rol = function(n=1){
+		var l = this.length
+		n = (n >= 0 ? 
+				n 
+				: l - n)
+			% l
+		if(n != 0){
+			this.length += n
+			this.copyWithin(l, 0, n)
+			this.splice(0, n) }
+		return this })
+
+
 // Compact a sparse array...
 //
 // NOTE: this will not compact in-place.
@@ -93,8 +114,9 @@ Array.prototype.compact = function(){
 'len' in Array.prototype
 	|| Object.defineProperty(Array.prototype, 'len', {
 		get : function () {
-			return Object.keys(this).length
-		},
+			// NOTE: if we don't do .slice() here this can count array 
+			// 		instance attributes...
+			return Object.keys(this.slice()).length },
 		set : function(val){},
 	})
 
@@ -105,7 +127,9 @@ Array.prototype.compact = function(){
 Array.prototype.unique = function(normalize){
 	return normalize ? 
 		[...new Map(this.map(function(e){ return [normalize(e), e] })).values()]
-		: [...new Set(this)] }
+		// NOTE: we are calling .compact() here to avoid creating undefined 
+		// 		items from empty slots in sparse arrays...
+		: [...new Set(this.compact())] }
 Array.prototype.tailUnique = function(normalize){
 	return this
 		.slice()
@@ -202,20 +226,19 @@ Array.prototype.inplaceSortAs = function(other){
 // StopIteration...
 // 
 // NOTE: these add almost no overhead to the iteration.
+// NOTE: these will not return a partial result if stopped.
 // 
 // XXX should these return a partial result on StopIteration?
 var wrapIterFunc = function(iter){
 	return function(func){
 		try {
 			return this[iter](...arguments)
-		// handle StopIteration...
 		} catch(err){
 			if(err === StopIteration){
 				return
 			} else if( err instanceof StopIteration){
 				return err.msg }
 			throw err } } }
-
 Array.prototype.smap = wrapIterFunc('map')
 Array.prototype.sfilter = wrapIterFunc('filter')
 Array.prototype.sreduce = wrapIterFunc('reduce')
@@ -459,7 +482,6 @@ function(func, ...arrays){
 //
 //
 // XXX should this take an argument and be like map??
-// XXX revise name
 Array.prototype.iter = function*(){
 	for(var e of this){
 		yield e } }
