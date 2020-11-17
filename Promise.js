@@ -10,6 +10,7 @@
 var object = require('ig-object')
 
 
+
 /*********************************************************************/
 
 // XXX does this need to be a distinct object???
@@ -42,11 +43,6 @@ Promise.cooperative = function(){
 //---------------------------------------------------------------------
 // promise iterators...
 
-// XXX we need to:
-// 		- wrap each elem in a promise
-// 		- on each map/filter/... chain the handler to each elem and return 
-// 			a new iterable with the combination
-// XXX like Promise.all(..) but creates an iterable promise...
 var IterablePromise =
 module.IterablePromise =
 Promise.iter =
@@ -62,10 +58,18 @@ object.Constructor('IterablePromise', Promise, {
 			return func(e, i) ? 
 				[e] 
 				: [] }) },
-	reduce: function(func, res){},
-	flat: function(){},
+	// XXX
+	reduce: function(func, res){
+		// XXX
+	},
+	flat: function(depth=1){
+		return IterablePromise(this.__list, function(e, i){ 
+			return (e && e.flat) ? 
+				e.flat(depth) 
+				: e }) },
 
-	all: function(){},
+	at: function(i){},
+	slice: function(){},
 
 	// 	XXX how does this support reduce???
 	// 	handler(e, i)
@@ -73,26 +77,52 @@ object.Constructor('IterablePromise', Promise, {
 	// 		-> []
 	//
 	__new__: function(_, list, handler=false){
+		var promise
+
 		// instance...
 		var obj = Reflect.construct(IterablePromise.__proto__, [
 			function(resolve, reject){
 				// NOTE: this is here for Promise compatibilty...
 				if(typeof(list) == 'function'){
-					return func.call(this, ...arguments) } 
-
-				var all = Promise.all(list)
-
-				// XXX
-				var res = []
-				list.forEach(function(e, i){
-					if(handler && e && e.then && e.catch){
-						e.then(function(v){ 
-							return (res[i] = handler(v, i)) })
-
-					} else {
-						res[i] = e } })
-			}], 
+					return list.call(this, ...arguments) } 
+				promise = {resolve, reject} }], 
 			IterablePromise)
+
+		if(promise){
+			// apply handler(..) to the list...
+			// XXX should this be aborted on reject???
+			// XXX we are keeping the top level promises unwrapped, is 
+			// 		this correct???
+			// 		...needs testing....
+			var c = 0
+			list = obj.__list = 
+				handler ?
+					list.map(function(block){
+						return (block instanceof Array ? 
+								block 
+								: [block])
+							.map(function(e){
+								// NOTE: we are counting actual expanded 
+								// 		values and not the "blocks"...
+								var i = ++c
+								return (e && e.then && e.catch) ?
+									// promise...
+									e.then(function(v){ 
+										return handler(v, i) })
+									// basic value...
+									: handler(e, i) }) })
+						.flat()
+					: list.map(function(e){ 
+						return e instanceof Promise ?
+							e
+							: [e] })
+
+			// handle promise state...
+			Promise.all(list)
+				.then(function(res){
+					promise.resolve(res.flat()) })
+				// XXX do we need to pass the results here???
+				.catch(promise.reject) }
 
 		return obj },
 })
