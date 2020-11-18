@@ -26,7 +26,7 @@ A library of JavaScript type extensions, types and type utilities.
     - [`<array>.toKeys(..)`](#arraytokeys)
     - [`<array>.toMap(..)`](#arraytomap)
     - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
-    - [`<array>.iter()`](#arrayiter)
+    - [`Array.iter(..)` / `<array>.iter()`](#arrayiter--arrayiter)
     - [Abortable `Array` iteration](#abortable-array-iteration)
       - [`array.StopIteration`](#arraystopiteration)
       - [`<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach)
@@ -77,7 +77,7 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
-    - [Generator constructor iteration workflow](#generator-constructor-iteration-workflow)
+    - [Generator constructor iteration](#generator-constructor-iteration)
       - [`Generator.at(..)`](#generatorat)
       - [`Generator.shift()` / `Generator.pop()`](#generatorshift--generatorpop)
       - [`Generator.slice(..)`](#generatorslice)
@@ -407,7 +407,7 @@ This will return `true` if:
 
 ### `Array.zip(..)` / `<array>.zip(..)`
 
-### `<array>.iter()`
+### `Array.iter(..)` / `<array>.iter()`
 
 Return an iterator/generator from the current array.
 
@@ -660,6 +660,10 @@ promise, and it is similar to a _generator_ in that allows iteration over the
 contained values and chaining of operations but unlike `Promise.all(..)` this 
 iteration occurs depth first instead of breadth first.
 
+Essentially one can think about _promise iterators_ vs. _generators_ as the former
+being internally controlled and asynchronous while the later being externally
+controlled and synchronous.
+
 Here is a traditional example using `Promise.all(..)`:
 ```javascript
 var p = Promise.all([ .. ])
@@ -783,7 +787,7 @@ var generator = require('ig-types/generator')
 #### `<generator>.toArray()`
 
 
-### Generator constructor iteration workflow
+### Generator constructor iteration
 
 ```javascript
 var sumOdds = generator.iter

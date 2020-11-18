@@ -13,6 +13,8 @@
 
 var object = require('ig-object')
 
+var generator = require('./generator')
+
 
 
 /*********************************************************************/
@@ -477,14 +479,24 @@ function(func, ...arrays){
 
 
 //
+//	Array.iter()
+//	Array.iter([ .. ])
+//		-> iterator
+//
 //	array.iter()
 //		-> iterator
 //
 //
 // XXX should this take an argument and be like map??
-Array.prototype.iter = function*(){
-	for(var e of this){
-		yield e } }
+Array.prototype.iter = 
+	function*(){
+		for(var e of this){
+			yield e } }
+Array.iter =
+	function*(lst=[]){
+		yield* lst.iter() }
+
+
 
 
 
