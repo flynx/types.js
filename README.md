@@ -5,29 +5,28 @@ A library of JavaScript type extensions, types and type utilities.
 - [types.js](#typesjs)
   - [Installation](#installation)
   - [Basic usage](#basic-usage)
-  - [Built-in type extensions](#built-in-type-extensions)
-    - [`Object`](#object)
-      - [`Object.deepKeys(..)`](#objectdeepkeys)
-      - [`Object.copy(..)` (EXPERIMENTAL)](#objectcopy-experimental)
-      - [`Object.flatCopy(..)`](#objectflatcopy)
-      - [`Object.match(..)`](#objectmatch)
-      - [`Object.matchPartial(..)`](#objectmatchpartial)
-      - [`<object>.run(..)`](#objectrun)
-      - [`Object.sort(..)`](#objectsort)
-    - [`Array`](#array)
-      - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
-      - [`<array>.rol(..)`](#arrayrol)
-      - [`<array>.compact()`](#arraycompact)
-      - [`<array>.len`](#arraylen)
-      - [`<array>.unique(..)` / `<array>.tailUnique(..)`](#arrayunique--arraytailunique)
-      - [`<array>.cmp(..)`](#arraycmp)
-      - [`<array>.setCmp(..)`](#arraysetcmp)
-      - [`<array>.sortAs(..)`](#arraysortas)
-      - [`<array>.inplaceSortAs(..)`](#arrayinplacesortas)
-      - [`<array>.toKeys(..)`](#arraytokeys)
-      - [`<array>.toMap(..)`](#arraytomap)
-      - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
-      - [`<array>.iter()`](#arrayiter)
+  - [`Object`](#object)
+    - [`Object.deepKeys(..)`](#objectdeepkeys)
+    - [`Object.copy(..)` (EXPERIMENTAL)](#objectcopy-experimental)
+    - [`Object.flatCopy(..)`](#objectflatcopy)
+    - [`Object.match(..)`](#objectmatch)
+    - [`Object.matchPartial(..)`](#objectmatchpartial)
+    - [`<object>.run(..)`](#objectrun)
+    - [`Object.sort(..)`](#objectsort)
+  - [`Array`](#array)
+    - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
+    - [`<array>.rol(..)`](#arrayrol)
+    - [`<array>.compact()`](#arraycompact)
+    - [`<array>.len`](#arraylen)
+    - [`<array>.unique(..)` / `<array>.tailUnique(..)`](#arrayunique--arraytailunique)
+    - [`<array>.cmp(..)`](#arraycmp)
+    - [`<array>.setCmp(..)`](#arraysetcmp)
+    - [`<array>.sortAs(..)`](#arraysortas)
+    - [`<array>.inplaceSortAs(..)`](#arrayinplacesortas)
+    - [`<array>.toKeys(..)`](#arraytokeys)
+    - [`<array>.toMap(..)`](#arraytomap)
+    - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
+    - [`<array>.iter()`](#arrayiter)
     - [Abortable `Array` iteration](#abortable-array-iteration)
       - [`array.StopIteration`](#arraystopiteration)
       - [`<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach)
@@ -40,26 +39,35 @@ A library of JavaScript type extensions, types and type utilities.
     - [`Array` (polyfill)](#array-polyfill)
       - [`<array>.flat()`](#arrayflat)
       - [`<array>.includes()`](#arrayincludes)
-    - [`Map`](#map)
-      - [`<map>.sort(..)`](#mapsort)
-    - [`Set`](#set)
-      - [`<set>.unite(..)`](#setunite)
-      - [`<set>.intersect(..)`](#setintersect)
-      - [`<set>.subtract(..)`](#setsubtract)
-      - [`<set>.sort(..)`](#setsort)
-    - [`Date`](#date)
-      - [`Date.timeStamp(..)`](#datetimestamp)
-      - [`Date.fromTimeStamp(..)`](#datefromtimestamp)
-      - [`Date.str2ms(..)`](#datestr2ms)
-      - [`<date>.toShortDate(..)`](#datetoshortdate)
-      - [`<date>.getTimeStamp(..)`](#dategettimestamp)
-      - [`<date>.setTimeStamp(..)`](#datesettimestamp)
-    - [`String`](#string)
-      - [`<string>.capitalize()`](#stringcapitalize)
-    - [`RegExp`](#regexp)
-      - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
-    - ['Promise'](#promise)
+  - [`Map`](#map)
+    - [`<map>.sort(..)`](#mapsort)
+  - [`Set`](#set)
+    - [`<set>.unite(..)`](#setunite)
+    - [`<set>.intersect(..)`](#setintersect)
+    - [`<set>.subtract(..)`](#setsubtract)
+    - [`<set>.sort(..)`](#setsort)
+  - [`Date`](#date)
+    - [`Date.timeStamp(..)`](#datetimestamp)
+    - [`Date.fromTimeStamp(..)`](#datefromtimestamp)
+    - [`Date.str2ms(..)`](#datestr2ms)
+    - [`<date>.toShortDate(..)`](#datetoshortdate)
+    - [`<date>.getTimeStamp(..)`](#dategettimestamp)
+    - [`<date>.setTimeStamp(..)`](#datesettimestamp)
+  - [`String`](#string)
+    - [`<string>.capitalize()`](#stringcapitalize)
+  - [`RegExp`](#regexp)
+    - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
+  - [`Promise`](#promise)
+    - [Cooperative promises](#cooperative-promises)
       - [`Promise.cooperative(..)`](#promisecooperative)
+      - [`<promise-coop>.set(..)`](#promise-coopset)
+      - [`<promise-coop>.isSet`](#promise-coopisset)
+    - [Promise iteration](#promise-iteration)
+      - [`Promise.iter(..)` / `promise.IterablePromise(..)`](#promiseiter--promiseiterablepromise)
+      - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
+      - [`<promise-iter>.flat(..)`](#promise-iterflat)
+      - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
+      - [Advanced handler](#advanced-handler)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
     - [The basics](#the-basics)
       - [`Generator`](#generator)
@@ -149,11 +157,13 @@ var containers = require('ig-types/containers')
 ```
 
 
-## Built-in type extensions
+## `Object`
 
-### `Object`
+```javascript
+require('ig-types/Object')
+```
 
-#### `Object.deepKeys(..)`
+### `Object.deepKeys(..)`
 
 ```
 Object.deepKeys(<obj>)
@@ -178,7 +188,7 @@ Object.keys(b) // -> ['y']
 Object.deepKeys(b) // -> ['x', 'y']
 ```
 
-#### `Object.copy(..)` (EXPERIMENTAL)
+### `Object.copy(..)` (EXPERIMENTAL)
 
 ```
 Object.copy(<obj>)
@@ -197,7 +207,7 @@ Note that this will make no attempt to clone object type.
 _XXX not yet sure how useful this is._
 
 
-#### `Object.flatCopy(..)`
+### `Object.flatCopy(..)`
 
 ```
 Object.flatCopy(<obj>)
@@ -207,11 +217,11 @@ Object.flatCopy(<obj>)
 Copy all attributes from the prototype chain of `<obj>` into `<new-obj>`.
 
 
-#### `Object.match(..)`
+### `Object.match(..)`
 
-#### `Object.matchPartial(..)`
+### `Object.matchPartial(..)`
 
-#### `<object>.run(..)`
+### `<object>.run(..)`
 
 ```
 <object>.run(<func>)
@@ -248,7 +258,7 @@ For more info see:
 https://github.com/flynx/object-run.js
 
 
-#### `Object.sort(..)`
+### `Object.sort(..)`
 
 Sort `<obj>` attributes (same as `Array`'s `.sort(..)`)
 ```
@@ -290,9 +300,17 @@ Object.keys(Object.sort(o, ['x', 'a', '100']))
 
 
 
-### `Array`
+## `Array`
 
-#### `<array>.first(..)` / `<array>.last(..)`
+```javascript
+require('ig-types/Array')
+```
+or
+```javascript
+var array = require('ig-types/Array')
+```
+
+### `<array>.first(..)` / `<array>.last(..)`
 
 Get the first/last items of `<array>`.
 ```
@@ -316,7 +334,7 @@ Note that these do not affect `<array>` length unless setting items on
 an empty `<array>`.
 
 
-#### `<array>.rol(..)`
+### `<array>.rol(..)`
 
 Roll `<array>` in-place left.
 ```
@@ -331,7 +349,7 @@ Roll `<array>` in-place left.
 To roll right pass a negative `n` to `.rol(..)`.
 
 
-#### `<array>.compact()`
+### `<array>.compact()`
 
 ```
 <array>.compact()
@@ -342,7 +360,7 @@ Generate a compact `<array>` from a sparse `<array>`, i.e. removing all
 the empty slots.
 
 
-#### `<array>.len`
+### `<array>.len`
 
 Number of non-empty slots/elements in `<array>`.
 
@@ -357,12 +375,12 @@ L.compact().length
 Note that this is different from `.length` in that writing to `.len` has
 no effect.
 
-#### `<array>.unique(..)` / `<array>.tailUnique(..)`
+### `<array>.unique(..)` / `<array>.tailUnique(..)`
 
 Generate an array with all duplicate elements removed.
 
 
-#### `<array>.cmp(..)`
+### `<array>.cmp(..)`
 
 ```
 <array>.cmp(<other>)
@@ -377,19 +395,19 @@ This will return `true` if:
 - values on the same positions are equal.
 
 
-#### `<array>.setCmp(..)`
+### `<array>.setCmp(..)`
 
-#### `<array>.sortAs(..)`
+### `<array>.sortAs(..)`
 
-#### `<array>.inplaceSortAs(..)`
+### `<array>.inplaceSortAs(..)`
 
-#### `<array>.toKeys(..)`
+### `<array>.toKeys(..)`
 
-#### `<array>.toMap(..)`
+### `<array>.toMap(..)`
 
-#### `Array.zip(..)` / `<array>.zip(..)`
+### `Array.zip(..)` / `<array>.zip(..)`
 
-#### `<array>.iter()`
+### `<array>.iter()`
 
 Return an iterator/generator from the current array.
 
@@ -551,51 +569,193 @@ Default value: `50`
 #### `<array>.includes()`
 
 
-### `Map`
+## `Map`
 
-#### `<map>.sort(..)`
+```javascript
+require('ig-types/Map')
+```
 
-
-### `Set`
-
-#### `<set>.unite(..)`
-
-#### `<set>.intersect(..)`
-
-#### `<set>.subtract(..)`
-
-#### `<set>.sort(..)`
+### `<map>.sort(..)`
 
 
-### `Date`
+## `Set`
 
-#### `Date.timeStamp(..)`
-
-#### `Date.fromTimeStamp(..)`
-
-#### `Date.str2ms(..)`
-
-#### `<date>.toShortDate(..)`
-
-#### `<date>.getTimeStamp(..)`
-
-#### `<date>.setTimeStamp(..)`
+```javascript
+require('ig-types/Set')
+```
 
 
-### `String`
+### `<set>.unite(..)`
 
-#### `<string>.capitalize()`
+### `<set>.intersect(..)`
+
+### `<set>.subtract(..)`
+
+### `<set>.sort(..)`
 
 
-### `RegExp`
+## `Date`
 
-#### `RegExp.quoteRegExp(..)`
+```javascript
+require('ig-types/Date')
+```
+
+### `Date.timeStamp(..)`
+
+### `Date.fromTimeStamp(..)`
+
+### `Date.str2ms(..)`
+
+### `<date>.toShortDate(..)`
+
+### `<date>.getTimeStamp(..)`
+
+### `<date>.setTimeStamp(..)`
 
 
-### 'Promise'
+## `String`
+
+```javascript
+require('ig-types/String')
+```
+
+### `<string>.capitalize()`
+
+
+## `RegExp`
+
+```javascript
+require('ig-types/RegExp')
+```
+
+### `RegExp.quoteRegExp(..)`
+
+
+## `Promise`
+
+```javascript
+require('ig-types/Promise')
+```
+or
+```javascript
+var promise = require('ig-types/Promise')
+```
+
+
+
+### Cooperative promises
 
 #### `Promise.cooperative(..)`
 
+#### `<promise-coop>.set(..)`
+
+#### `<promise-coop>.isSet`
+
+
+### Promise iteration
+
+An _iterable promise_ is on one hand very similar to `Promise.all(..)` in that it
+generally takes a list of values each could be either an explicit value or a 
+promise, and it is similar to a _generator_ in that allows iteration over the 
+contained values and chaining of operations but unlike `Promise.all(..)` this 
+iteration occurs depth first instead of breadth first.
+
+Here is a traditional example using `Promise.all(..)`:
+```javascript
+var p = Promise.all([ .. ])
+    // this will not execute until ALL the inputs resolve...
+    .then(function(lst){
+        return lst
+          .filter(function(e){
+
+          })
+          // this will not run until ALL of lst is filtered...
+          .map(function(e){
+
+          }) })
+```
+
+```javascript
+var p = Promise.iter([ .. ])
+    // each element is processed as soon as it is ready disregarding of its order
+    // in the input array...
+    .filter(function(e){
+
+    })
+    // items reach here as soon as they are returned by the filter stage...
+    // NOTE: the filter handler may return promises, those will not be processed
+    //    until they are resolved...
+    .map(function(e){
+
+    })
+    // .then(..) explicitly waits for the whole list of inputs to resolve...
+    .then(function(lst){
+
+    })
+```
+
+This approach has a number of advantages:
+- items are processed as soon as they are available without waiting for the 
+  slowest promise on each level to resolve
+- simpler and more intuitive code
+
+And some disadvantages:
+- item indexes are unknowable until all the promises resolve.
+
+
+
+#### `Promise.iter(..)` / `promise.IterablePromise(..)`
+
+Create an _iterable promise_
+```
+Promise.iter(<array>)
+    -> <iterable-promise>
+```
+#### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`
+
+#### `<promise-iter>.flat(..)`
+
+
+#### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
+
+#### Advanced handler
+
+```
+Promise.iter(<block-array>, <handler>)
+    -> <iterable-promise>
+
+<handler>(<elem>)
+    -> [ <elems> ]
+```
+
+```bnf
+<block-array> ::= 
+    []
+    | [ <block-elem>, .. ]
+
+<block-elem> ::=
+    []
+    | [ <value>, .. ]
+    | <promise>
+    | <non-array>
+```
+
+Example:
+```javascript
+var p = Promise.iter(
+        // NOTE: if you want an element to explicitly be an array wrap it in 
+        //    an array -- like the last element here...
+        [[1, 2], 3, Promise.resolve(4), [[5, 6]]], 
+        function(elem){
+            return elem % 2 == 0 ?
+                    [elem, elem]
+                : elem instanceof Array ?
+                  [elem]
+                : [] })
+    .then(function(lst){
+        console.log(lst) // -> [2, 2, 4, 4, [5, 6]]
+    })
+```
 
 
 ## Generator extensions and utilities
@@ -808,6 +968,11 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 
 ## Event
 
+```javascript
+var event = require('ig-types/event')
+```
+
+
 ### `event.Eventfull(..)`
 
 ### `event.Event(..)`
@@ -836,6 +1001,11 @@ to trigger event if the first argument was a function.
 ### `event.EventMixin`
 
 ## Runner
+
+```javascript
+var runner = require('ig-types/runner')
+```
+
 
 ### `runner.Queue(..)` / `runner.Queue.run(..)`
 
