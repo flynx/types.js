@@ -212,7 +212,7 @@ function(name, func, options={}){
 // XXX still not sure about the builtin-local event control flow...
 // XXX do we need to be able to force global handler???
 var EventHandlerMixin = 
-module.EventHandlerMixin = {
+module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 	__event_handlers__: null,
 
 	on: function(evt, func){
@@ -260,13 +260,13 @@ module.EventHandlerMixin = {
 			&& (this.__event_handlers__[evt] || [])
 				.forEach(function(h){ h(evt, ...args) }) 
 		return this },
-}
+})
 
 
 // NOTE: this can't be added via Object.assign(..), use object.mixinFlat(..) 
 // 		instead...
 var EventDocMixin = 
-module.EventDocMixin = {
+module.EventDocMixin = object.Mixin('EventDocMixin', {
 	get eventfull(){
 		return object.deepKeys(this)
 			.filter(function(n){ 
@@ -279,14 +279,14 @@ module.EventDocMixin = {
 				// avoid triggering props...
 				return !object.values(this, n, function(){ return object.STOP }, true)[0].get
 					&& (this[n] || {}).__event__ == 'full' }.bind(this)) },
-}
+})
 
 
 var EventMixin = 
-module.EventMixin =
-	object.mixinFlat({},
-		EventHandlerMixin,
-		EventDocMixin)
+module.EventMixin = 
+object.Mixin('EventMixin', 
+	EventHandlerMixin,
+	EventDocMixin)
 
 
 

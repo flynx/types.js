@@ -371,7 +371,7 @@ Events.cases({
 		// object with events...
 		var ObjWithEvents = 
 			assert(
-				object.mixinFlat({
+				events.EventMixin('flat', {
 					// NOTE: we will also use virtual events later -- 'moo' 
 					// 		and 'foo', these do not have to be defined to 
 					// 		be usable...
@@ -396,7 +396,7 @@ Events.cases({
 							called['event-call'] = true
 							assert(handle(), '.Event(..) -> handle(..)')
 						}), '.Event(..)'),
-				}, events.EventMixin), 
+				}), 
 				'object with event mixin created.')
 
 		// create an "instance"...

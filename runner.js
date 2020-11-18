@@ -34,7 +34,7 @@ module.Queue = object.Constructor('Queue', Array, {
 	run: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
 
-}, object.mixinFlat({
+}, events.EventMixin('flat', {
 	// config...
 	//
 	pool_size: 8,
@@ -188,9 +188,7 @@ module.Queue = object.Constructor('Queue', Array, {
 				&& typeof(this[0].finally) != 'function'){
 			Object.assign(this, this.shift()) }
 		this._run() },
-}, 
-// the event API mixin...
-events.EventMixin))
+}))
 
 
 
