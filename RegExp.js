@@ -7,17 +7,28 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
+var object = require('ig-object')
 
 
 
 /*********************************************************************/
 
-// Quote a string and convert to RegExp to match self literally.
+var RegExpMixin =
+module.RegExpMixin =
+object.Mixin('RegExpMixin', 'soft', {
+	// Quote a string and convert to RegExp to match self literally.
+	quoteRegExp: function(str){
+		return str
+			.replace(/([\.\\\/\(\)\[\]\$\*\+\-\{\}\@\^\&\?\<\>])/g, '\\$1') }
+})
+
+
+RegExpMixin(RegExp)
+
+
 var quoteRegExp =
-RegExp.quoteRegExp =
-module.quoteRegExp =
-function(str){
-	return str.replace(/([\.\\\/\(\)\[\]\$\*\+\-\{\}\@\^\&\?\<\>])/g, '\\$1') }
+RegExp.quoteRegExp = 
+	RegExp.quoteRegExp
 
 
 

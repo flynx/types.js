@@ -15,51 +15,9 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
-// XXX does this need to be a distinct object/constructor???
-Promise.cooperative = function(){
-	var handlers
-	return object.mixinFlat(
-		new Promise(function(resolve, reject){
-			handlers = { resolve, reject, } }), 
-		{
-			get isSet(){
-				return handlers === false },
-			//
-			//	Resolve promise with value...
-			//	.set(value)
-			//		-> this
-			//
-			//	Reject promise with value...
-			//	.set(value, false)
-			//		-> this
-			//
-			set: function(value, resolve=true){
-				// can't set twice...
-				if(this.isSet){
-					throw new Error('Promise.cooperative().set(..): can not set twice') }
-				// bind to promise...
-				if(value && value.then && value.catch){
-					value.then(handlers.resolve)
-					value.catch(handlers.reject)
-				// resolve with value...
-				} else {
-					resolve ?
-						handlers.resolve(value) 
-						: handlers.reject(value) }
-				// cleanup and prevent setting twice...
-				handlers = false
-				return this },
-		}) }
-
-
-
-//---------------------------------------------------------------------
-// promise iterators...
-
 // XXX should this be aborted on reject???
 var IterablePromise =
 module.IterablePromise =
-Promise.iter =
 object.Constructor('IterablePromise', Promise, {
 	//
 	// Format:
@@ -243,6 +201,55 @@ object.Constructor('IterablePromise', Promise, {
 
 		return obj },
 })
+
+
+
+//---------------------------------------------------------------------
+
+var PromiseMixin =
+module.PromiseMixin =
+object.Mixin('PromiseMixin', 'soft', {
+	// XXX does this need to be a distinct object/constructor???
+	cooperative: function(){
+		var handlers
+		return object.mixinFlat(
+			new Promise(function(resolve, reject){
+				handlers = { resolve, reject, } }), 
+			{
+				get isSet(){
+					return handlers === false },
+				//
+				//	Resolve promise with value...
+				//	.set(value)
+				//		-> this
+				//
+				//	Reject promise with value...
+				//	.set(value, false)
+				//		-> this
+				//
+				set: function(value, resolve=true){
+					// can't set twice...
+					if(this.isSet){
+						throw new Error('Promise.cooperative().set(..): can not set twice') }
+					// bind to promise...
+					if(value && value.then && value.catch){
+						value.then(handlers.resolve)
+						value.catch(handlers.reject)
+					// resolve with value...
+					} else {
+						resolve ?
+							handlers.resolve(value) 
+							: handlers.reject(value) }
+					// cleanup and prevent setting twice...
+					handlers = false
+					return this },
+			}) },
+
+	iter: IterablePromise,
+})
+
+
+PromiseMixin(Promise)
 
 
 

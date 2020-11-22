@@ -7,15 +7,23 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
-
+var object = require('ig-object')
 
 
 /*********************************************************************/
 
-String.prototype.capitalize = function(){
-	return this == '' ? 
-		this 
-		: this[0].toUpperCase() + this.slice(1) }
+var StringProtoMixin =
+module.StringProtoMixin =
+object.Mixin('StringProtoMixin', 'soft', {
+	capitalize: function(){
+		return this == '' ? 
+			this 
+			: this[0].toUpperCase() + this.slice(1) },
+})
+
+
+StringProtoMixin(String.prototype)
+
 
 
 

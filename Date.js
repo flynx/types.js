@@ -7,62 +7,20 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
-
+var object = require('ig-object')
 
 
 /*********************************************************************/
 
-// NOTE: repatching a date should not lead to any side effects as this
-// 		does not add any state...
-// NOTE: this is done differently as there are contexts where there may 
-// 		be multiple Date objects in different contexts (nw/electron/..)
-var patchDate =
-module.patchDate = function(date){
-	date = date || Date
-
-	date.prototype.toShortDate = function(show_ms){
-		return '' 
-			+ this.getFullYear()
-			+'-'+ ('0'+(this.getMonth()+1)).slice(-2)
-			+'-'+ ('0'+this.getDate()).slice(-2)
-			+' '+ ('0'+this.getHours()).slice(-2)
-			+':'+ ('0'+this.getMinutes()).slice(-2)
-			+':'+ ('0'+this.getSeconds()).slice(-2)
-			+ (show_ms ? 
-				':'+(('000'+this.getMilliseconds()).slice(-3))
-				: '') }
-
-	date.prototype.getTimeStamp = function(show_ms){
-		return '' 
-			+ this.getFullYear()
-			+ ('0'+(this.getMonth()+1)).slice(-2)
-			+ ('0'+this.getDate()).slice(-2)
-			+ ('0'+this.getHours()).slice(-2)
-			+ ('0'+this.getMinutes()).slice(-2)
-			+ ('0'+this.getSeconds()).slice(-2)
-			+ (show_ms ? 
-				('000'+this.getMilliseconds()).slice(-3)
-				: '') }
-
-	date.prototype.setTimeStamp = function(ts){
-		ts = ts.replace(/[^0-9]*/g, '')
-		this.setFullYear(ts.slice(0, 4))
-		this.setMonth(ts.slice(4, 6)*1-1)
-		this.setDate(ts.slice(6, 8))
-		this.setHours(ts.slice(8, 10))
-		this.setMinutes(ts.slice(10, 12))
-		this.setSeconds(ts.slice(12, 14))
-		this.setMilliseconds(ts.slice(14, 17) || 0)
-		return this }
-
-	date.timeStamp = function(...args){
-		return (new this()).getTimeStamp(...args) }
-
-	date.fromTimeStamp = function(ts){
-		return (new this()).setTimeStamp(ts) }
-
+var DateMixin =
+module.DateMixin =
+object.Mixin('DateMixin', 'soft', {
+	timeStamp: function(...args){
+		return (new this()).getTimeStamp(...args) },
+	fromTimeStamp: function(ts){
+		return (new this()).setTimeStamp(ts) },
 	// convert string time period to milliseconds...
-	date.str2ms = function(str, dfl){
+	str2ms: function(str, dfl){
 		dfl = dfl || 'ms'
 
 		if(typeof(str) == typeof(123)){
@@ -96,9 +54,68 @@ module.patchDate = function(date){
 
 		return c ? 
 			val * c 
-			: NaN }
+			: NaN },
+})
 
+
+// XXX should this be flat???
+var DateProtoMixin =
+module.DateProtoMixin =
+object.Mixin('DateProtoMixin', 'soft', {
+	toShortDate: function(show_ms){
+		return '' 
+			+ this.getFullYear()
+			+'-'+ ('0'+(this.getMonth()+1)).slice(-2)
+			+'-'+ ('0'+this.getDate()).slice(-2)
+			+' '+ ('0'+this.getHours()).slice(-2)
+			+':'+ ('0'+this.getMinutes()).slice(-2)
+			+':'+ ('0'+this.getSeconds()).slice(-2)
+			+ (show_ms ? 
+				':'+(('000'+this.getMilliseconds()).slice(-3))
+				: '') },
+	getTimeStamp: function(show_ms){
+		return '' 
+			+ this.getFullYear()
+			+ ('0'+(this.getMonth()+1)).slice(-2)
+			+ ('0'+this.getDate()).slice(-2)
+			+ ('0'+this.getHours()).slice(-2)
+			+ ('0'+this.getMinutes()).slice(-2)
+			+ ('0'+this.getSeconds()).slice(-2)
+			+ (show_ms ? 
+				('000'+this.getMilliseconds()).slice(-3)
+				: '') },
+	setTimeStamp: function(ts){
+		ts = ts.replace(/[^0-9]*/g, '')
+		this.setFullYear(ts.slice(0, 4))
+		this.setMonth(ts.slice(4, 6)*1-1)
+		this.setDate(ts.slice(6, 8))
+		this.setHours(ts.slice(8, 10))
+		this.setMinutes(ts.slice(10, 12))
+		this.setSeconds(ts.slice(12, 14))
+		this.setMilliseconds(ts.slice(14, 17) || 0)
+		return this },
+})
+
+
+
+//---------------------------------------------------------------------
+
+// NOTE: repatching a date should not lead to any side effects as this
+// 		does not add any state...
+// NOTE: this is done differently as there are contexts where there may 
+// 		be multiple Date objects in different contexts (nw/electron/..)
+var patchDate =
+module.patchDate = 
+function(date){
+	date = date || Date
+	DateMixin(date)
+	DateProtoMixin(date.prototype)
 	return date }
+
+
+
+//---------------------------------------------------------------------
+
 // patch the root date...
 patchDate()
 

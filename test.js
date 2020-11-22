@@ -98,6 +98,9 @@ var cases = test.Cases({
 	// 	- sort
 	Map: function(assert){
 	},
+
+	Generator: function(assert){
+	},
 	
 	String: function(assert){
 		assert(''.capitalize() == '')
