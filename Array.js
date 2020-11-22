@@ -19,7 +19,12 @@ var generator = require('./generator')
 
 /*********************************************************************/
 
+var STOP =
+module.STOP =
+	object.STOP
 
+
+/*
 var StopIteration =
 module.StopIteration =
 	object.Constructor('StopIteration', Error, {
@@ -31,6 +36,7 @@ module.StopIteration =
 		__init__: function(msg){
 			this.msg = msg },
 	})
+//*/
 
 
 
@@ -38,20 +44,20 @@ module.StopIteration =
 // Mixins...
 
 // Equivalent to .map(..) / .filter(..) / .reduce(..) / .. with support for
-// StopIteration...
+// STOP...
 // 
 // NOTE: these add almost no overhead to the iteration.
 // NOTE: these will not return a partial result if stopped.
 // 
-// XXX should these return a partial result on StopIteration?
+// XXX should these return a partial result on STOP?
 var wrapIterFunc = function(iter){
 	return function(func){
 		try {
 			return this[iter](...arguments)
 		} catch(err){
-			if(err === StopIteration){
+			if(err === STOP){
 				return
-			} else if( err instanceof StopIteration){
+			} else if( err instanceof STOP){
 				return err.msg }
 			throw err } } }
 
@@ -87,14 +93,14 @@ var wrapIterFunc = function(iter){
 // 	'20C'		- number of chunks
 //
 //
-// StopIteration can be thrown in func or chunk_handler at any time to 
+// STOP can be thrown in func or chunk_handler at any time to 
 // abort iteration, this will reject the promise.
 //	
 //
 // The main goal of this is to not block the runtime while processing a 
 // very long array by interrupting the processing with a timeout...
 //
-// XXX should these return a partial result on StopIteration?
+// XXX should these return a partial result on STOP?
 // XXX add generators:
 // 			.map(..) / .filter(..) / .reduce(..)
 // 		...the basis here should be the chunks, i.e. each cycle should
@@ -133,11 +139,11 @@ var makeChunkIter = function(iter, wrapper){
 				postChunk
 					&& postChunk.call(this, this, res, 0) 
 				return Promise.all(res) 
-			// handle StopIteration...
+			// handle STOP...
 			} catch(err){
-				if(err === StopIteration){
+				if(err === STOP){
 					return Promise.reject() 
-				} else if( err instanceof StopIteration){
+				} else if( err instanceof STOP){
 					return Promise.reject(err.msg) }
 				throw err } }
 
@@ -158,11 +164,11 @@ var makeChunkIter = function(iter, wrapper){
 									chunk.map(function([i, v]){ return v }), 
 									val,
 									chunk[0][0])
-						// handle StopIteration...
+						// handle STOP...
 						} catch(err){
-							if(err === StopIteration){
+							if(err === STOP){
 								return reject() 
-							} else if( err instanceof StopIteration){
+							} else if( err instanceof STOP){
 								return reject(err.msg) }
 							throw err }
 

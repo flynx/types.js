@@ -9,8 +9,6 @@
 
 var object = require('ig-object')
 
-//var {StopIteration} = require('./Array')
-
 
 
 /*********************************************************************/
