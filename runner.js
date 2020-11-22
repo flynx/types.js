@@ -28,6 +28,8 @@ var events = require('./event')
 
 /*********************************************************************/
 
+// XXX need to configure to run a specific amount of jobjs on each start...
+// XXX do we need an async mode -- exec ._run(..) in a setTimeout(.., 0)???
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
 	// create a running queue...
@@ -54,9 +56,14 @@ module.Queue = object.Constructor('Queue', Array, {
 		} else if(value == 'stopped'){
 			this.stop() } },
 
+	// XXX
+	run: function(count){
+		// XXX start, run count tasks and stop...
+	},
 
 	// events/actions - state transitions...
 	//
+	// XXX would be nice to run a number of tasks...
 	start: events.Event('start', function(handle){
 		// can't start while running...
 		if(this.state == 'running'){
@@ -91,15 +98,39 @@ module.Queue = object.Constructor('Queue', Array, {
 	// XXX
 	prioritize: function(...tasks){
 		return this.sortAs(tasks) },
-	// XXX same as prioritize but adds stuff to the tail...
+	// same as prioritize but adds stuff to the tail...
 	delay: function(...tasks){
 		return this.sortAs(tasks, true) },
+
+	
+	//
+	//	.__run_task__(task)
+	//		-> promise
+	//		-> func
+	//		-> queue
+	//		-> ...
+	//
+	// XXX should this support a task being a queue ???
+	// XXX do we actually need this??
+	// 		...should this include result processing???
+	__run_task__: function(task){
+		return typeof(task) == 'function' ?
+				task()
+			: task instanceof Queue ?
+				// XXX should we run one item or trigger and wait for event???
+				// 		...should this be an option???
+				task.start()
+			: task },
+
 
 	// main runner...
 	//
 	// NOTE: we do not store the exec results...
 	// NOTE: not intended for direct use and will likely have no effect
 	// 		if called directly... 
+	//
+	// XXX should this support a task being returning a queue???
+	// XXX need to configure this to run a number of tasks only...
 	__running: null,
 	_run: function(){
 		// if we are not running stop immidiately...
@@ -119,9 +150,7 @@ module.Queue = object.Constructor('Queue', Array, {
 			this.trigger('taskStarting', task)
 
 			// run...
-			var res = typeof(task) == 'function' ?
-				task()
-				: task
+			var res = this.__run_task__(task)
 
 			// pool async (promise) task...
 			if(typeof((res || {}).finally) == 'function'
@@ -139,6 +168,27 @@ module.Queue = object.Constructor('Queue', Array, {
 						// XXX BUG this executes the task for some reson...
 						.trigger('taskCompleted', task, res)
 						._run() })
+
+			// re-queue tasks...
+			// XXX revise...
+			} else if(typeof(res) == 'function'){
+				this.push(res)
+
+			// queue...
+			} else if(res instanceof Queue){
+				// XXX should this be done on stop or on .length == 0???
+				if(queue.state == 'stopped'){
+					this.trigger('taskCompleted', task, res)
+
+				} else {
+					running.push(res)
+					res.stop(function(){
+						// XXX not done yet -- re-queue... 
+						res.length > 0
+							&& that.push(res) 
+						// XXX remove from running...
+						// XXX trigger event...
+					}) }
 
 			// completed sync task...
 			} else {
