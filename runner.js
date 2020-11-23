@@ -121,11 +121,16 @@ module.Queue = object.Constructor('Queue', Array, {
 	//	.__run_task__(task[, next])
 	//		-> STOP
 	//		-> STOP(value)
+	//		-> queue
 	//		-> promise
 	//		-> func
-	//		-> queue
 	//		-> ...
 	//
+	// NOTE: this intentionally does not handle results as that whould 
+	// 		require this to also handle events, and other runtime stuff...
+	// 		...to add a new task/result type either handle the non-standard
+	// 		result here or wrap it into a standard return value like a 
+	// 		promise...
 	__run_task__: function(task, next){
 		return typeof(task) == 'function' ?
 				task()
@@ -190,11 +195,15 @@ module.Queue = object.Constructor('Queue', Array, {
 				|| running.length >= this.pool_size ){
 			return this }
 
-		var cleanupRunning = function(res){
+		// closure: running, task, res, stop, next...
+		var runningDone = function(){
 			running.splice(0, running.length, 
 				// NOTE: there can be multiple occurences of res...
 				...running
-					.filter(function(e){ return e !== res })) }
+					.filter(function(e){ return e !== res })) 
+			that.trigger('taskCompleted', task, res) 
+			!stop && next
+				&& next() }
 
 		var task = this.shift()
 
@@ -230,13 +239,10 @@ module.Queue = object.Constructor('Queue', Array, {
 			} else {
 				running.push(res)
 				res.stop(function(){
-					cleanupRunning(res)
-					// not done yet -- re-queue... 
+					// not fully done yet -- re-queue... 
 					res.length > 0
 						&& that.push(res) 
-					that.trigger('taskCompleted', task, res) 
-					!stop && next
-						&& next() }) }
+					runningDone() }) }
 
 		// pool async (promise) task...
 		} else if(typeof((res || {}).finally) == 'function'
@@ -244,14 +250,11 @@ module.Queue = object.Constructor('Queue', Array, {
 				&& !running.includes(res)){
 			running.push(res) 
 			res.finally(function(){
-				cleanupRunning(res)
-				// finishup...
-				that.trigger('taskCompleted', task, res)
-				!stop && next
-					&& next() })
+				runningDone() })
 
 		// re-queue tasks...
 		} else if(typeof(res) == 'function'){
+			that.trigger('taskCompleted', task, res)
 			this.push(res)
 
 		// completed sync task...
