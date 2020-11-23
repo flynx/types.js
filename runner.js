@@ -169,10 +169,8 @@ module.Queue = object.Constructor('Queue', Array, {
 		// XXX will this be collected by the GC if it is polling???
 		if(this.length == 0 
 				&& this.state == 'running'){
-			this.trigger('queueEmpty')
-
-			// auto-stop...
 			this.auto_stop ?
+				// auto-stop...
 				this.stop()
 				// pole...
 				: (this.poling_delay
@@ -259,6 +257,9 @@ module.Queue = object.Constructor('Queue', Array, {
 		// completed sync task...
 		} else {
 			this.trigger('taskCompleted', task, res) }
+
+		this.length == 0
+			&& this.trigger('queueEmpty')
 
 		return this },
 
