@@ -19,7 +19,7 @@ var generator = require('./generator')
 
 /*********************************************************************/
 
-// NOTE: this is used in a similar fasion to Python's StopIteration...
+// NOTE: this is used in a similar fashion to Python's StopIteration...
 var STOP =
 module.STOP =
 	object.STOP
@@ -80,7 +80,7 @@ var wrapIterFunc = function(iter){
 //
 //
 // STOP can be thrown in func or chunk_handler at any time to 
-// abort iteration, this will reject the promise.
+// abort iteration, this will resolve the promise.
 //	
 //
 // The main goal of this is to not block the runtime while processing a 
@@ -128,9 +128,9 @@ var makeChunkIter = function(iter, wrapper){
 			// handle STOP...
 			} catch(err){
 				if(err === STOP){
-					return Promise.reject() 
+					return Promise.resolve() 
 				} else if( err instanceof STOP){
-					return Promise.reject(err.value) }
+					return Promise.resolve(err.value) }
 				throw err } }
 
 		var res = []
@@ -153,9 +153,9 @@ var makeChunkIter = function(iter, wrapper){
 						// handle STOP...
 						} catch(err){
 							if(err === STOP){
-								return reject() 
+								return resolve() 
 							} else if( err instanceof STOP){
-								return reject(err.value) }
+								return resolve(err.value) }
 							throw err }
 
 						// stop condition...

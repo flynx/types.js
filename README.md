@@ -28,10 +28,10 @@ A library of JavaScript type extensions, types and type utilities.
     - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
     - [`Array.iter(..)` / `<array>.iter()`](#arrayiter--arrayiter)
     - [Abortable `Array` iteration](#abortable-array-iteration)
-      - [`array.StopIteration`](#arraystopiteration)
+      - [`array.STOP` / `array.STOP(..)`](#arraystop--arraystop)
       - [`<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach)
     - [Large `Array` iteration (chunked)](#large-array-iteration-chunked)
-      - [`array.StopIteration`](#arraystopiteration-1)
+      - [`array.STOP` / `array.STOP(..)`](#arraystop--arraystop-1)
       - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
@@ -417,10 +417,10 @@ This is mostly useful in combination with the [Generator extensions and utilitie
 ### Abortable `Array` iteration
 
 A an alternative to `Array`'s `.map(..)` / `.filter(..)` / .. methods with ability to
-stop the iteration process by `throw`ing `StopIteration`.
+stop the iteration process by `throw`ing `STOP` or `STOP(<value>)`.
 
 ```javascript
-var {StopIteration} = require('ig-types/Array')
+var {STOP} = require('ig-types/Array')
 ```
 
 This can be used in two ways:
@@ -430,35 +430,35 @@ This can be used in two ways:
     ;[1,2,3,4,5]
         .smap(function(e){ 
             // simply abort here and now...
-            throw StopIteration })
+            throw STOP })
     ```
-    Since we aborted the iteration without passing any arguments to `StopIteration`,
+    Since we aborted the iteration without passing any arguments to `STOP`,
     `.smap(..)` will return `undefined`.
 
 2) `throw` an instance and return the argument...
     ```javascript
-    // this will print "4" -- the value passed to StopIteration...
+    // this will print "4" -- the value passed to STOP...
     console.log([1,2,3,4,5]
         .smap(function(e){ 
             if(e > 3){
               // NOTE: new is optional here...
               //    ...StopIteratiom is an object.js constructor.
-              throw new StopIteration(e) } }))
+              throw new STOP(e) } }))
     ```
 
-Note that no partial result is returned unless passed through `StopIteration(..)`.
+Note that no partial result is returned unless passed through `STOP(..)`.
 
 
-#### `array.StopIteration`
+#### `array.STOP` / `array.STOP(..)`
 
-An exception that if raised while iterating via a supporting iterator method 
-will abort further execution and correctly exit.
+An _object/constructor_ that if raised (as an exception) while iterating via 
+a supporting iterator method will abort further execution and correctly exit.
 
 
 #### `<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`
 
 Like `Array`'s `.map(..)`, `.filter(..)`, `.reduce(..)` and `.forEach(..)` but 
-with added support for aborting iteration by throwing `StopIteration`.
+with added support for aborting iteration by throwing `STOP` or `STOP(<value>)`.
 
 
 ### Large `Array` iteration (chunked)
@@ -495,18 +495,18 @@ var c = await [1,2,3,4,5]
         return e*2 })
 ```
 
-#### `array.StopIteration`
+#### `array.STOP` / `array.STOP(..)`
 
 Like for [`<array>.smap(..)` and friends](#abortable-array-iteration) iteration 
-can be stopped by throwing a `array.StopIteration` and as before there are 
-two ways to go:
+can be stopped by throwing a `array.STOP` / `array.STOP(<value>)` and as before 
+there are two ways to go:
 
 1) `throw` as-is to simply stop
     ```javascript
     ;[1,2,3,4,5]
         .mapChunks(function(e){ 
             // simply abort here and now...
-            throw StopIteration })
+            throw STOP })
         .catch(function(){
             console.log('done.') })
     ```
@@ -518,7 +518,7 @@ two ways to go:
             if(e > 3){
               // NOTE: new is optional here...
               //    ...StopIteratiom is an object.js constructor.
-              throw new StopIteration(e) } })
+              throw new STOP(e) } })
         .catch(function(e){
             console.log('first value greater than 3:', e) })
    ```
