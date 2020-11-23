@@ -19,24 +19,10 @@ var generator = require('./generator')
 
 /*********************************************************************/
 
+// NOTE: this is used in a similar fasion to Python's StopIteration...
 var STOP =
 module.STOP =
 	object.STOP
-
-
-/*
-var StopIteration =
-module.StopIteration =
-	object.Constructor('StopIteration', Error, {
-		// NOTE: I do not get why JavaScript's Error implements this 
-		// 		statically...
-		get name(){
-			return this.constructor.name }, 
-		// NOTE: msg is handled by Error(..)
-		__init__: function(msg){
-			this.msg = msg },
-	})
-//*/
 
 
 
@@ -58,7 +44,7 @@ var wrapIterFunc = function(iter){
 			if(err === STOP){
 				return
 			} else if( err instanceof STOP){
-				return err.msg }
+				return err.value }
 			throw err } } }
 
 
@@ -144,7 +130,7 @@ var makeChunkIter = function(iter, wrapper){
 				if(err === STOP){
 					return Promise.reject() 
 				} else if( err instanceof STOP){
-					return Promise.reject(err.msg) }
+					return Promise.reject(err.value) }
 				throw err } }
 
 		var res = []
@@ -169,7 +155,7 @@ var makeChunkIter = function(iter, wrapper){
 							if(err === STOP){
 								return reject() 
 							} else if( err instanceof STOP){
-								return reject(err.msg) }
+								return reject(err.value) }
 							throw err }
 
 						// stop condition...
