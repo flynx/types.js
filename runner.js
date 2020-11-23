@@ -40,7 +40,7 @@ module.STOP = object.STOP
 var Queue =
 module.Queue = object.Constructor('Queue', Array, {
 	// create a running queue...
-	run: function(...tasks){
+	runTasks: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
 
 }, events.EventMixin('flat', {
@@ -131,7 +131,7 @@ module.Queue = object.Constructor('Queue', Array, {
 				task()
 			: (task instanceof Queue 
 					&& this.sub_queue == 'unwind') ?
-				(task.run(next), task)
+				(task.runTask(next), task)
 			: (task instanceof Queue 
 					&& this.sub_queue == 'wait') ?
 				task.start()
@@ -156,7 +156,7 @@ module.Queue = object.Constructor('Queue', Array, {
 		while(this.length > 0 
 				&& this.state == 'running'
 				&& (this.__running || []).length < (this.pool_size || Infinity) ){
-			this.run(this.__run_tasks__.bind(this)) }
+			this.runTask(this.__run_tasks__.bind(this)) }
 
 		// empty queue -> pole or stop...
 		//
@@ -184,7 +184,7 @@ module.Queue = object.Constructor('Queue', Array, {
 	// run one task from queue...
 	//
 	// NOTE: this does not care about .state...
-	run: function(next){
+	runTask: function(next){
 		var running = this.__running = this.__running || []
 
 		// can't run... 
