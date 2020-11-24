@@ -54,6 +54,9 @@ object.Constructor('Queue', Array, {
 
 	auto_stop: false,
 
+	// NOTE: this is sync only untill the pool is filled...
+	sync_start: false,
+
 	//
 	// This can be:
 	// 	'wait'		- wait fot the sun-queue to stop
@@ -110,7 +113,6 @@ object.Constructor('Queue', Array, {
 
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
-	// XXX revise...
 	then: function(func){
 		var that = this
 		return new Promise(function(resolve, reject){
@@ -164,33 +166,38 @@ object.Constructor('Queue', Array, {
 	__running: null,
 	__run_tasks__: function(){
 		var that = this
-		this.state == 'running'
-			&& setTimeout(function(){
-				// handle queue...
-				while(this.length > 0 
-						&& this.state == 'running'
-						&& (this.__running || []).length < (this.pool_size || Infinity) ){
-					this.runTask(this.__run_tasks__.bind(this)) }
 
-				// empty queue -> pole or stop...
-				//
-				// NOTE: we endup here in two cases:
-				// 		- the pool is full
-				// 		- the queue is empty
-				// NOTE: we do not care about stopping the timer when changing 
-				// 		state as .__run_tasks__() will stop itself...
-				//
-				// XXX will this be collected by the GC if it is polling???
-				if(this.length == 0 
-						&& this.state == 'running'){
-					this.auto_stop ?
-						// auto-stop...
-						this.stop()
-						// pole...
-						: (this.poling_delay
-							&& setTimeout(
-								this.__run_tasks__.bind(this), 
-								this.poling_delay || 200)) } }.bind(this), 0)
+		var run = function(){
+			// handle queue...
+			while(this.length > 0 
+					&& this.state == 'running'
+					&& (this.__running || []).length < (this.pool_size || Infinity) ){
+				this.runTask(this.__run_tasks__.bind(this)) }
+
+			// empty queue -> pole or stop...
+			//
+			// NOTE: we endup here in two cases:
+			// 		- the pool is full
+			// 		- the queue is empty
+			// NOTE: we do not care about stopping the timer when changing 
+			// 		state as .__run_tasks__() will stop itself...
+			//
+			// XXX will this be collected by the GC if it is polling???
+			if(this.length == 0 
+					&& this.state == 'running'){
+				this.auto_stop ?
+					// auto-stop...
+					this.stop()
+					// pole...
+					: (this.poling_delay
+						&& setTimeout(
+							this.__run_tasks__.bind(this), 
+							this.poling_delay || 200)) } }.bind(this)
+
+		this.state == 'running'
+			&& (this.sync_start ?
+				run()
+				: setTimeout(run, 0))
 		return this },
 
 	// run one task from queue...

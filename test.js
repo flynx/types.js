@@ -525,12 +525,25 @@ Runner.cases({
 		
 		assert(q.length == 3, '.length is 3')
 
-		// for some reason this runs the tasks above multiple times...
-		q.start()
+		q.runTask()
+		q.runTask()
+		q.runTask()
 
 		assert.array(tasks_run, ['a', 'b', 'c'], 'all tasks run')
 
+		// XXX need to figure out how to test async...
 
+		tasks_run = []
+
+		var q = assert(runner.Queue({sync_start: true}), 'Queue({sync_start: true})')
+
+		q.push(a)
+		q.push(b)
+		q.push(c)
+
+		q.start()
+
+		assert.array(tasks_run, ['a', 'b', 'c'], 'all tasks run')
 
 
 		//console.log('\n>>>', q.state)
