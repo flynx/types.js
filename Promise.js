@@ -12,6 +12,11 @@ var object = require('ig-object')
 
 
 /*********************************************************************/
+// Iterable promise...
+// 
+// Like Promise.all(..) but adds ability to iterate through results
+// via generators .map(..)/.reduce(..) and friends...
+// 
 
 var IterablePromise =
 module.IterablePromise =
@@ -203,6 +208,10 @@ object.Constructor('IterablePromise', Promise, {
 
 
 //---------------------------------------------------------------------
+// Interactive promise...
+// 
+// Adds ability to send messages to the running promise.
+// 
 
 var InteractivePromise =
 module.InteractivePromise =
@@ -249,6 +258,11 @@ object.Constructor('InteractivePromise', Promise, {
 
 
 //---------------------------------------------------------------------
+// Cooperative promise...
+// 
+// A promise that can be resolved/rejected externally.
+// NOTE: normally this has no internal resolver logic...
+// 
 
 var CooperativePromise =
 module.CooperativePromise =
