@@ -46,14 +46,13 @@ var Eventfull =
 module.Eventfull =
 function(name, func, options={}){
 	var hidden
-	var method
 
 	options = func && typeof(func) != 'function' ?
 		func
 		: options
 
-	return object.mixinFlat(
-		method = function(...args){
+	var method = object.mixin(
+		function(...args){
 			var handlers = 
 				// hidden...
 				options.handlerLocation == 'hidden' ?
@@ -107,8 +106,14 @@ function(name, func, options={}){
 					: options.handlerLocation == 'method' ?
 						(method.__event_handlers__ = method.__event_handlers__ || [])
 					// context (default)...
-					: ((context.__event_handlers__ = context.__event_handlers__ || {})[name] =
-						context.__event_handlers__[name] || [])
+					: (context.__event_handlers__ == null ?
+						Object.defineProperty(context, '__event_handlers__', {
+								value: {[name]: (handlers = [])},
+								enumerable: false,
+							}) 
+							&& handlers
+						: (context.__event_handlers__[name] = 
+							context.__event_handlers__[name] || []))
 				// add handler...
 				handlers.push(func)
 				return this },
@@ -128,7 +133,13 @@ function(name, func, options={}){
 			toString: function(){
 				return func.toString()
 					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1') },
-		}) } 
+		}) 
+
+	Object.defineProperty(method, 'name', {
+		value: name,
+	})
+
+	return method } 
 
 
 module.TRIGGER = {doc: 'force event method to trigger'}
@@ -169,6 +180,8 @@ module.TRIGGER = {doc: 'force event method to trigger'}
 // arg is a function or not...
 //
 //
+// XXX might be a good idea to adde an event that can't be triggered by 
+// 		calling...
 var Event = 
 module.Event =
 function(name, func, options={}){
@@ -177,7 +190,8 @@ function(name, func, options={}){
 		func
 		: options
 
-	return Object.assign(
+	//return Object.assign(
+	return object.mixin(
 		method = Eventfull(name, 
 			function(handle, ...args){
 				// add handler...
@@ -199,8 +213,10 @@ function(name, func, options={}){
 			// NOTE: this is a copy of Eventfull's .toString() as we 
 			// 		still need to base the doc on the user's func...
 			toString: function(){
-				return func.toString()
-					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1') },
+				return func ?
+					func.toString()
+						.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
+		   			: `function ${name}(){}`},
 		}) }
 
 
@@ -213,7 +229,7 @@ function(name, func, options={}){
 // XXX do we need to be able to force global handler???
 var EventHandlerMixin = 
 module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
-	__event_handlers__: null,
+	//__event_handlers__: null,
 
 	on: function(evt, func){
 		// event...
@@ -222,7 +238,12 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 			this[evt].__event_handler_add__(this, func)
 		// non-event...
 		} else {
-			;((this.__event_handlers__ = this.__event_handlers__ || {})[evt] = 
+			this.__event_handlers__ == null
+				&& Object.defineProperty(this, '__event_handlers__', {
+					value: {},
+					enumerable: false,
+				})
+			;(this.__event_handlers__[evt] = 
 					this.__event_handlers__[evt] || [])
 				.push(func) }
 		return this },

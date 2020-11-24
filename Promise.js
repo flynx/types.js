@@ -13,7 +13,6 @@ var object = require('ig-object')
 
 /*********************************************************************/
 
-// XXX should this be aborted on reject???
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
@@ -95,10 +94,10 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// NOTE: .catch(..) and .finally(..) are implemented through .then(..)
 	// 		so we do not need to overload those...
-	then: function(onfulfilled, onrejected){
+	then: function (onfulfilled, onrejected){
 		return new Promise(
 			function(resolve, reject){
-				object.parentCall(IterablePromise.prototype.then, this,
+				Promise.prototype.then.call(this,
 					// NOTE: resolve(..) / reject(..) return undefined so
 					// 		we can't pass them directly here...
 					function(res){ 
@@ -108,7 +107,7 @@ object.Constructor('IterablePromise', Promise, {
 						reject(res)
 						return res }) }.bind(this))
 			.then(...arguments) },
-	
+
 
 	//
 	//	Promise.iter([ .. ])
@@ -145,8 +144,9 @@ object.Constructor('IterablePromise', Promise, {
 		var promise
 
 		// instance...
-		var obj = Reflect.construct(IterablePromise.__proto__, [
-			function(resolve, reject){
+		var obj = Reflect.construct(
+			IterablePromise.__proto__, 
+			[function(resolve, reject){
 				// NOTE: this is here for Promise compatibilty...
 				if(typeof(list) == 'function'){
 					return list.call(this, ...arguments) } 
@@ -204,46 +204,110 @@ object.Constructor('IterablePromise', Promise, {
 
 //---------------------------------------------------------------------
 
+var InteractivePromise =
+module.InteractivePromise =
+object.Constructor('InteractivePromise', Promise, {
+	__message_handlers: null,
+
+	send: function(...args){
+		var that = this
+		;(this.__message_handlers || [])
+			.forEach(function(h){ h.call(that, ...args) })
+		return this },
+
+	then: IterablePromise.prototype.then,
+
+	//
+	//	Promise.interactive(handler)
+	//		-> interacive-promise
+	//
+	//	handler(resolve, reject, onmessage)
+	//
+	//	onmessage(func)
+	//
+	//
+	__new__: function(_, handler){
+		var handlers = []
+		var onmessage = function(func){
+			handlers.push(func) }
+
+		var obj = Reflect.construct(
+			InteractivePromise.__proto__, 
+			!handler ?
+				[]
+				: [function(resolve, reject){
+					return handler(resolve, reject, onmessage) }], 
+			InteractivePromise)
+
+		Object.defineProperty(obj, '__message_handlers', {
+			value: handlers,
+			enumerable: false,
+		})
+   		return obj },
+})
+
+
+
+//---------------------------------------------------------------------
+
+var CooperativePromise =
+module.CooperativePromise =
+object.Constructor('CooperativePromise', Promise, {
+	__handlers: null,
+
+	get isSet(){
+		return this.__handlers === false },
+
+	set: function(value, resolve=true){
+		// can't set twice...
+		if(this.isSet){
+			throw new Error('.set(..): can not set twice') }
+		// bind to promise...
+		if(value && value.then && value.catch){
+			value.then(handlers.resolve)
+			value.catch(handlers.reject)
+		// resolve with value...
+		} else {
+			resolve ?
+				this.__handlers.resolve(value) 
+				: this.__handlers.reject(value) }
+		// cleanup and prevent setting twice...
+		this.__handlers = false
+		return this },
+
+	then: IterablePromise.prototype.then,
+
+	__new__: function(){
+		var handlers
+		var resolver = arguments[1]
+
+		var obj = Reflect.construct(
+			CooperativePromise.__proto__, 
+			[function(resolve, reject){
+				handlers = {resolve, reject} 
+				// NOTE: this is here to support builtin .then(..)
+				resolver
+					&& resolver(resolve, reject) }], 
+			CooperativePromise) 
+
+		Object.defineProperty(obj, '__handlers', {
+			value: handlers,
+			enumerable: false,
+			writable: true,
+		})
+		return obj },
+})
+
+
+
+//---------------------------------------------------------------------
+
 var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
-	// XXX does this need to be a distinct object/constructor???
-	cooperative: function(){
-		var handlers
-		return object.mixinFlat(
-			new Promise(function(resolve, reject){
-				handlers = { resolve, reject, } }), 
-			{
-				get isSet(){
-					return handlers === false },
-				//
-				//	Resolve promise with value...
-				//	.set(value)
-				//		-> this
-				//
-				//	Reject promise with value...
-				//	.set(value, false)
-				//		-> this
-				//
-				set: function(value, resolve=true){
-					// can't set twice...
-					if(this.isSet){
-						throw new Error('Promise.cooperative().set(..): can not set twice') }
-					// bind to promise...
-					if(value && value.then && value.catch){
-						value.then(handlers.resolve)
-						value.catch(handlers.reject)
-					// resolve with value...
-					} else {
-						resolve ?
-							handlers.resolve(value) 
-							: handlers.reject(value) }
-					// cleanup and prevent setting twice...
-					handlers = false
-					return this },
-			}) },
-
 	iter: IterablePromise,
+	interactive: InteractivePromise,
+	cooperative: CooperativePromise,
 })
 
 

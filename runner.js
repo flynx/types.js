@@ -21,6 +21,7 @@
 var object = require('ig-object')
 
 require('./Array')
+require('./Promise')
 
 var events = require('./event')
 
@@ -38,7 +39,8 @@ module.STOP = object.STOP
 // XXX do we need an async mode -- exec .__run_tasks__(..) in a 
 // 		setTimeout(.., 0)???
 var Queue =
-module.Queue = object.Constructor('Queue', Array, {
+module.Queue = 
+object.Constructor('Queue', Array, {
 	// create a running queue...
 	runTasks: function(...tasks){
 		return this({ state: 'running' }, ...tasks) },
@@ -106,6 +108,16 @@ module.Queue = object.Constructor('Queue', Array, {
 	queueEmpty: events.Event('queueEmpty'),
 
 
+	// NOTE: each handler will get called once when the next time the 
+	// 		queue is emptied...
+	// XXX revise...
+	then: function(func){
+		var that = this
+		return new Promise(function(resolve, reject){
+			that.one('queueEmpty', function(){
+				resolve(func()) }) }) },
+
+
 	// helpers...
 	//
 	// move tasks to head/tail of queue resp.
@@ -142,7 +154,7 @@ module.Queue = object.Constructor('Queue', Array, {
 				task.start()
 			: task },
 	//
-	// 	Hanlde 'running' state...
+	// 	Hanlde 'running' state (async)...
 	// 	.__run_tasks__()
 	// 		-> this
 	//
@@ -152,36 +164,33 @@ module.Queue = object.Constructor('Queue', Array, {
 	__running: null,
 	__run_tasks__: function(){
 		var that = this
+		this.state == 'running'
+			&& setTimeout(function(){
+				// handle queue...
+				while(this.length > 0 
+						&& this.state == 'running'
+						&& (this.__running || []).length < (this.pool_size || Infinity) ){
+					this.runTask(this.__run_tasks__.bind(this)) }
 
-		// if we are not running stop immidiately...
-		if(this.state != 'running'){
-			return this }
-
-		// handle queue...
-		while(this.length > 0 
-				&& this.state == 'running'
-				&& (this.__running || []).length < (this.pool_size || Infinity) ){
-			this.runTask(this.__run_tasks__.bind(this)) }
-
-		// empty queue -> pole or stop...
-		//
-		// NOTE: we endup here in two cases:
-		// 		- the pool is full
-		// 		- the queue is empty
-		// NOTE: we do not care about stopping the timer when changing 
-		// 		state as .__run_tasks__() will stop itself...
-		//
-		// XXX will this be collected by the GC if it is polling???
-		if(this.length == 0 
-				&& this.state == 'running'){
-			this.auto_stop ?
-				// auto-stop...
-				this.stop()
-				// pole...
-				: (this.poling_delay
-					&& setTimeout(
-						this.__run_tasks__.bind(this), 
-						this.poling_delay || 200)) }
+				// empty queue -> pole or stop...
+				//
+				// NOTE: we endup here in two cases:
+				// 		- the pool is full
+				// 		- the queue is empty
+				// NOTE: we do not care about stopping the timer when changing 
+				// 		state as .__run_tasks__() will stop itself...
+				//
+				// XXX will this be collected by the GC if it is polling???
+				if(this.length == 0 
+						&& this.state == 'running'){
+					this.auto_stop ?
+						// auto-stop...
+						this.stop()
+						// pole...
+						: (this.poling_delay
+							&& setTimeout(
+								this.__run_tasks__.bind(this), 
+								this.poling_delay || 200)) } }.bind(this), 0)
 		return this },
 
 	// run one task from queue...
@@ -290,6 +299,86 @@ module.Queue = object.Constructor('Queue', Array, {
 		this.__run_tasks__() },
 }))
 
+
+//---------------------------------------------------------------------
+// Task manager...
+//
+// goal:
+// 		externally manage long running functions/promises/etc
+//
+// enteties:
+// 		task
+// 			- wrap a function/promise
+// 			- pass the function/promise a reciver
+// 			- return a controller (store in manager)
+// 		manager
+// 			- container for tasks
+// 			- multiplex actions to tasks
+// 		
+
+
+var TaskMixin = 
+object.Mixin('TaskMixin', 'soft', {
+	stop: function(){
+		this.send('stop', ...arguments) },
+})
+
+
+// XXX should this be a Queue???
+var TaskManager =
+module.TaskManager =
+object.Constructor('TaskManager', Array, events.EventMixin('flat', {
+
+	// XXX each task should also trigger this when stopping and this 
+	// 		should not result in this and tasks infinitely playing 
+	// 		ping-pong...
+	stop: events.Event('stop', 
+		function(task='all'){
+			this.forEach(function(task){
+				;(task == 'all' 
+						|| task == '*' 
+						|| task === task)
+					&& task.stop() }) }),
+	done: events.Event('done'),
+
+
+	Task: function(task, ...args){
+		var that = this
+
+		// normalize handler...
+		var handler = 
+			// queue...
+			// NOTE: queue is task-compatible...
+			task instanceof Queue ?
+				task.start()
+			// interactive...
+			: task && task.then && task.stop ?
+				task
+			: TaskMixin(
+				// dumb promise -- will ignore all the messages...
+				// XXX should we complain about this???
+				task instanceof Promise ?
+					Promise.interactive(
+						function(resolve, reject, onmsg){
+							task.then(resolve, reject) })
+				// function...
+				: Promise.interactive(
+					function(resolve, reject, onmsg){
+						resolve(task(onmsg, ...args)) }))
+
+		this.push(handler)
+
+		// handle task done...
+		handler
+			.then(function(res){
+				that.splice(that.indexOf(handler), 1)
+				that.trigger('done', task, res) 
+				that.length == 0
+					&& that.done('all') })
+
+		// XXX or should we return this???
+		return handler },
+}))
 
 
 
