@@ -337,6 +337,38 @@ object.Mixin('TaskMixin', 'soft', {
 })
 
 
+// Make the ticket more usable...
+var TaskTicket =
+module.TaskTicket =
+object.Constructor('TaskTicket', {
+	__data: null,
+
+	title: null,
+
+	resolve: function(...args){
+		this.__data.resolve(...args)
+		return this },
+	reject: function(...args){
+		this.__data.reject(...args)
+		return this },
+	onmessage: function(msg, func){
+		this.__data.onmessage(
+			typeof(msg) == 'function' ?
+				msg
+				: function(m, ...args){
+					m == msg
+						&& func(...args) })
+		return this },
+
+	__init__: function(title, resolve, reject, onmessage){
+		this.title = title
+		Object.defineProperty(this, '__data', {
+			__data: {resolve, reject, onmessage},
+			enumerable: false,
+		}) },
+})
+
+
 // XXX we should keep the API here similar to Queue...
 // 		...but this is no a queue in principle (internal vs. external 
 // 		management) so we'll also need to keep them different enough to 
@@ -359,6 +391,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 			.filter(function(task){ 
 				return titles.has(task.title) }) },
 
+	// actions...
+	//
 	send: function(title, ...args){
 		if(title == 'all' || title == '*'){
 			this.forEach(function(task){
@@ -369,7 +403,6 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 					title
 					: [title])
 			.send('all', ...args) },
-
 	// XXX each task should also trigger this when stopping and this 
 	// 		should not result in this and tasks infinitely playing 
 	// 		ping-pong...
@@ -380,8 +413,11 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 		function(handlers, title='all'){
 			this.send(title, 'stop') }),
 
-	done: events.Event('done'),
-	error: events.Event('error'),
+	// events...
+	//
+	done: events.PureEvent('done'),
+	tasksDone: events.PureEvent('tasksDone'),
+	error: events.PureEvent('error'),
 
 
 	//
@@ -416,10 +452,6 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	//
 	// NOTE: the args are passed only if 
 	// NOTE: the task is started as soon as it is accepted.
-	//
-	// XXX seems that we have a dangling promise someplace...
-	// 		...if a task rejects node/chrome report an unhandled promise 
-	// 		reject...
 	Task: function(title, task, ...args){
 		var that = this
 
@@ -461,12 +493,9 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 						// 		the context is ready...
 						run = function(){
 							var res = 
-								task({
-									title,
-									resolve,
-									reject,
-									onmessage,
-								}, ...args) 
+								task(
+									TaskTicket(title, resolve, reject, onmessage), 
+									...args) 
 							// NOTE: if the client calls resolve(..) this 
 							// 		second resolve(..) call has no effect,
 							// 		and the same is true with reject...

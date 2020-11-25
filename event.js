@@ -18,6 +18,14 @@ var object = require('ig-object')
 /*********************************************************************/
 // Event method wrappers...
 
+var EventCommand = 
+module.EventCommand = 
+object.Constructor('EventCommand', {
+	name: null,
+	__init__: function(name, data={}){
+		Object.assign(this, data, {name}) },
+})
+
 // Create an "eventfull" method...
 //
 // The resulting method can be either called directly or via .trigger(..).
@@ -32,12 +40,42 @@ var object = require('ig-object')
 // 		-> method
 //
 //
+//	Trigger the event...
 //	method(...args)
 //		-> ..
 //
 //
 // 	func(handle, ...args)
 // 		-> ..
+//
+//
+//	trigger event handlers...
+//	handle()
+//	handle(true)
+//		-> true
+//		-> false
+//
+//	prevent event handlers from triggering...
+//	handle(false)
+//		-> undefined
+//
+//
+//
+// Special case: EventCommand...
+//
+//	EventCommand instance can be passed as the first argument of method, 
+//	in this case the event function will get it but the event handlers 
+//	will not...
+//	This is done to be able to externally pass commands to event methods
+//	that get handled in a special way by the function but not passed to 
+//	the event handlers...
+//
+// 		method(<event-command>, ...args)
+// 			-> ..
+//
+// 		func(handle, <event-command>, ...args)
+// 			-> ..
+//
 //
 //
 // NOTE: calling handle(false) will exiplicitly disable calling the 
@@ -69,17 +107,18 @@ function(name, func, options={}){
 			// 		after the event action is done but before it returns...
 			// NOTE: to explicitly disable calling the handlers func must 
 			// 		call handle(false)
-			// XXX should he user be able to control the args passed to 
-			// 		the handlers???
 			var did_handle = false
-			var handle = function(skip=false){
-				did_handle = skip === true
-				return skip ?
-					undefined
-					: handlers
+			var handle = function(run=true){
+				did_handle = run === false
+				var a = args[0] instanceof EventCommand ?
+					args.slice(1)
+					: args
+				return run ?
+					handlers
 						.reduce(function(res, handler){ 
 							return res === true 
-								&& handler(name, ...args) !== false }, true) } 
+								&& handler(name, ...a) !== false }, true) 
+					: undefined } 
 
 			var res = func ?
 				func.call(this, handle, ...args)
@@ -142,7 +181,8 @@ function(name, func, options={}){
 	return method } 
 
 
-module.TRIGGER = {doc: 'force event method to trigger'}
+
+module.TRIGGER = module.EventCommand('TRIGGER')
 
 // Extends Eventfull(..) adding ability to bind events via the 
 // resulting method directly by passing it a function...
@@ -179,9 +219,6 @@ module.TRIGGER = {doc: 'force event method to trigger'}
 // This will pass args to the event action regardless whether the first 
 // arg is a function or not...
 //
-//
-// XXX might be a good idea to adde an event that can't be triggered by 
-// 		calling...
 var Event = 
 module.Event =
 function(name, func, options={}){
@@ -194,18 +231,14 @@ function(name, func, options={}){
 	return object.mixin(
 		method = Eventfull(name, 
 			function(handle, ...args){
-				// add handler...
-				if(typeof(args[0]) == 'function'){
+				// NOTE: when the first arg is an event command this will
+				// 		fall through to calling the action...
+				typeof(args[0]) == 'function' ?
+					// add handler...
 					method.__event_handler_add__(this, args[0])
-					
-				// call the action...
-				} else {
-					// special case: force trigger -> remove TRIGGER from args...
-					args[0] === module.TRIGGER
-						&& args.shift()
-					func
-						&& func.call(this, handle, ...args) }
-
+					// call the action...
+					: (func
+						&& func.call(this, handle, ...args))
 				return this }, 
 			options),
    		{
@@ -218,6 +251,16 @@ function(name, func, options={}){
 						.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
 		   			: `function ${name}(){}`},
 		}) }
+
+
+// Like Event(..) but produces an event that can only be triggered via 
+// .trigger(name, ...), calling this is a no-op...
+var PureEvent =
+module.PureEvent =
+function(name, options={}){
+	return Event(name, function(handle, trigger){ 
+		trigger === module.TRIGGER 
+			|| handle(false) }, options)}
 
 
 
