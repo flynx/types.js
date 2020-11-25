@@ -378,6 +378,9 @@ module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	sync_start: false,
 
+	__task_ticket__: TaskTicket,
+
+
 	//
 	//	.titled(title)
 	//	.titled(title, ..)
@@ -494,7 +497,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 						run = function(){
 							var res = 
 								task(
-									TaskTicket(title, resolve, reject, onmessage), 
+									that.__task_ticket__(title, resolve, reject, onmessage), 
 									...args) 
 							// NOTE: if the client calls resolve(..) this 
 							// 		second resolve(..) call has no effect,
