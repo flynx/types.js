@@ -337,7 +337,10 @@ object.Mixin('TaskMixin', 'soft', {
 })
 
 
-// XXX should this be a Queue???
+// XXX we should keep the API here similar to Queue...
+// 		...but this is no a queue in principle (internal vs. external 
+// 		management) so we'll also need to keep them different enough to 
+// 		avoid confusion...
 var TaskManager =
 module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
@@ -369,10 +372,16 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	done: events.Event('done'),
 
 
+	//
+	//	.Task(task, ..)
+	//	.Task(name, task, ..)
+	//		-> task-handler
+	//
 	// NOTE: the task is started as soon as it is accepted.
 	Task: function(name, task, ...args){
 		var that = this
 
+		// anonymous task...
 		if(typeof(name) != typeof('str')){
 			;[task, ...args] = arguments
 			name = null }
@@ -384,13 +393,16 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 			// NOTE: queue is task-compatible...
 			task instanceof Queue ?
 				task
-			// interactive...
+			// task protocol...
 			: task && task.then && task.stop ?
 				task
 			: TaskMixin(
+				// interactive promise...
+				task instanceof Promise.interactive ?
+					task
 				// dumb promise -- will ignore all the messages...
 				// XXX should we complain about this???
-				task instanceof Promise ?
+				: task instanceof Promise ?
 					Promise.interactive(
 						function(resolve, reject, onmsg){
 							task.then(resolve, reject) })
@@ -399,13 +411,20 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 					function(resolve, reject, onmsg){
 						run = function(){
 							resolve(task(onmsg, ...args)) } }))
-
-		name
-			&& object.mixin(handler, {name})
+		// set handler name...
+		// NOTE: this will override the name of the handler if it was 
+		// 		set before...
+		if(name){
+			handler.name
+				&& console.warn(
+					'TaskManager.Task(..): task name already defined:', handler.name,
+					'overwriting with:', name)
+			Object.assign(handler, {name})
+		}
 
 		this.push(handler)
 
-		// handle task done...
+		// handle done...
 		handler
 			.then(function(res){
 				that.splice(that.indexOf(handler), 1)
@@ -413,17 +432,17 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				that.length == 0
 					&& that.done('all') })
 
-		// start...
+		// start the task...
 		var start = function(){
-			run
-				&& run()
-			task.start
-				&& task.start() }
+			run ?
+				run()
+			: task.start ?
+				task.start()
+	   		: null }
 		this.sync_start ?
 			start()
 			: setTimeout(start, 0)
 
-		// XXX or should we return this???
 		return handler },
 }))
 
