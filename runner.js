@@ -347,15 +347,30 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	sync_start: false,
 
 	//
-	//	.named(name)
-	//	.named(name, ..)
+	//	.titled(title)
+	//	.titled(title, ..)
 	//		-> manager
 	//
-	named: function(name){
-		var names = new Set([...arguments])
+	titled: function(title){
+		var titles = 
+			title == 'all'
+				|| title == '*'
+				|| new Set([...arguments])
 		return this
 			.filter(function(task){ 
-				return names.has(task.name) }) },
+				return titles === true
+					|| titles.has(task.title) }) },
+
+	send: function(title, ...args){
+		if(title == 'all' || title == '*'){
+			this.forEach(function(task){
+				task.send(...args) })
+			return this }
+		return this.titled(
+				...(title instanceof Array) ?
+					title
+					: [title]))
+			.send('all', ...args) },
 
 	// XXX each task should also trigger this when stopping and this 
 	// 		should not result in this and tasks infinitely playing 
@@ -364,29 +379,52 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	// 			when calling/binding to this it actually binds to each 
 	// 			task ???)
 	stop: events.Event('stop', 
-		function(handlers, name){
-			name != null ?
-				this.named(name).stop()
-				: this.forEach(function(task){
-					task.stop() }) }),
+		function(handlers, title='all'){
+			this.send(title, 'stop') }),
 
 	done: events.Event('done'),
 	error: events.Event('error'),
 
 
 	//
-	//	.Task(task, ..)
-	//	.Task(name, task, ..)
+	//	Create a task...
+	//	.Task(task)
+	//	.Task(title, task)
 	//		-> task-handler
 	//
+	//	Create a function task...
+	//	.Task(func, ..)
+	//	.Task(title, func, ..)
+	//		-> task-handler
+	//
+	//	func(tiket, ..)
+	//
+	//
+	// tiket:
+	// 	{
+	// 		title: <title>,
+	// 		resolve: <resolve(..)>,
+	// 		reject: <reject(..)>,
+	// 		onmessage: <onmessage(..)>
+	// 	}
+	//
+	//
+	// A task can be:
+	// 	- Promise.cooperative instance
+	// 	- Queue instance
+	// 	- function
+	// 	- Promise instance
+	//
+	//
+	// NOTE: the args are passed only if 
 	// NOTE: the task is started as soon as it is accepted.
-	Task: function(name, task, ...args){
+	Task: function(title, task, ...args){
 		var that = this
 
 		// anonymous task...
-		if(typeof(name) != typeof('str')){
+		if(typeof(title) != typeof('str')){
 			;[task, ...args] = arguments
-			name = null }
+			title = null }
 
 		// normalize handler...
 		var run
@@ -407,31 +445,45 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				: task instanceof Promise ?
 					Promise.interactive(
 						function(resolve, reject, onmsg){
+							// NOTE: since this is a promise, we can't
+							// 		stop it externally...
 							onmsg(function(msg){
 								msg == 'stop'
-									&& reject() })
+									&& reject('stop') })
 							task.then(resolve, reject) })
 				// function...
 				: Promise.interactive(
-					function(resolve, reject, onmsg){
+					function(resolve, reject, onmessage){
+						// NOTE: we need to start this a bit later hence 
+						// 		we wrap this into run(..) and call it when
+						// 		the context is ready...
 						run = function(){
-							resolve(task(onmsg, ...args)) } }))
-		// set handler name...
-		// NOTE: this will override the name of the handler if it was 
+							// NOTE: if the client calls resolve(..) this 
+							// 		second resolve(..) call has no effect...
+							resolve(
+								task({
+									title,
+									resolve,
+									reject,
+									onmessage,
+								}, ...args)) } }))
+		// set handler title...
+		// NOTE: this will override the title of the handler if it was 
 		// 		set before...
-		if(name){
-			handler.name
+		if(title){
+			handler.title
 				&& console.warn(
-					'TaskManager.Task(..): task name already defined:', handler.name,
-					'overwriting with:', name)
-			Object.assign(handler, {name})
+					'TaskManager.Task(..): task title already defined:', handler.title,
+					'overwriting with:', title)
+			Object.assign(handler, {title})
 		}
 
 		this.push(handler)
 
-		// handle done...
+		// handle task state...
 		handler
 			.then(
+				// done...
 				function(res){
 					that.splice(that.indexOf(handler), 1)
 					that.trigger('done', task, res) },
@@ -439,6 +491,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				function(res){
 					that.splice(that.indexOf(handler), 1)
 					that.trigger('error', task, res) })
+		// trigger .done('all')
+		// XXX should this be a different event -- a-la .queueEmpty(..)
 		handler
 			.finally(function(){
 				that.length == 0
