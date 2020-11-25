@@ -355,7 +355,7 @@ object.Constructor('TaskTicket', {
 	__init__: function(title, resolve, reject, onmessage){
 		this.title = title
 		Object.defineProperty(this, '__data', {
-			__data: {resolve, reject, onmessage},
+			value: {resolve, reject, onmessage},
 			enumerable: false,
 		}) },
 })
