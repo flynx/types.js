@@ -352,14 +352,12 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	//		-> manager
 	//
 	titled: function(title){
-		var titles = 
-			title == 'all'
-				|| title == '*'
-				|| new Set([...arguments])
+		if(title == 'all' || title == '*'){
+			return this }
+		var titles = new Set([...arguments])
 		return this
 			.filter(function(task){ 
-				return titles === true
-					|| titles.has(task.title) }) },
+				return titles.has(task.title) }) },
 
 	send: function(title, ...args){
 		if(title == 'all' || title == '*'){
@@ -369,7 +367,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 		return this.titled(
 				...(title instanceof Array) ?
 					title
-					: [title]))
+					: [title])
 			.send('all', ...args) },
 
 	// XXX each task should also trigger this when stopping and this 
