@@ -329,14 +329,6 @@ object.Constructor('Queue', Array, {
 //
 //
 
-var TaskMixin = 
-object.Mixin('TaskMixin', 'soft', {
-	// standard messages...
-	stop: function(){
-		this.send('stop', ...arguments) },
-})
-
-
 // Make the ticket more usable...
 var TaskTicket =
 module.TaskTicket =
@@ -369,6 +361,16 @@ object.Constructor('TaskTicket', {
 })
 
 
+// NOTE: this is not intended for direct use...
+var TaskMixin = 
+module.TaskMixin =
+object.Mixin('TaskMixin', 'soft', {
+	// standard messages...
+	stop: function(){
+		this.send('stop', ...arguments) },
+})
+
+
 // XXX we should keep the API here similar to Queue...
 // 		...but this is no a queue in principle (internal vs. external 
 // 		management) so we'll also need to keep them different enough to 
@@ -376,9 +378,10 @@ object.Constructor('TaskTicket', {
 var TaskManager =
 module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
-	sync_start: false,
-
 	__task_ticket__: TaskTicket,
+	__task_mixin__: TaskMixin,
+
+	sync_start: false,
 
 
 	//
@@ -406,21 +409,19 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 					title
 					: [title])
 			.send('all', ...args) },
-	// XXX each task should also trigger this when stopping and this 
-	// 		should not result in this and tasks infinitely playing 
-	// 		ping-pong...
-	// 		XXX one way to go here is to make this an event proxy, i.e.
-	// 			when calling/binding to this it actually binds to each 
-	// 			task ???)
-	stop: events.Event('stop', 
-		function(handlers, title='all'){
-			this.send(title, 'stop') }),
+	// XXX should this be an event???
+	//		the best way to go would be to proxy this to task-specific
+	//		variants and register handlers on the tasks...
+	//		...should work with .on(..) / ... and other event methods...
+	stop: function(title='all'){
+		this.send(title, 'stop') 
+		return this },
 
 	// events...
 	//
 	done: events.PureEvent('done'),
-	tasksDone: events.PureEvent('tasksDone'),
 	error: events.PureEvent('error'),
+	tasksDone: events.PureEvent('tasksDone'),
 
 
 	//
@@ -473,7 +474,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 			// task protocol...
 			: task && task.then && task.stop ?
 				task
-			: TaskMixin(
+			: this.__task_mixin__(
 				// interactive promise...
 				task instanceof Promise.interactive ?
 					task
@@ -523,7 +524,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 			return function(res){
 				that.splice(that.indexOf(handler), 1)
 				that.trigger(evt, task, res) 
-				that.trigger('tasksDone') } }
+				that.length == 0
+					&& that.trigger('tasksDone') } }
 		handler
 			.then(cleanup('done'), cleanup('error'))
 
