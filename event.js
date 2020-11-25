@@ -169,9 +169,11 @@ function(name, func, options={}){
 						return h !== func
 							&& h.__event_original_handler__ !== func }))
 				return this },
+			// remove the handle from the arguments...
 			toString: function(){
-				return func.toString()
-					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1') },
+				return 'Eventfull '
+					+(func.toString()
+						.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')) },
 		}) 
 
 	Object.defineProperty(method, 'name', {
@@ -247,9 +249,10 @@ function(name, func, options={}){
 			// 		still need to base the doc on the user's func...
 			toString: function(){
 				return func ?
-					func.toString()
-						.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
-		   			: `function ${name}(){}`},
+					'Event '
+						+func.toString()
+							.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
+		   			: `Event function ${name}(){}`},
 		}) }
 
 
@@ -258,9 +261,14 @@ function(name, func, options={}){
 var PureEvent =
 module.PureEvent =
 function(name, options={}){
-	return Event(name, function(handle, trigger){ 
-		trigger === module.TRIGGER 
-			|| handle(false) }, options)}
+	return object.mixin(
+		Event(name, function(handle, trigger){ 
+			trigger === module.TRIGGER 
+				|| handle(false) }, options),
+		{
+			toString: function(){
+				return `PureEvent ${name}(){}`},
+		}) }
 
 
 
