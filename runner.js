@@ -456,15 +456,20 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 						// 		we wrap this into run(..) and call it when
 						// 		the context is ready...
 						run = function(){
-							// NOTE: if the client calls resolve(..) this 
-							// 		second resolve(..) call has no effect...
-							resolve(
-								task({
+							var res = task({
 									title,
 									resolve,
 									reject,
 									onmessage,
-								}, ...args)) } }))
+								}, ...args) 
+							// NOTE: if the client calls resolve(..) this 
+							// 		second resolve(..) call has no effect,
+							// 		and the same is true with reject...
+							// XXX is double binding like this (i.e. 
+							// 		ticket + .then()) a good idea???
+							res instanceof Promise
+								&& res.then(resolve, reject)
+						} }))
 		// set handler title...
 		// NOTE: this will override the title of the handler if it was 
 		// 		set before...
@@ -473,8 +478,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				&& console.warn(
 					'TaskManager.Task(..): task title already defined:', handler.title,
 					'overwriting with:', title)
-			Object.assign(handler, {title})
-		}
+			Object.assign(handler, {title}) }
 
 		this.push(handler)
 
