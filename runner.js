@@ -369,7 +369,9 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				this.named(name).stop()
 				: this.forEach(function(task){
 					task.stop() }) }),
+
 	done: events.Event('done'),
+	error: events.Event('error'),
 
 
 	//
@@ -405,6 +407,9 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				: task instanceof Promise ?
 					Promise.interactive(
 						function(resolve, reject, onmsg){
+							onmsg(function(msg){
+								msg == 'stop'
+									&& reject() })
 							task.then(resolve, reject) })
 				// function...
 				: Promise.interactive(
@@ -426,9 +431,16 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 
 		// handle done...
 		handler
-			.then(function(res){
-				that.splice(that.indexOf(handler), 1)
-				that.trigger('done', task, res) 
+			.then(
+				function(res){
+					that.splice(that.indexOf(handler), 1)
+					that.trigger('done', task, res) },
+				// err...
+				function(res){
+					that.splice(that.indexOf(handler), 1)
+					that.trigger('error', task, res) })
+		handler
+			.finally(function(){
 				that.length == 0
 					&& that.done('all') })
 
