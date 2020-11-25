@@ -34,10 +34,11 @@ module.STOP = object.STOP
 
 
 //---------------------------------------------------------------------
-
-// XXX need to configure to run a specific amount of jobjs on each start...
-// XXX do we need an async mode -- exec .__run_tasks__(..) in a 
-// 		setTimeout(.., 0)???
+// Queue...
+//
+// A means to manage execution of large-ish number of small tasks...
+//
+// XXX need to configure to run a specific amount of jobs on each start...
 var Queue =
 module.Queue = 
 object.Constructor('Queue', Array, {
@@ -54,7 +55,8 @@ object.Constructor('Queue', Array, {
 
 	auto_stop: false,
 
-	// NOTE: this is sync only untill the pool is filled...
+	// NOTE: if true this is sync only untill the pool is filled or task 
+	// 		list is depleted...
 	sync_start: false,
 
 	//
@@ -310,22 +312,26 @@ object.Constructor('Queue', Array, {
 //---------------------------------------------------------------------
 // Task manager...
 //
-// goal:
-// 		externally manage long running functions/promises/etc
+// Externally manage/influence long running tasks...
 //
-// enteties:
-// 		task
-// 			- wrap a function/promise
-// 			- pass the function/promise a reciver
-// 			- return a controller (store in manager)
-// 		manager
-// 			- container for tasks
-// 			- multiplex actions to tasks
-// 		
-
+// A task can be:
+// 	- Promise.interactive(..)
+// 	- function(onmsg, ..)
+// 	- object supporting task protocol
+//
+// The task is controlled by passing messages, default messages include:
+// 	- .stop(..)
+//
+//
+// Task protocol:
+// 	.then(..)		- registers a completion handler (a-la Promise)
+// 	.stop(..)		- triggers a task to stop
+//
+//
 
 var TaskMixin = 
 object.Mixin('TaskMixin', 'soft', {
+	// standard messages...
 	stop: function(){
 		this.send('stop', ...arguments) },
 })
@@ -335,29 +341,49 @@ object.Mixin('TaskMixin', 'soft', {
 var TaskManager =
 module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
+	sync_start: false,
+
+	//
+	//	.named(name)
+	//	.named(name, ..)
+	//		-> manager
+	//
+	named: function(name){
+		var names = new Set([...arguments])
+		return this
+			.filter(function(task){ 
+				return names.has(task.name) }) },
 
 	// XXX each task should also trigger this when stopping and this 
 	// 		should not result in this and tasks infinitely playing 
 	// 		ping-pong...
+	// 		XXX one way to go here is to make this an event proxy, i.e.
+	// 			when calling/binding to this it actually binds to each 
+	// 			task ???)
 	stop: events.Event('stop', 
-		function(task='all'){
-			this.forEach(function(task){
-				;(task == 'all' 
-						|| task == '*' 
-						|| task === task)
-					&& task.stop() }) }),
+		function(handlers, name){
+			name != null ?
+				this.named(name).stop()
+				: this.forEach(function(task){
+					task.stop() }) }),
 	done: events.Event('done'),
 
 
-	Task: function(task, ...args){
+	// NOTE: the task is started as soon as it is accepted.
+	Task: function(name, task, ...args){
 		var that = this
 
+		if(typeof(name) != typeof('str')){
+			;[task, ...args] = arguments
+			name = null }
+
 		// normalize handler...
+		var run
 		var handler = 
 			// queue...
 			// NOTE: queue is task-compatible...
 			task instanceof Queue ?
-				task.start()
+				task
 			// interactive...
 			: task && task.then && task.stop ?
 				task
@@ -371,7 +397,11 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				// function...
 				: Promise.interactive(
 					function(resolve, reject, onmsg){
-						resolve(task(onmsg, ...args)) }))
+						run = function(){
+							resolve(task(onmsg, ...args)) } }))
+
+		name
+			&& object.mixin(handler, {name})
 
 		this.push(handler)
 
@@ -382,6 +412,16 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				that.trigger('done', task, res) 
 				that.length == 0
 					&& that.done('all') })
+
+		// start...
+		var start = function(){
+			run
+				&& run()
+			task.start
+				&& task.start() }
+		this.sync_start ?
+			start()
+			: setTimeout(start, 0)
 
 		// XXX or should we return this???
 		return handler },
