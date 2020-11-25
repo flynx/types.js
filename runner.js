@@ -416,6 +416,10 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	//
 	// NOTE: the args are passed only if 
 	// NOTE: the task is started as soon as it is accepted.
+	//
+	// XXX seems that we have a dangling promise someplace...
+	// 		...if a task rejects node/chrome report an unhandled promise 
+	// 		reject...
 	Task: function(title, task, ...args){
 		var that = this
 
@@ -456,7 +460,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 						// 		we wrap this into run(..) and call it when
 						// 		the context is ready...
 						run = function(){
-							var res = task({
+							var res = 
+								task({
 									title,
 									resolve,
 									reject,
@@ -468,8 +473,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 							// XXX is double binding like this (i.e. 
 							// 		ticket + .then()) a good idea???
 							res instanceof Promise
-								&& res.then(resolve, reject)
-						} }))
+								&& res.then(resolve, reject) } }))
 		// set handler title...
 		// NOTE: this will override the title of the handler if it was 
 		// 		set before...
@@ -482,31 +486,23 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 
 		this.push(handler)
 
-		// handle task state...
+		// handle task manager state...
+		var cleanup = function(evt){
+			return function(res){
+				that.splice(that.indexOf(handler), 1)
+				that.trigger(evt, task, res) 
+				that.trigger('tasksDone') } }
 		handler
-			.then(
-				// done...
-				function(res){
-					that.splice(that.indexOf(handler), 1)
-					that.trigger('done', task, res) },
-				// err...
-				function(res){
-					that.splice(that.indexOf(handler), 1)
-					that.trigger('error', task, res) })
-		// trigger .done('all')
-		// XXX should this be a different event -- a-la .queueEmpty(..)
-		handler
-			.finally(function(){
-				that.length == 0
-					&& that.done('all') })
+			.then(cleanup('done'), cleanup('error'))
 
-		// start the task...
+		// start...
 		var start = function(){
 			run ?
 				run()
 			: task.start ?
 				task.start()
 	   		: null }
+		// trigger task start...
 		this.sync_start ?
 			start()
 			: setTimeout(start, 0)
