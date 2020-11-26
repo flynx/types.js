@@ -338,6 +338,7 @@ object.Constructor('TaskTicket', Promise, {
 	__data: null,
 
 	title: null,
+	task: null,
 
 	get state(){
 		return this.__data.state },
@@ -363,7 +364,7 @@ object.Constructor('TaskTicket', Promise, {
 
 	then: Promise.iter.prototype.then,
 
-	__new__: function(_, title, resolve, reject, onmessage){
+	__new__: function(_, title, resolve, reject, onmessage, task){
 		var handlers
 		var resolver = arguments[1]
 
@@ -387,6 +388,7 @@ object.Constructor('TaskTicket', Promise, {
 
 		// setup state...
 		obj.title = title
+		obj.task = task
 		Object.defineProperty(obj, '__data', {
 			value: {
 				resolve: handlers.resolve, 
@@ -541,7 +543,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 						run = function(){
 							var res = 
 								task(
-									that.__task_ticket__(title, resolve, reject, onmessage), 
+									that.__task_ticket__(title, resolve, reject, onmessage, handler), 
 									...args) 
 							// NOTE: if the client calls resolve(..) this 
 							// 		second resolve(..) call has no effect,
