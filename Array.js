@@ -21,7 +21,6 @@ var generator = require('./generator')
 
 // NOTE: this is used in a similar fashion to Python's StopIteration...
 var STOP =
-module.STOP =
 	object.STOP
 
 
@@ -179,6 +178,8 @@ var makeChunkIter = function(iter, wrapper){
 var ArrayMixin =
 module.ArrayMixin =
 object.Mixin('ArrayMixin', 'soft', {
+	STOP: object.STOP,
+
 	// 	zip(array, array, ...)
 	// 		-> [[item, item, ...], ...]
 	//
