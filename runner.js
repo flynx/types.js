@@ -330,18 +330,27 @@ object.Constructor('Queue', Array, {
 //
 
 // Make the ticket more usable...
+//
+// NOTE: this is not intended for direct use...
 var TaskTicket =
-module.TaskTicket =
-object.Constructor('TaskTicket', {
+//module.TaskTicket =
+object.Constructor('TaskTicket', Promise, {
 	__data: null,
 
 	title: null,
 
+	get state(){
+		return this.__data.state },
+
 	resolve: function(...args){
-		this.__data.resolve(...args)
+		if(this.__data.state == 'pending'){
+			this.__data.state = 'resolved'
+			this.__data.resolve(...args) }
 		return this },
 	reject: function(...args){
-		this.__data.reject(...args)
+		if(this.__data.state == 'pending'){
+			this.__data.state = 'rejected'
+			this.__data.reject(...args) }
 		return this },
 	onmessage: function(msg, func){
 		this.__data.onmessage(
@@ -352,12 +361,42 @@ object.Constructor('TaskTicket', {
 						&& func(...args) })
 		return this },
 
-	__init__: function(title, resolve, reject, onmessage){
-		this.title = title
-		Object.defineProperty(this, '__data', {
-			value: {resolve, reject, onmessage},
+	then: Promise.iter.prototype.then,
+
+	__new__: function(_, title, resolve, reject, onmessage){
+		var handlers
+		var resolver = arguments[1]
+
+		var obj = Reflect.construct(
+			TaskTicket.__proto__, 
+			[function(resolve, reject){
+				handlers = {resolve, reject} 
+				// NOTE: this is here to support builtin .then(..)
+				typeof(resolver) == 'function'
+					&& resolver(resolve, reject) }], 
+			TaskTicket) 
+		if(typeof(resolver) == 'function'){
+			return obj }
+
+		// bind this to external resolve/reject...
+		obj.then(
+			function(){
+				resolve(...arguments) }, 
+			function(){
+				reject(...arguments) })
+
+		// setup state...
+		obj.title = title
+		Object.defineProperty(obj, '__data', {
+			value: {
+				resolve: handlers.resolve, 
+				reject: handlers.reject, 
+				onmessage,
+				state: 'pending',
+			},
 			enumerable: false,
-		}) },
+		}) 
+		return obj },
 })
 
 
@@ -419,6 +458,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 
 	// events...
 	//
+	// XXX need to be able to bind to proxy events...
 	done: events.PureEvent('done'),
 	error: events.PureEvent('error'),
 	tasksDone: events.PureEvent('tasksDone'),
@@ -430,21 +470,13 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	//	.Task(title, task)
 	//		-> task-handler
 	//
+	//
 	//	Create a function task...
 	//	.Task(func, ..)
 	//	.Task(title, func, ..)
 	//		-> task-handler
 	//
-	//	func(tiket, ..)
-	//
-	//
-	// tiket:
-	// 	{
-	// 		title: <title>,
-	// 		resolve: <resolve(..)>,
-	// 		reject: <reject(..)>,
-	// 		onmessage: <onmessage(..)>
-	// 	}
+	//	func(ticket, ..)
 	//
 	//
 	// A task can be:
@@ -453,9 +485,20 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	// 	- function
 	// 	- Promise instance
 	//
+	// The task-manager is a Promise.interactive(..) instance with 
+	// TaskMixin added.
 	//
-	// NOTE: the args are passed only if 
+	// The ticket is a TaskTicket instance, see it for reference...
+	//
+	//
+	// NOTE: only function tasks accept args.
 	// NOTE: the task is started as soon as it is accepted.
+	// NOTE: tasks trigger events only on the task-manager instance that
+	// 		they were created in...
+	// 		XXX try and make all event handlers to be registered in the 
+	// 			task itself and all the manager events just be proxies 
+	// 			to tasks...
+	// 			...this needs to work with all the event methods...
 	Task: function(title, task, ...args){
 		var that = this
 

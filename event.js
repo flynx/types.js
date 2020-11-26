@@ -2,6 +2,9 @@
 * 
 *
 *
+* XXX need ability to extend event to implement proxy events...
+* 		...i.e. .on(..) / ... get called on one object but the handler
+* 		bound on a different object via a proxy event method...
 * XXX is types/events the right place for this???
 * XXX should we have .pre/.post events???
 * XXX should we propogate event handling to parent/overloaded events???
@@ -269,6 +272,14 @@ function(name, options={}){
 			toString: function(){
 				return `PureEvent ${name}(){}`},
 		}) }
+
+
+// XXX
+var ProxyEvent =
+module.ProxyEvent =
+function(name, target, options={}){
+	// XXX
+}
 
 
 
