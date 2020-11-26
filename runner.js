@@ -503,10 +503,21 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	// 			...this needs to work with all the event methods...
 	Task: function(title, task, ...args){
 		var that = this
+		var _args = [...arguments]
+
+		// parse args...
+		var sync_start = this.sync_start
+		if(title == 'sync' || title == 'async'){
+			;[sync_start, title, task, ...args] = _args
+			sync_start = sync_start == 'sync'
+
+		} else if(task == 'sync' || task == 'async'){
+			;[title, sync_start, task, ...args] = _args
+			sync_start = sync_start == 'sync' }
 
 		// anonymous task...
 		if(typeof(title) != typeof('str')){
-			;[task, ...args] = arguments
+			;[task, ...args] = _args
 			title = null }
 
 		// normalize handler...
@@ -582,7 +593,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 				task.start()
 	   		: null }
 		// trigger task start...
-		this.sync_start ?
+		sync_start ?
 			start()
 			: setTimeout(start, 0)
 
