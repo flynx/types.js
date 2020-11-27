@@ -234,7 +234,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// 		location...
 	// NOTE: this will get depricated as soon as JS redoes its .indexOf(..)
 	index: function(value){
-		for(var i = 0; i < this.length && this[i] !== elem; i++){}
+		for(var i = 0; i < this.length && this[i] !== value; i++){}
 		return i == this.length ? -1 : i },
 
 
