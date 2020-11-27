@@ -222,6 +222,22 @@ object.Mixin('ArrayMixin', 'soft', {
 var ArrayProtoMixin =
 module.ArrayProtoMixin =
 object.Mixin('ArrayProtoMixin', 'soft', {
+
+	// A faster version of .indexOf(..)
+	//
+	// NOTE: this is not faster when looking for an item not in this,
+	// 		for some reason the native .includes(..) and .indexOf(..)
+	// 		search for non existant elements about an order of magnirude 
+	// 		faster than if it existed...
+	// 		...the funny thing is that at least on Crome .lastIndexOf(..)
+	// 		is about as fast as this for an item in about the same relative 
+	// 		location...
+	// NOTE: this will get depricated as soon as JS redoes its .indexOf(..)
+	index: function(value){
+		for(var i = 0; i < this.length && this[i] !== elem; i++){}
+		return i == this.length ? -1 : i },
+
+
 	// first/last element access short-hands...
 	//
 	//	.first()
@@ -277,8 +293,9 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	get len(){
 		// NOTE: if we don't do .slice() here this can count array 
 		// 		instance attributes...
+		// NOTE: .slice() has an added menifit here of removing any 
+		// 		attributes from the count...
 		return Object.keys(this.slice()).length },
-	set len(val){},
 
 
 	// Return a new array with duplicate elements removed...

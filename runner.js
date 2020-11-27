@@ -309,31 +309,22 @@ object.Constructor('Queue', Array, {
 }))
 
 
+
 //---------------------------------------------------------------------
 // Task manager...
-//
-// Externally manage/influence long running tasks...
-//
-// A task can be:
-// 	- Promise.interactive(..)
-// 	- function(onmsg, ..)
-// 	- object supporting task protocol
-//
-// The task is controlled by passing messages, default messages include:
-// 	- .stop(..)
-//
-//
-// Task protocol:
-// 	.then(..)		- registers a completion handler (a-la Promise)
-// 	.stop(..)		- triggers a task to stop
-//
-//
 
-// Make the ticket more usable...
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// Helpres...
+
+// Task ticket...
+//
+// This lets the client control the task object and receive messages 
+// from it.
 //
 // NOTE: this is not intended for direct use...
 var TaskTicket =
-//module.TaskTicket =
+// XXX do we let the user see this???
+module.TaskTicket =
 object.Constructor('TaskTicket', Promise, {
 	__data: null,
 
@@ -376,6 +367,11 @@ object.Constructor('TaskTicket', Promise, {
 				typeof(resolver) == 'function'
 					&& resolver(resolve, reject) }], 
 			TaskTicket) 
+		// if we got a resolver then it's an internal constructor we are
+		// not using (likely in base .then(..)) so there is no point in 
+		// moving on...
+		// NOTE: this may be a potential source of bugs so we need to 
+		// 		keep tracking this (XXX)
 		if(typeof(resolver) == 'function'){
 			return obj }
 
@@ -385,7 +381,6 @@ object.Constructor('TaskTicket', Promise, {
 				resolve(...arguments) }, 
 			function(){
 				reject(...arguments) })
-
 		// setup state...
 		obj.title = title
 		obj.task = task
@@ -412,8 +407,30 @@ object.Mixin('TaskMixin', 'soft', {
 })
 
 
-// XXX we should keep the API here similar to Queue...
-// 		...but this is no a queue in principle (internal vs. external 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// Task manager...
+//
+// Externally manage/influence long running tasks...
+//
+// A task can be:
+// 	- Promise.interactive(..)
+// 	- Queue(..)
+// 	- function(ticket, ..)
+// 	- object supporting task protocol
+//
+//
+// The task is controlled by passing messages, default messages include:
+// 	- .stop(..)
+//
+//
+// Task protocol:
+// 	.then(..)		- registers a completion handler (a-la Promise)
+// 	.stop(..)		- triggers a task to stop
+//
+//
+// NOTE: we should keep the API here similar to Queue...
+// 		...but this is not a queue in principle (internal vs. external 
 // 		management) so we'll also need to keep them different enough to 
 // 		avoid confusion...
 var TaskManager =
@@ -466,6 +483,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	tasksDone: events.PureEvent('tasksDone'),
 
 
+	// Create/start a task...
 	//
 	//	Create a task...
 	//	.Task(task)
@@ -493,6 +511,26 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	// The ticket is a TaskTicket instance, see it for reference...
 	//
 	//
+	//
+	// We can also force a specific task to start sync/async regardless 
+	// of the .sync_start setting:
+	//
+	//	.Task('sync', task)
+	//	.Task('sync', title, task)
+	//	.Task(title, 'sync', task)
+	//		-> task-handler
+	//
+	//	.Task('async', task)
+	//	.Task('async', title, task)
+	//	.Task(title, 'async', task)
+	//		-> task-handler
+	//
+	//
+	// sync/async start mode apply only to function tasks and tasks that
+	// have a .start() method like Queue's...
+	//
+	//
+	// NOTE: 'sync' more for a blocking task will block the task manager.
 	// NOTE: only function tasks accept args.
 	// NOTE: the task is started as soon as it is accepted.
 	// NOTE: tasks trigger events only on the task-manager instance that
