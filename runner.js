@@ -439,6 +439,17 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	__task_ticket__: TaskTicket,
 	__task_mixin__: TaskMixin,
 
+	// settings...
+	//
+	// if true start/end times will be set on the task:
+	// 	.time_started
+	// 	.time_ended
+	record_times: true,
+
+	// if true the task will be started sync before .Task(..) is returns..
+	//
+	// NOTE: this is not recommended as the default as this can block the
+	// 		manager...
 	sync_start: false,
 
 
@@ -616,12 +627,17 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 		// handle task manager state...
 		var cleanup = function(evt){
 			return function(res){
+				that.record_times
+					&& (handler.time_ended = Date.now())
 				that.splice(that.indexOf(handler), 1)
 				that.trigger(evt, task, res) 
 				that.length == 0
 					&& that.trigger('tasksDone') } }
 		handler
 			.then(cleanup('done'), cleanup('error'))
+
+		this.record_times
+			&& (handler.time_started = Date.now())
 
 		// start...
 		var start = function(){
