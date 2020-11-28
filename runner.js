@@ -624,6 +624,9 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 
 		this.push(handler)
 
+		this.record_times
+			&& (handler.time_started = Date.now())
+
 		// handle task manager state...
 		var cleanup = function(evt){
 			return function(res){
@@ -635,9 +638,6 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 					&& that.trigger('tasksDone') } }
 		handler
 			.then(cleanup('done'), cleanup('error'))
-
-		this.record_times
-			&& (handler.time_started = Date.now())
 
 		// start...
 		var start = function(){

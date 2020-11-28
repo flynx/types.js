@@ -36,9 +36,6 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<array>.mapChunks(..)`](#arraymapchunks)
       - [`<array>.filterChunks(..)`](#arrayfilterchunks)
       - [`<array>.reduceChunks(..)`](#arrayreducechunks)
-    - [`Array` (polyfill)](#array-polyfill)
-      - [`<array>.flat()`](#arrayflat)
-      - [`<array>.includes()`](#arrayincludes)
   - [`Map`](#map)
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
@@ -110,15 +107,26 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<obj>.events`](#objevents)
     - [`event.EventMixin`](#eventeventmixin)
   - [Runner](#runner)
-    - [`runner.Queue(..)` / `runner.Queue.run(..)`](#runnerqueue--runnerqueuerun)
+    - [Micro task queue](#micro-task-queue)
+      - [`runner.Queue(..)` / `runner.Queue.run(..)`](#runnerqueue--runnerqueuerun)
       - [`<queue>.state`](#queuestate)
       - [`<queue>.start(..)`](#queuestart)
       - [`<queue>.pause(..)`](#queuepause)
       - [`<queue>.abort(..)`](#queueabort)
-      - [`<queue>.on(..)` / `<queue>.one(..)`](#queueon--queueone)
-      - [`<queue>.off(..)`](#queueoff)
-      - [`<queue>.trigger(..)`](#queuetrigger)
       - [`<queue>.taskCompleted(..)` (event)](#queuetaskcompleted-event)
+    - [Large task management](#large-task-management)
+      - [`runner.TaskManager(..)`](#runnertaskmanager)
+      - [`<task-manager>.Task(..)`](#task-managertask)
+      - [`<task-manager>.sync_start`](#task-managersync_start)
+      - [`<task-manager>.record_times`](#task-managerrecord_times)
+      - [`<task-manager>.titled(..)`](#task-managertitled)
+      - [`<task-manager>.send(..)`](#task-managersend)
+      - [`<task-manager>.stop(..)`](#task-managerstop)
+      - [`<task-manager>.done(..)` (event)](#task-managerdone-event)
+      - [`<task-manager>.error(..)` (event)](#task-managererror-event)
+      - [`<task-manager>.tasksDone(..)` (event)](#task-managertasksdone-event)
+      - [`runner.TaskTicket(..)`](#runnertaskticket)
+      - [`runner.TaskMixin(..)`](#runnertaskmixin)
   - [License](#license)
 
 ## Installation
@@ -562,13 +570,6 @@ Default value: `50`
 #### `<array>.reduceChunks(..)`
 
 
-### `Array` (polyfill)
-
-#### `<array>.flat()`
-
-#### `<array>.includes()`
-
-
 ## `Map`
 
 ```javascript
@@ -1004,14 +1005,21 @@ to trigger event if the first argument was a function.
 
 ### `event.EventMixin`
 
+Combines [`event.EventHandlerMixin`](#eventeventhandlermixin) and 
+[`event.EventDocMixin`](#eventeventdocmixin).
+
 ## Runner
 
 ```javascript
 var runner = require('ig-types/runner')
 ```
 
+### Micro task queue
 
-### `runner.Queue(..)` / `runner.Queue.run(..)`
+
+This includes [`event.EventMixin`](#eventeventmixin).
+
+#### `runner.Queue(..)` / `runner.Queue.run(..)`
 
 #### `<queue>.state`
 
@@ -1022,18 +1030,45 @@ var runner = require('ig-types/runner')
 #### `<queue>.abort(..)`
 
 
-#### `<queue>.on(..)` / `<queue>.one(..)`
-
-####  `<queue>.off(..)`
-
-#### `<queue>.trigger(..)`
-
-Trigger an event.
-
 #### `<queue>.taskCompleted(..)` (event)
 
 Event, triggered when a task is completed passing in its result.
 
+
+### Large task management
+
+#### `runner.TaskManager(..)`
+
+
+This includes [`event.EventMixin`](#eventeventmixin).
+
+#### `<task-manager>.Task(..)`
+
+#### `<task-manager>.sync_start`
+
+#### `<task-manager>.record_times`
+
+
+
+#### `<task-manager>.titled(..)`
+
+#### `<task-manager>.send(..)`
+
+#### `<task-manager>.stop(..)`
+
+
+
+#### `<task-manager>.done(..)` (event)
+
+#### `<task-manager>.error(..)` (event)
+
+#### `<task-manager>.tasksDone(..)` (event)
+
+
+
+#### `runner.TaskTicket(..)`
+
+#### `runner.TaskMixin(..)`
 
 
 
