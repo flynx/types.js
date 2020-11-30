@@ -38,6 +38,11 @@ module.STOP = object.STOP
 //
 // A means to manage execution of large-ish number of small tasks...
 //
+// A queue is a list of async functions that get executed in order and 
+// not more than .pool_size can run at a time, i.e. new tasks get 
+// started only only when tasks in the running pool either finish or 
+// release their spot in the pool.
+//
 // XXX need to configure to run a specific amount of jobs on each start...
 var Queue =
 module.Queue = 
@@ -108,9 +113,13 @@ object.Constructor('Queue', Array, {
 
 	// events...
 	//
-	taskStarting: events.Event('taskStarting'),
-	taskCompleted: events.Event('taskCompleted'),
-	queueEmpty: events.Event('queueEmpty'),
+	// 	.taskStarting(func(evt, task))
+	// 	.taskCompleted(func(evt, task))
+	// 	.queueEmpty(func(evt))
+	//
+	taskStarting: events.PureEvent('taskStarting'),
+	taskCompleted: events.PureEvent('taskCompleted'),
+	queueEmpty: events.PureEvent('queueEmpty'),
 
 
 	// NOTE: each handler will get called once when the next time the 
@@ -206,6 +215,7 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: this does not care about .state...
 	runTask: function(next){
+		var that = this
 		var running = this.__running = this.__running || []
 
 		// can't run... 
@@ -433,6 +443,9 @@ object.Mixin('TaskMixin', 'soft', {
 // 		...but this is not a queue in principle (internal vs. external 
 // 		management) so we'll also need to keep them different enough to 
 // 		avoid confusion...
+//
+// XXX should a task manager have a pool size???
+// 		...if yes it would be fun to use the queue to manage the pool...
 var TaskManager =
 module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
