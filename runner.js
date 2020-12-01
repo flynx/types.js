@@ -44,6 +44,15 @@ module.STOP = object.STOP
 // release their spot in the pool.
 //
 // XXX need to configure to run a specific amount of jobs on each start...
+// XXX triggering .tasksAdded(..)...
+// 		there are two ways to go here:
+// 			- wrap the queue in a proxy
+// 				+ transparent-ish
+// 				- reported in a confusing way by node/chrome...
+// 			- force the user to use specific API
+// 				- not consistent -- a task can be added via .add(..) and 
+// 				  the Array interface and only .add(..) will trigger the 
+// 				  proper events...
 var Queue =
 module.Queue = 
 object.Constructor('Queue', Array, {
@@ -113,10 +122,12 @@ object.Constructor('Queue', Array, {
 
 	// events...
 	//
+	// 	.tasksAdded(func(evt, [task, ..]))
 	// 	.taskStarting(func(evt, task))
 	// 	.taskCompleted(func(evt, task))
 	// 	.queueEmpty(func(evt))
 	//
+	tasksAdded: events.PureEvent('tasksAdded'),
 	taskStarting: events.PureEvent('taskStarting'),
 	taskCompleted: events.PureEvent('taskCompleted'),
 	queueEmpty: events.PureEvent('queueEmpty'),
@@ -124,21 +135,12 @@ object.Constructor('Queue', Array, {
 
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
+	// XXX should this trigger on empty or on stop???
 	then: function(func){
 		var that = this
 		return new Promise(function(resolve, reject){
 			that.one('queueEmpty', function(){
 				resolve(func()) }) }) },
-
-
-	// helpers...
-	//
-	// move tasks to head/tail of queue resp.
-	prioritize: function(...tasks){
-		return this.sortAs(tasks) },
-	delay: function(...tasks){
-		return this.sortAs(tasks, true) },
-
 
 	// Runner API...
 	//
@@ -210,9 +212,7 @@ object.Constructor('Queue', Array, {
 				run()
 				: setTimeout(run, 0))
 		return this },
-
 	// run one task from queue...
-	//
 	// NOTE: this does not care about .state...
 	runTask: function(next){
 		var that = this
@@ -246,8 +246,6 @@ object.Constructor('Queue', Array, {
 		res = res instanceof module.STOP ?
 			res.value
 			: res
-		stop
-			&& this.stop()
 
 		// handle task results...
 		//
@@ -277,8 +275,7 @@ object.Constructor('Queue', Array, {
 				// one post handler is enough...
 				&& !running.includes(res)){
 			running.push(res) 
-			res.finally(function(){
-				runningDone() })
+			res.finally(runningDone)
 
 		// re-queue tasks...
 		} else if(typeof(res) == 'function'){
@@ -292,7 +289,62 @@ object.Constructor('Queue', Array, {
 		this.length == 0
 			&& this.trigger('queueEmpty')
 
+		stop
+			&& this.stop()
+
 		return this },
+
+
+	// helpers...
+	//
+	// move tasks to head/tail of queue resp.
+	prioritize: function(...tasks){
+		return this.sortAs(tasks) },
+	delay: function(...tasks){
+		return this.sortAs(tasks, true) },
+
+
+	// trigger .tasksAdded(..)...
+	//
+	// NOTE: adding tasks via the [..] notation will not trigger the 
+	// 		event...
+	push: function(...tasks){
+		res = object.parentCall(Queue.prototype.push, this, ...tasks)
+		this.trigger('tasksAdded', tasks)
+		return res },
+	unsift: function(...tasks){
+		res = object.parentCall(Queue.prototype.unshift, this, ...tasks)
+		this.trigger('tasksAdded', tasks)
+		return res },
+	splice: function(...args){
+		res = object.parentCall(Queue.prototype.splice, this, ...args)
+		var tasks = args.slise(2)
+		tasks.length > 0
+			&& this.trigger('tasksAdded', tasks)
+		return res },
+	// convenience...
+	add: function(...tasks){
+		this.push(...tasks)
+		return this },
+
+
+	/*/ trigger .tasksAdded(..) when stuff is added to queue...
+	// XXX EXPERIMENTAL...
+	// XXX this messes up how devtools/node print this object...
+	// 		...everything works as expected but looks ugly...
+	// XXX another potential issue here is the opposite of the overload 
+	// 		approach, this is too strong and we will need to go around 
+	// 		it if we need for instance to shift around around...
+	__new__: function(context, ...args){
+		return new Proxy(
+			Reflect.construct(Queue.__proto__, args, Queue),
+			{
+				set: function(queue, prop, value, receiver){
+					parseInt(prop) == prop
+						&& queue.trigger('tasksAdded', [value])
+					return Reflect.set(...arguments) },
+			}) },	
+	//*/
 
 
 	// constructor argument handling...
@@ -314,6 +366,8 @@ object.Constructor('Queue', Array, {
 				&& typeof(this[0]) != 'function'
 				&& typeof(this[0].finally) != 'function'){
 			Object.assign(this, this.shift()) }
+		this.length > 0
+			&& this.trigger('tasksAdded', [...this])
 		// see if we need to start...
 		this.__run_tasks__() },
 }))

@@ -29,6 +29,146 @@ object.Constructor('EventCommand', {
 		Object.assign(this, data, {name}) },
 })
 
+
+module.TRIGGER = module.EventCommand('TRIGGER')
+
+
+
+// XXX would be nice to have an event object...
+var _Eventfull =
+module._Eventfull =
+object.Constructor('Eventfull', {
+
+	handlerLocation: 'context',
+
+	name: null,
+	func: null,
+
+	toString: function(){
+		return this.func ?
+			`${this.constructor.name} `
+				+(this.func.toString()
+					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')) 
+			: `${this.constructor.name} function ${this.name}(){}` },
+
+	__event_handlers__: null,
+	bind: function(context, handler){
+		var handlers = 
+			// local...
+			options.handlerLocation == 'method' ?
+				(this.__event_handlers__ = this.__event_handlers__ || [])
+			// context (default)...
+			: (context.__event_handlers__ == null ?
+				Object.defineProperty(context, '__event_handlers__', {
+						value: {[this.name]: (handlers = [])},
+						enumerable: false,
+					}) 
+					&& handlers
+				: (context.__event_handlers__[this.name] = 
+					context.__event_handlers__[this.name] || []))
+		// add handler...
+		handlers.push(func)
+		return this },
+	unbind: function(context, handler){
+		var handlers = 
+			(options.handlerLocation == 'method' ?
+				method.__event_handlers__
+			: (context.__event_handlers__ || {})[this.name]) || []
+		handlers.splice(0, handlers.length,
+			...handlers.filter(function(h){
+				return h !== this.func
+					&& h.__event_original_handler__ !== func }))
+		return this },
+
+	__call__: function(context, ...args){
+		var handlers = 
+			this.handlerLocation == 'method' ?
+				(this.__event_handlers__ || [])
+			: []
+		// context (default)...
+		// NOTE: these are allways called...
+		handlers = handlers
+			.concat((context.__event_handlers__ || {})[this.name] || [])
+
+		// NOTE: this will stop event handling if one of the handlers 
+		// 		explicitly returns false...
+		// NOTE: if the user does not call handle() it will be called 
+		// 		after the event action is done but before it returns...
+		// NOTE: to explicitly disable calling the handlers func must 
+		// 		call handle(false)
+		var did_handle = false
+		var handle = function(run=true){
+			did_handle = run === false
+			var a = args[0] instanceof EventCommand ?
+				args.slice(1)
+				: args
+			return run ?
+				handlers
+					.reduce(function(res, handler){ 
+						return res === true 
+							&& handler(this.name, ...a) !== false }, true) 
+				: undefined } 
+
+		// call...
+		var res = this.func ?
+			this.func.call(context, handle, ...args)
+			: undefined
+
+		// call the handlers if the user either didn't call handle()
+		// or explicitly called handle(false)...
+		!did_handle
+			&& handle()
+		return res },
+
+	__init__: function(name, func, options={}){
+		options = func && typeof(func) != 'function' ?
+			func
+			: options
+		Object.assign(this, options)
+		Object.defineProperty(this, 'name', { value: name })
+		func && typeof(func) == 'function'
+			&& (this.func = func) },
+})
+
+
+// XXX test...
+// XXX rename???
+var _Event =
+module._Event =
+object.Constructor('Event', _Eventfull, {
+	toString: function(){
+		return this.orig_func ?
+			'Event '
+				+this.orig_func.toString()
+					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
+			: `Event function ${this.name}(){}`},
+	__init__: function(name, func, options={}){
+		var that = this
+		this.orig_func = func
+		object.parentCall(_Event.prototype.__init__, this, 
+			name, 
+			function(handle, ...args){
+				// NOTE: when the first arg is an event command this will
+				// 		fall through to calling the action...
+				typeof(args[0]) == 'function' ?
+					// add handler...
+					that.bind(this, args[0])
+					// call the action...
+					: (func
+						&& func.call(this, handle, ...args))
+				return this }, 
+			options) }
+})
+
+
+var _PureEvent =
+module._PureEvent =
+object.Constructor('PureEvent', _Event, {
+	// XXX
+})
+
+
+
 // Create an "eventfull" method...
 //
 // The resulting method can be either called directly or via .trigger(..).
@@ -87,11 +227,9 @@ var Eventfull =
 module.Eventfull =
 function(name, func, options={}){
 	var hidden
-
 	options = func && typeof(func) != 'function' ?
 		func
 		: options
-
 	var method = object.mixin(
 		function(...args){
 			var handlers = 
@@ -101,8 +239,11 @@ function(name, func, options={}){
 				// function...
 				: options.handlerLocation == 'method' ?
 					(method.__event_handlers__ || [])
-				// context (default)...
-				: ((this.__event_handlers__ || {})[name] || [])
+				: []
+			// context (default)...
+			// NOTE: these are allways called...
+			handlers = handlers
+				.concat((this.__event_handlers__ || {})[name] || [])
 
 			// NOTE: this will stop event handling if one of the handlers 
 			// 		explicitly returns false...
@@ -187,8 +328,6 @@ function(name, func, options={}){
 
 
 
-module.TRIGGER = module.EventCommand('TRIGGER')
-
 // Extends Eventfull(..) adding ability to bind events via the 
 // resulting method directly by passing it a function...
 //
@@ -259,8 +398,8 @@ function(name, func, options={}){
 		}) }
 
 
-// Like Event(..) but produces an event that can only be triggered via 
-// .trigger(name, ...), calling this is a no-op...
+// Like Event(..) but produces an event method that can only be triggered 
+// via .trigger(name, ...), calling this is a no-op...
 var PureEvent =
 module.PureEvent =
 function(name, options={}){
@@ -334,14 +473,14 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 						return h !== func 
 							&& h.__event_original_handler__ !== func })) }
 		return this },
+	// XXX revise...
 	trigger: function(evt, ...args){
-		// local handler...
-		evt in this
-			&& this[evt](module.TRIGGER, ...args)
-		// global events...
-		this.__event_handlers__
-			&& (this.__event_handlers__[evt] || [])
-				.forEach(function(h){ h(evt, ...args) }) 
+		evt in this ?
+			// XXX add a better check...
+			this[evt](module.TRIGGER, ...args)
+			: this.__event_handlers__
+				&& (this.__event_handlers__[evt] || [])
+					.forEach(function(h){ h(evt, ...args) }) 
 		return this },
 })
 
