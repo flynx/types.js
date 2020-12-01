@@ -200,7 +200,15 @@ object.Constructor('Queue', Array, {
 					&& this.state == 'running'){
 				this.auto_stop ?
 					// auto-stop...
-					this.stop()
+					(this.poling_delay ?
+						// wait a bit then stop if still empty...
+						setTimeout(function(){
+							that.length > 0 ?
+								that.__run_tasks__()
+								: that.stop()
+							}, this.poling_delay || 200)
+						// stop now...
+						: this.stop())
 					// pole...
 					: (this.poling_delay
 						&& setTimeout(
