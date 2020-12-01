@@ -467,9 +467,7 @@ Events.cases({
 		// XXX this is triggered twice for some reason...
 		obj.one('event', function(){ 
 			called['event-one-time-handler'] = 
-				(called['event-one-time-handler'] || 0) + 1  
-				console.log('>>>>>>>>>>>>>>', called['event-one-time-handler'])
-			})
+				(called['event-one-time-handler'] || 0) + 1 })
 		obj
 			.event()
 			//.event()

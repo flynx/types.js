@@ -152,7 +152,7 @@ object.Constructor('Eventfull', {
 		// 		call handle(false)
 		var did_handle = false
 		var handle = function(run=true){
-			did_handle = run === false
+			did_handle = true
 			var a = args[0] instanceof EventCommand ?
 				args.slice(1)
 				: args
