@@ -114,8 +114,12 @@ object.Constructor('Queue', Array, {
 			return handle(false) }
 		this.__state = 'stopped' }),
 
+	// XXX revise...
 	clear: events.Event('clear', function(){
-		this.splice(0, this.length) }),
+		this.splice(0, this.length) 
+		if(this.state == 'running'){
+			this.trigger('queueEmpty')
+			this.trigger('stop') } }),
 
 
 	// events...
