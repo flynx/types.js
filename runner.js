@@ -254,7 +254,8 @@ object.Constructor('Queue', Array, {
 
 			// promise result...
 			// XXX is the err test here needed???
-			err === undefined 
+			res 
+				&& err === undefined 
 				&& res.catch
 				&& res.catch(function(err){
 					that.trigger('taskFailed', task, err) })
