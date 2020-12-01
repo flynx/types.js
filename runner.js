@@ -114,9 +114,7 @@ object.Constructor('Queue', Array, {
 			return handle(false) }
 		this.__state = 'stopped' }),
 
-	// events/actions - state transitions...
-	//
-	clear: events.Event(function(handler){
+	clear: events.Event('clear', function(){
 		this.splice(0, this.length) }),
 
 
