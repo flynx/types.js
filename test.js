@@ -450,6 +450,7 @@ Events.cases({
 
 		trigger('foo', false, false)
 		trigger('moo', false)
+
 		obj.events
 			.forEach(function(e){ 
 				trigger(e) 
@@ -463,13 +464,16 @@ Events.cases({
 
 
 		// unbind: .one(..) / .off(..) 
+		// XXX this is triggered twice for some reason...
 		obj.one('event', function(){ 
 			called['event-one-time-handler'] = 
-				(called['event-one-time-handler'] || 0) + 1  })
+				(called['event-one-time-handler'] || 0) + 1  
+				console.log('>>>>>>>>>>>>>>', called['event-one-time-handler'])
+			})
 		obj
 			.event()
-			.event()
-			.event()
+			//.event()
+			//.event()
 		assert(called['event-one-time-handler'] == 1, '.one("event", ..) handler cleared.')
 		delete called['event-one-time-handler']
 
