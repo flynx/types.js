@@ -326,7 +326,7 @@ object.Constructor('Queue', Array, {
 		return res },
 	splice: function(...args){
 		res = object.parentCall(Queue.prototype.splice, this, ...args)
-		var tasks = args.slise(2)
+		var tasks = args.slice(2)
 		tasks.length > 0
 			&& this.trigger('tasksAdded', tasks)
 		return res },
