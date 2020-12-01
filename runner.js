@@ -114,14 +114,6 @@ object.Constructor('Queue', Array, {
 			return handle(false) }
 		this.__state = 'stopped' }),
 
-	// XXX revise...
-	clear: events.Event('clear', function(){
-		this.splice(0, this.length) 
-		if(this.state == 'running'){
-			this.trigger('queueEmpty')
-			this.trigger('stop') } }),
-
-
 	// events...
 	//
 	// 	.tasksAdded(func(evt, [task, ..]))
@@ -132,6 +124,7 @@ object.Constructor('Queue', Array, {
 	tasksAdded: events.PureEvent('tasksAdded'),
 	taskStarting: events.PureEvent('taskStarting'),
 	taskCompleted: events.PureEvent('taskCompleted'),
+	taskFailed: events.PureEvent('taskFailed'),
 	queueEmpty: events.PureEvent('queueEmpty'),
 
 
@@ -248,7 +241,24 @@ object.Constructor('Queue', Array, {
 		this.trigger('taskStarting', task)
 
 		// run...
-		var res = this.__run_task__(task, next)
+		// catch and pass errors to .taskFailed(...)
+		if(this.catch_errors){
+			var err
+			try {
+				var res = this.__run_task__(task, next)
+
+			} catch(err){
+				this.trigger('taskFailed', task, err) }
+
+			// promise result...
+			// XXX is the err test here needed???
+			;(err === undefined && res.catch) ?
+				res.catch(function(err){
+					that.trigger('taskFailed', task, err) })
+
+		// ignore errors...
+		} else {
+			var res = this.__run_task__(task, next) }
 
 		// handle stop...
 		var stop = res === module.STOP 
@@ -314,7 +324,9 @@ object.Constructor('Queue', Array, {
 		return this.sortAs(tasks, true) },
 
 
-	// trigger .tasksAdded(..)...
+	// edit/add API...
+	//
+	// trigger .tasksAdded(..) on relevant methods...
 	//
 	// NOTE: adding tasks via the [..] notation will not trigger the 
 	// 		event...
@@ -332,10 +344,16 @@ object.Constructor('Queue', Array, {
 		tasks.length > 0
 			&& this.trigger('tasksAdded', tasks)
 		return res },
-	// convenience...
+	// shorthands...
 	add: function(...tasks){
 		this.push(...tasks)
 		return this },
+	clear: function(){
+		this.splice(0, this.length) 
+		if(this.state == 'running'){
+			this.trigger('queueEmpty')
+			this.trigger('stop') } },
+
 
 
 	/*/ trigger .tasksAdded(..) when stuff is added to queue...
