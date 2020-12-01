@@ -69,6 +69,8 @@ object.Constructor('Queue', Array, {
 
 	auto_stop: false,
 
+	catch_errors: true,
+
 	// NOTE: if true this is sync only untill the pool is filled or task 
 	// 		list is depleted...
 	sync_start: false,
@@ -252,8 +254,9 @@ object.Constructor('Queue', Array, {
 
 			// promise result...
 			// XXX is the err test here needed???
-			;(err === undefined && res.catch) ?
-				res.catch(function(err){
+			err === undefined 
+				&& res.catch
+				&& res.catch(function(err){
 					that.trigger('taskFailed', task, err) })
 
 		// ignore errors...
