@@ -65,12 +65,17 @@ object.Constructor('Queue', Array, {
 }, events.EventMixin('flat', {
 	// config...
 	//
+	// Number of tasks to be running at the same time...
 	pool_size: 8,
 
-	// XXX revise defaults...
-	poling_delay: 50,
-	idle_poling_delay: 200,
+	// Number of tasks to run in a row before letting go of the exec 
+	// frame...
+	pause_after_sync: 4,
 
+	// XXX revise defaults...
+	busy_timeout: 50,
+	poling_timeout: 200,
+	pause_timeout: 0,
 
 	auto_stop: false,
 
@@ -184,6 +189,8 @@ object.Constructor('Queue', Array, {
 	// NOTE: we do not store the exec results...
 	// NOTE: not intended for direct use and will likely have no effect
 	// 		if called directly... 
+	//
+	// XXX will this be collected by the GC if it is polling???
 	__running: null,
 	__run_tasks__: function(sync){
 		var that = this
@@ -194,11 +201,26 @@ object.Constructor('Queue', Array, {
 			: !!sync
 
 		var run = function(){
-			// handle queue...
+			var c = 0
+			var pause = this.pause_after_sync
+			var running = this.__running || []
+
+			// run queue...
 			while(this.length > 0 
 					&& this.state == 'running'
-					&& (this.__running || []).length < this.pool_size){
-				this.runTask(this.__run_tasks__.bind(this)) }
+					// do not exceed pool size...
+					&& running.length < this.pool_size
+					// do not run too many sync tasks without a break...
+					&& (pause == null
+						|| c < pause)){
+				var p = running.length
+
+				this.runTask(this.__run_tasks__.bind(this)) 
+
+				// NOTE: only count sync stuff that does not get added 
+				// 		to the pool...
+				p == running.length
+					&& c++ }
 
 			// empty queue -> pole or stop...
 			//
@@ -207,30 +229,32 @@ object.Constructor('Queue', Array, {
 			// 		- the queue is empty
 			// NOTE: we do not care about stopping the timer when changing 
 			// 		state as .__run_tasks__() will stop itself...
-			//
-			// XXX will this be collected by the GC if it is polling???
 			if(this.state == 'running'){
-				var p
+				var timeout = 
+					// idle -- empty queue...
+					this.length == 0 ?
+						this.poling_timeout
+					// busy poling -- pool full...
+					: c < pause ?
+						this.busy_timeout
+					// pause -- let other stuff run...
+					: (this.pause_timeout || 0)
+
 				;(this.length == 0 && this.auto_stop) ?
 					// auto-stop...
-					(this.idle_poling_delay ?
+					(timeout != null ?
 						// wait a bit then stop if still empty...
 						setTimeout(function(){
 							that.length > 0 ?
 								that.__run_tasks__()
 								: that.stop()
-							}, this.idle_poling_delay)
+							}, timeout)
 						// stop now...
 						: this.stop())
-					// pole...
-					// NOTE: there can be two poling states:
-					// 			- idle poling - when queue is empty
-					// 			- busy poling - when pool is full
-					: (p = this.length == 0 ?
-							this.idle_poling_delay
-							: this.poling_delay)
+					// pole / pause...
+					: timeout != null
 						&& setTimeout(
-							this.__run_tasks__.bind(this), p) } }.bind(this)
+							this.__run_tasks__.bind(this), timeout) } }.bind(this)
 
 		this.state == 'running'
 			&& (sync ?
@@ -378,26 +402,6 @@ object.Constructor('Queue', Array, {
 		if(this.state == 'running'){
 			this.trigger('queueEmpty')
 			this.trigger('stop') } },
-
-
-
-	/*/ trigger .tasksAdded(..) when stuff is added to queue...
-	// XXX EXPERIMENTAL...
-	// XXX this messes up how devtools/node print this object...
-	// 		...everything works as expected but looks ugly...
-	// XXX another potential issue here is the opposite of the overload 
-	// 		approach, this is too strong and we will need to go around 
-	// 		it if we need for instance to shift around around...
-	__new__: function(context, ...args){
-		return new Proxy(
-			Reflect.construct(Queue.__proto__, args, Queue),
-			{
-				set: function(queue, prop, value, receiver){
-					parseInt(prop) == prop
-						&& queue.trigger('tasksAdded', [value])
-					return Reflect.set(...arguments) },
-			}) },	
-	//*/
 
 
 	// constructor argument handling...
