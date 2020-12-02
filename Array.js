@@ -459,8 +459,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	//
 	// XXX should this take an argument and be like map??
 	iter: function*(){
-		for(var e of this){
-			yield e } },
+		yield* this },
 
 
 	// Stoppable iteration...
