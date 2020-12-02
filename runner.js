@@ -67,7 +67,10 @@ object.Constructor('Queue', Array, {
 	//
 	pool_size: 8,
 
-	poling_delay: 200,
+	// XXX revise defaults...
+	poling_delay: 50,
+	idle_poling_delay: 200,
+
 
 	auto_stop: false,
 
@@ -76,6 +79,9 @@ object.Constructor('Queue', Array, {
 	// NOTE: if true this is sync only untill the pool is filled or task 
 	// 		list is depleted...
 	sync_start: false,
+
+	// XXX 
+	unique_items: false,
 
 	//
 	// This can be:
@@ -105,13 +111,15 @@ object.Constructor('Queue', Array, {
 
 	// events/actions - state transitions...
 	//
+	// NOTE: to start synchronously call .start(true), this will not 
+	// 		affect further operation...
 	// XXX would be nice to run a specific number of tasks and stop...
-	start: events.Event('start', function(handle){
+	start: events.Event('start', function(handle, sync){
 		// can't start while running...
 		if(this.state == 'running'){
 			return handle(false) }
 		this.__state = 'running'
-		this.__run_tasks__() }),
+		this.__run_tasks__(sync) }),
 	stop: events.Event('stop', function(handle){
 		// can't stop while not running...
 		if(this.state == 'stopped'){
@@ -172,18 +180,24 @@ object.Constructor('Queue', Array, {
 	// 	.__run_tasks__()
 	// 		-> this
 	//
+	// NOTE: .sync_start affects only the first run...
 	// NOTE: we do not store the exec results...
 	// NOTE: not intended for direct use and will likely have no effect
 	// 		if called directly... 
 	__running: null,
-	__run_tasks__: function(){
+	__run_tasks__: function(sync){
 		var that = this
+		sync = sync == null ?
+				this.sync_start
+			: sync == 'async' ?
+				false
+			: !!sync
 
 		var run = function(){
 			// handle queue...
 			while(this.length > 0 
 					&& this.state == 'running'
-					&& (this.__running || []).length < (this.pool_size || Infinity) ){
+					&& (this.__running || []).length < this.pool_size){
 				this.runTask(this.__run_tasks__.bind(this)) }
 
 			// empty queue -> pole or stop...
@@ -195,27 +209,31 @@ object.Constructor('Queue', Array, {
 			// 		state as .__run_tasks__() will stop itself...
 			//
 			// XXX will this be collected by the GC if it is polling???
-			if(this.length == 0 
-					&& this.state == 'running'){
-				this.auto_stop ?
+			if(this.state == 'running'){
+				var p
+				;(this.length == 0 && this.auto_stop) ?
 					// auto-stop...
-					(this.poling_delay ?
+					(this.idle_poling_delay ?
 						// wait a bit then stop if still empty...
 						setTimeout(function(){
 							that.length > 0 ?
 								that.__run_tasks__()
 								: that.stop()
-							}, this.poling_delay || 200)
+							}, this.idle_poling_delay)
 						// stop now...
 						: this.stop())
 					// pole...
-					: (this.poling_delay
+					// NOTE: there can be two poling states:
+					// 			- idle poling - when queue is empty
+					// 			- busy poling - when pool is full
+					: (p = this.length == 0 ?
+							this.idle_poling_delay
+							: this.poling_delay)
 						&& setTimeout(
-							this.__run_tasks__.bind(this), 
-							this.poling_delay || 200)) } }.bind(this)
+							this.__run_tasks__.bind(this), p) } }.bind(this)
 
 		this.state == 'running'
-			&& (this.sync_start ?
+			&& (sync ?
 				run()
 				: setTimeout(run, 0))
 		return this },
