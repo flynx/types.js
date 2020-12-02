@@ -1,6 +1,6 @@
 {
   "name": "ig-types",
-  "version": "5.0.30",
+  "version": "5.0.31",
   "description": "Generic JavaScript types and type extensions...",
   "main": "main.js",
   "scripts": {

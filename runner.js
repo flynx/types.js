@@ -53,6 +53,8 @@ module.STOP = object.STOP
 // 				- not consistent -- a task can be added via .add(..) and 
 // 				  the Array interface and only .add(..) will trigger the 
 // 				  proper events...
+// XXX document the Queue({handler: e => e*e}, 1,2,3,4) use-case...
+// 		...this is essentially a .map(..) variant...
 var Queue =
 module.Queue = 
 object.Constructor('Queue', Array, {
@@ -63,8 +65,6 @@ object.Constructor('Queue', Array, {
 }, events.EventMixin('flat', {
 	// config...
 	//
-	handler: null,
-
 	pool_size: 8,
 
 	poling_delay: 200,
@@ -144,7 +144,7 @@ object.Constructor('Queue', Array, {
 	// Runner API...
 	//
 	//	Run the given task type...
-	//	.__run_task__(task[, next])
+	//	.handler(task[, next])
 	//		-> STOP
 	//		-> STOP(value)
 	//		-> queue
@@ -157,10 +157,8 @@ object.Constructor('Queue', Array, {
 	// 		...to add a new task/result type either handle the non-standard
 	// 		result here or wrap it into a standard return value like a 
 	// 		promise...
-	__run_task__: function(task, next){
-		return typeof(this.handler) == 'function' ?
-				this.handler(task)
-			: typeof(task) == 'function' ?
+	handler: function(task, next){
+		return typeof(task) == 'function' ?
 				task()
 			: (task instanceof Queue 
 					&& this.sub_queue == 'unwind') ?
@@ -252,7 +250,7 @@ object.Constructor('Queue', Array, {
 		if(this.catch_errors){
 			var err
 			try {
-				var res = this.__run_task__(task, next)
+				var res = this.handler(task, next)
 
 			} catch(err){
 				this.trigger('taskFailed', task, err) }
@@ -267,7 +265,7 @@ object.Constructor('Queue', Array, {
 
 		// ignore errors...
 		} else {
-			var res = this.__run_task__(task, next) }
+			var res = this.handler(task, next) }
 
 		// handle stop...
 		var stop = res === module.STOP 
