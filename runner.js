@@ -63,6 +63,8 @@ object.Constructor('Queue', Array, {
 }, events.EventMixin('flat', {
 	// config...
 	//
+	handler: null,
+
 	pool_size: 8,
 
 	poling_delay: 200,
@@ -103,7 +105,7 @@ object.Constructor('Queue', Array, {
 
 	// events/actions - state transitions...
 	//
-	// XXX would be nice to run a number of tasks...
+	// XXX would be nice to run a specific number of tasks and stop...
 	start: events.Event('start', function(handle){
 		// can't start while running...
 		if(this.state == 'running'){
@@ -156,7 +158,9 @@ object.Constructor('Queue', Array, {
 	// 		result here or wrap it into a standard return value like a 
 	// 		promise...
 	__run_task__: function(task, next){
-		return typeof(task) == 'function' ?
+		return typeof(this.handler) == 'function' ?
+				this.handler(task)
+			: typeof(task) == 'function' ?
 				task()
 			: (task instanceof Queue 
 					&& this.sub_queue == 'unwind') ?
@@ -219,6 +223,7 @@ object.Constructor('Queue', Array, {
 		return this },
 	// run one task from queue...
 	// NOTE: this does not care about .state...
+	// XXX revise error handling...
 	runTask: function(next){
 		var that = this
 		var running = this.__running = this.__running || []

@@ -145,6 +145,7 @@ object.Constructor('IterablePromise', Promise, {
 	//		-> iterable-promise
 	//
 	//
+	// XXX if list is an iterator, can we fill this async???
 	__new__: function(_, list, handler){
 		var promise
 
