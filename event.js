@@ -160,7 +160,7 @@ object.Constructor('Eventfull', {
 				handlers
 					.reduce(function(res, handler){ 
 						return res === true 
-							&& handler(that.name, ...a) !== false }, true) 
+							&& handler.call(context, that.name, ...a) !== false }, true) 
 				: undefined } 
 
 		// call...
