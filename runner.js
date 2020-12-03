@@ -122,7 +122,6 @@ object.Constructor('Queue', Array, {
 	runtime_stats: true,
 
 
-
 	//
 	// This can be:
 	// 		'running'
@@ -145,7 +144,7 @@ object.Constructor('Queue', Array, {
 	// XXX would be nice to run a specific number of tasks and stop...
 	start: events.Event('start', function(handle, sync){
 		// can't start while running...
-		if(this.state == 'running'){
+		if(this.__state == 'running'){
 			return handle(false) }
 		this.__state = 'running'
 		this.__run_tasks__(sync) }),
