@@ -638,10 +638,20 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 
 	// actions...
 	//
+	// commands to test as methods...
+	// 	i.e. task.send(cmd, ...args) -> task[cmd](...args)
+	__send_commands__: [ 'stop' ],
 	send: function(title, ...args){
+		var that = this
 		if(title == 'all' || title == '*'){
 			this.forEach(function(task){
-				task.send(...args) })
+				'send' in task ?
+					task.send(...args) 
+				: that.__send_commands__.includes(args[0]) ?
+					task[args[0]](...args.slice(1))
+				// XXX
+				: console.warn('.send(..): can\'t .send(..) to:', task) 
+			})
 			return this }
 		return this.titled(
 				...(title instanceof Array) ?
@@ -747,7 +757,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 			task instanceof Queue ?
 				task
 			// task protocol...
-			: task && task.then && task.stop ?
+			: task && task.then 
+					&& (task.stop || task.send) ?
 				task
 			: this.__task_mixin__(
 				// interactive promise...
