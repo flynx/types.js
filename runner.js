@@ -444,8 +444,8 @@ object.Constructor('Queue', Array, {
 		return this },
 	clear: function(){
 		this.splice(0, this.length) 
+		this.trigger('queueEmpty')
 		if(this.state == 'running'){
-			this.trigger('queueEmpty')
 			this.trigger('stop') } },
 
 
@@ -633,7 +633,8 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 		var titles = new Set([...arguments])
 		return this
 			.filter(function(task){ 
-				return titles.has(task.title) }) },
+				return titles.has(task.title) 
+					|| titles.has(task.name) }) },
 
 	// actions...
 	//
