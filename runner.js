@@ -423,6 +423,10 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: adding tasks via the [..] notation will not trigger the 
 	// 		event...
+	// XXX add methods that can shorten the queue (like .pop()/.shift()/..)
+	// 		to test and trigger .queueEmpty()
+	// 		...this is not and will not be done on polling as that would 
+	// 		introduce issues -- queue can change between task runs... (revise!)
 	push: function(...tasks){
 		res = object.parentCall(Queue.prototype.push, this, ...tasks)
 		this.trigger('tasksAdded', tasks)
@@ -432,10 +436,13 @@ object.Constructor('Queue', Array, {
 		this.trigger('tasksAdded', tasks)
 		return res },
 	splice: function(...args){
+		var l = this.length
 		res = object.parentCall(Queue.prototype.splice, this, ...args)
 		var tasks = args.slice(2)
 		tasks.length > 0
 			&& this.trigger('tasksAdded', tasks)
+		l != 0 && this.length == 0
+			&& this.trigger('queueEmpty')
 		return res },
 
 	// shorthands...
@@ -443,10 +450,7 @@ object.Constructor('Queue', Array, {
 		this.push(...tasks)
 		return this },
 	clear: function(){
-		this.splice(0, this.length) 
-		this.trigger('queueEmpty')
-		if(this.state == 'running'){
-			this.trigger('stop') } },
+		this.splice(0, this.length) },
 
 
 	// constructor argument handling...
