@@ -289,6 +289,26 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 		return this
 			.filter(function(){ return true }) },
 
+	// Remove sprse slots form start/end/both ends of array...
+	//
+	trim: function(){
+		var l = this.length
+		var i = 0
+		while(!(i in this) && i < l){ i++ }
+		var j = 0
+		while(!(l-j-1 in this) && j < l){ j++ }
+		return this.slice(i, j == 0 ? l : -j) },
+	trimStart: function(){
+		var l = this.length
+		var i = 0
+		while(!(i in this) && i < l){ i++ }
+		return this.slice(i) },
+	trimEnd: function(){
+		var l = this.length
+		var j = 0
+		while(!(l-j-1 in this) && j < l){ j++ }
+		return this.slice(0, j == 0 ? l : -j) },
+
 	// like .length but for sparse arrays will return the element count...
 	get len(){
 		// NOTE: if we don't do .slice() here this can count array 
@@ -296,7 +316,6 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 		// NOTE: .slice() has an added menifit here of removing any 
 		// 		attributes from the count...
 		return Object.keys(this.slice()).length },
-
 
 	// Return a new array with duplicate elements removed...
 	//
@@ -409,7 +428,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	toKeys: function(normalize){
 		return normalize ? 
 			this.reduce(function(r, e, i){
-				r[normalize(e)] = i
+				r[normalize(e, i)] = i
 				return r }, {})
 			: this.reduce(function(r, e, i){
 				r[e] = i
@@ -432,7 +451,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 		return normalize ? 
 			this
 				.reduce(function(m, e, i){
-					m.set(normalize(e), i)
+					m.set(normalize(e, i), i)
 					return m }, new Map())
 			: this
 				.reduce(function(m, e, i){

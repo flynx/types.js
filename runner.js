@@ -59,8 +59,38 @@ var Queue =
 module.Queue = 
 object.Constructor('Queue', Array, {
 	// create a running queue...
+	//
 	runTasks: function(...tasks){
-		return this({ state: 'running' }, ...tasks) },
+		if(typeof(tasks[0]) != 'function'
+				&& !(tasks[0] instanceof Queue)
+				&& typeof(tasks[0].finally) != 'function'){
+			var [options, ...tasks] = arguments }
+		return this(
+			Object.assign({},
+				options || {},
+				{ state: 'running' }), 
+			...tasks) },
+
+	// Create a handler queue...
+	//
+	// 	Queue.handle(func, ...data)
+	// 	Queue.handle(options, func, ...data)
+	// 		-> queue
+	//
+	// NOTE: func(..) should be compatible with .handler(..) instance method...
+	// NOTE: this is a shorthand for:
+	// 			Queue({handler: func, ...}, ...data)
+	handle: function(handler, ...data){
+		// NOTE: this is a simpler test than in .runTasks(..) above because
+		// 		here we are expecting a function as the first arg in the 
+		// 		general case while above a non-task is the exception..
+		if(typeof(handler) != 'function'){
+			var [options, handler, ...data] = arguments }
+		return this(
+			Object.assign({},
+				options || {},
+				{handler}), 
+			...data) },
 
 }, events.EventMixin('flat', {
 	// Config...
@@ -470,6 +500,7 @@ object.Constructor('Queue', Array, {
 		if(!(this[0] instanceof Queue)
 				&& this[0] instanceof Object 
 				&& typeof(this[0]) != 'function'
+				// XXX do we need this test???
 				&& typeof(this[0].finally) != 'function'){
 			Object.assign(this, this.shift()) }
 		this.length > 0
