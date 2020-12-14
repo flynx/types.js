@@ -458,16 +458,16 @@ object.Constructor('Queue', Array, {
 	// 		...this is not and will not be done on polling as that would 
 	// 		introduce issues -- queue can change between task runs... (revise!)
 	push: function(...tasks){
-		res = object.parentCall(Queue.prototype.push, this, ...tasks)
+		var res = object.parentCall(Queue.prototype.push, this, ...tasks)
 		this.trigger('tasksAdded', tasks)
 		return res },
 	unsift: function(...tasks){
-		res = object.parentCall(Queue.prototype.unshift, this, ...tasks)
+		var res = object.parentCall(Queue.prototype.unshift, this, ...tasks)
 		this.trigger('tasksAdded', tasks)
 		return res },
 	splice: function(...args){
 		var l = this.length
-		res = object.parentCall(Queue.prototype.splice, this, ...args)
+		var res = object.parentCall(Queue.prototype.splice, this, ...args)
 		var tasks = args.slice(2)
 		tasks.length > 0
 			&& this.trigger('tasksAdded', tasks)
