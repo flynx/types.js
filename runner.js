@@ -111,6 +111,9 @@ object.Constructor('Queue', Array, {
 	// If true, stop after queue is depleted...
 	auto_stop: false,
 
+	// NOTE: for long running queues this may get quite big...
+	collect_results: true,
+
 	// Sub-queue handling mode...
 	//
 	// This can be:
@@ -205,7 +208,10 @@ object.Constructor('Queue', Array, {
 		var that = this
 		return new Promise(function(resolve, reject){
 			that.one('queueEmpty', function(){
-				resolve(func()) }) }) },
+				resolve(func(
+					...(this.collect_results ? 
+						[(this.__results || [])]
+						: []) )) }) }) },
 
 	// Runner API...
 	//
@@ -387,8 +393,14 @@ object.Constructor('Queue', Array, {
 		var stop = res === module.STOP 
 			|| res instanceof module.STOP
 		res = res instanceof module.STOP ?
-			res.value
+				res.value
+			: res === module.STOP ?
+				undefined
 			: res
+
+		// collect results...
+		this.collect_results
+			&& (this.__results = this.__results || []).push(res)
 
 		// handle task results...
 		//
@@ -435,7 +447,8 @@ object.Constructor('Queue', Array, {
 		stop
 			&& this.stop()
 
-		return this },
+		return res },
+		//return this },
 
 
 	// helpers...
