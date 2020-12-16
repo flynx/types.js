@@ -308,12 +308,13 @@ object.Constructor('Queue', Array, {
 				: setTimeout(run, 0))
 		return this },
 	__onempty__: function(){
+		var that = this
 		this.poling_timeout != null ?
 			// wait a bit then stop if still empty...
 			setTimeout(function(){
 				that.length > 0 ?
 					that.__run_tasks__()
-					: that.stop(
+					: that.stop()
 				}, this.poling_timeout)
 			// stop now...
 			: this.stop()
