@@ -188,13 +188,6 @@ object.Constructor('Queue', Array, {
 		if(this.state == 'stopped' || this.state == 'aborted'){
 			return handle(false) }
 		this.__state = 'stopped' }),
-	abort: events.Event('abort', function(handle){
-		console.log('Queue.abort(..)')
-		// abort only once...
-		if(this.state == 'aborted'){
-			return handle(false) }
-		this.__state = 'aborted' 
-		/*this.clear('true')*/ }),
 
 	// events...
 	//
@@ -209,41 +202,6 @@ object.Constructor('Queue', Array, {
 	taskFailed: events.PureEvent('taskFailed'),
 	queueEmpty: events.PureEvent('queueEmpty'),
 
-
-	// NOTE: each handler will get called once when the next time the 
-	// 		queue is emptied...
-	// XXX should this trigger on empty or on stop???
-	promise: function(){
-		var that = this
-		return new Promise(function(resolve, reject){
-			that
-				.one('queueEmpty', function(){
-					resolve(...(that.collect_results ? 
-						[that.__results || []]
-						: [])) })
-				.one('abort', reject) }) },
-	then: function(onresolve, onreject){
-		var that = this
-		return new Promise(function(resolve, reject){
-			// got a queue/promise...
-			if(onresolve instanceof Queue 
-					|| onresolve instanceof Promise){
-				onresolve.then(resolve, reject)
-			// got functions...
-			} else {
-				onreject
-					&& that.one('abort', function(){
-						reject(onreject(this)) })
-				that.one('queueEmpty', function(){
-					resolve(onresolve(
-						...(this.collect_results ? 
-							[(this.__results || [])]
-							: []) )) }) } }) },
-	catch: function(func){
-		var that = this
-		return this.then(
-			function(res){ return res }, 
-			func) },
 
 	// Runner API...
 	//
@@ -338,15 +296,7 @@ object.Constructor('Queue', Array, {
 
 				;(this.length == 0 && this.auto_stop) ?
 					// auto-stop...
-					(timeout != null ?
-						// wait a bit then stop if still empty...
-						setTimeout(function(){
-							that.length > 0 ?
-								that.__run_tasks__()
-								: that.stop()
-							}, timeout)
-						// stop now...
-						: this.stop())
+					this.__onempty__()
 					// pole / pause...
 					: timeout != null
 						&& setTimeout(
@@ -356,6 +306,17 @@ object.Constructor('Queue', Array, {
 			&& (sync ?
 				run()
 				: setTimeout(run, 0))
+		return this },
+	__onempty__: function(){
+		this.poling_timeout != null ?
+			// wait a bit then stop if still empty...
+			setTimeout(function(){
+				that.length > 0 ?
+					that.__run_tasks__()
+					: that.stop(
+				}, this.poling_timeout)
+			// stop now...
+			: this.stop()
 		return this },
 	// run one task from queue...
 	// NOTE: this does not care about .state...
@@ -557,6 +518,50 @@ object.Constructor('Queue', Array, {
 		// see if we need to start...
 		this.__run_tasks__() },
 }))
+
+
+// Like Queue(..) but adds terminal states and conversion to promises...
+//
+// XXX Object.freeze(..) this when done... ???
+// XXX find a better name...
+var FinalizableQueue =
+module.FinalizableQueue =
+object.Constructor('FinalizableQueue', Queue, {
+	__onempty__: function(){
+		return this.trigger('done') },
+
+	// XXX sould these freeze???
+	done: events.Event('done', function(handle){
+		// abort only once...
+		if(this.state == 'aborted' || this.state == 'done'){
+			return handle(false) }
+		this.__state = 'done' 
+		Object.freeze(this) }),
+	abort: events.Event('abort', function(handle){
+		// abort only once...
+		if(this.state == 'aborted' || this.state == 'done'){
+			return handle(false) }
+		this.__state = 'aborted' 
+		Object.freeze(this) }),
+
+	// NOTE: each handler will get called once when the next time the 
+	// 		queue is emptied...
+	// XXX should this trigger on empty or on stop???
+	promise: function(){
+		var that = this
+		return new Promise(function(resolve, reject){
+			that
+				.one('done', function(){
+					resolve(...(that.collect_results ? 
+						[that.__results || []]
+						: [])) })
+				.one('abort', reject) }) },
+	then: function(onresolve, onreject){
+		return this.promise().then(...arguments) },
+	catch: function(onreject){
+		return this.promise().catch(...arguments) },
+})
+
 
 
 
@@ -843,7 +848,7 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 		var handler = 
 			// queue...
 			// NOTE: queue is task-compatible...
-			task instanceof Queue ?
+			task instanceof FinalizableQueue ?
 				task
 			// task protocol...
 			: task && task.then 
