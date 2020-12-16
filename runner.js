@@ -168,7 +168,9 @@ object.Constructor('Queue', Array, {
 		if(value == 'running'){
 			this.start()
 		} else if(value == 'stopped'){
-			this.stop() } },
+			this.stop() 
+		} else if(value == 'aborted'){
+			this.abort() } },
 
 	// events/actions - state transitions...
 	//
@@ -177,15 +179,22 @@ object.Constructor('Queue', Array, {
 	// XXX would be nice to run a specific number of tasks and stop...
 	start: events.Event('start', function(handle, sync){
 		// can't start while running...
-		if(this.__state == 'running'){
+		if(this.__state == 'running' || this.state == 'aborted'){
 			return handle(false) }
 		this.__state = 'running'
 		this.__run_tasks__(sync) }),
 	stop: events.Event('stop', function(handle){
 		// can't stop while not running...
-		if(this.state == 'stopped'){
+		if(this.state == 'stopped' || this.state == 'aborted'){
 			return handle(false) }
 		this.__state = 'stopped' }),
+	abort: events.Event('abort', function(handle){
+		console.log('Queue.abort(..)')
+		// abort only once...
+		if(this.state == 'aborted'){
+			return handle(false) }
+		this.__state = 'aborted' 
+		/*this.clear('true')*/ }),
 
 	// events...
 	//
@@ -204,14 +213,37 @@ object.Constructor('Queue', Array, {
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
 	// XXX should this trigger on empty or on stop???
-	then: function(func){
+	promise: function(){
 		var that = this
 		return new Promise(function(resolve, reject){
-			that.one('queueEmpty', function(){
-				resolve(func(
-					...(this.collect_results ? 
-						[(this.__results || [])]
-						: []) )) }) }) },
+			that
+				.one('queueEmpty', function(){
+					resolve(...(that.collect_results ? 
+						[that.__results || []]
+						: [])) })
+				.one('abort', reject) }) },
+	then: function(onresolve, onreject){
+		var that = this
+		return new Promise(function(resolve, reject){
+			// got a queue/promise...
+			if(onresolve instanceof Queue 
+					|| onresolve instanceof Promise){
+				onresolve.then(resolve, reject)
+			// got functions...
+			} else {
+				onreject
+					&& that.one('abort', function(){
+						reject(onreject(this)) })
+				that.one('queueEmpty', function(){
+					resolve(onresolve(
+						...(this.collect_results ? 
+							[(this.__results || [])]
+							: []) )) }) } }) },
+	catch: function(func){
+		var that = this
+		return this.then(
+			function(res){ return res }, 
+			func) },
 
 	// Runner API...
 	//
@@ -329,6 +361,8 @@ object.Constructor('Queue', Array, {
 	// NOTE: this does not care about .state...
 	// XXX revise error handling...
 	// XXX add task runtime stat...
+	// XXX ABORT: added nested abort support...
+	__results: null,
 	runTask: function(next){
 		var that = this
 		var running = this.__running = this.__running || []
@@ -448,7 +482,6 @@ object.Constructor('Queue', Array, {
 			&& this.stop()
 
 		return res },
-		//return this },
 
 
 	// helpers...
@@ -492,7 +525,10 @@ object.Constructor('Queue', Array, {
 	add: function(...tasks){
 		this.push(...tasks)
 		return this },
-	clear: function(){
+	// NOTE: this will also clear the results cache...
+	clear: function(full=false){
+		full
+			&& (delete this.__results)
 		this.splice(0, this.length) },
 
 
@@ -650,6 +686,7 @@ object.Mixin('TaskMixin', 'soft', {
 //
 // XXX should a task manager have a pool size???
 // 		...if yes it would be fun to use the queue to manage the pool...
+// XXX revise .abort(..)
 var TaskManager =
 module.TaskManager =
 object.Constructor('TaskManager', Array, events.EventMixin('flat', {
@@ -688,11 +725,11 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	//
 	// commands to test as methods...
 	// 	i.e. task.send(cmd, ...args) -> task[cmd](...args)
-	__send_commands__: [ 'stop' ],
+	__send_commands__: [ 'stop', 'abort'],
 	send: function(title, ...args){
 		var that = this
 		if(title == 'all' || title == '*'){
-			this.forEach(function(task){
+			;[...this].forEach(function(task){
 				'send' in task ?
 					task.send(...args) 
 				: that.__send_commands__.includes(args[0]) ?
@@ -713,6 +750,10 @@ object.Constructor('TaskManager', Array, events.EventMixin('flat', {
 	stop: function(title='all'){
 		this.send(title, 'stop') 
 		return this },
+	// XXX
+	abort: function(title='all'){
+		this.send(title, 'abort') 
+		return this },  
 
 	// events...
 	//
