@@ -101,6 +101,9 @@ object.Constructor('Queue', Array, {
 	// Number of tasks to run before letting go of the exec frame...
 	pause_after_sync: 4,
 
+	// XXX
+	auto_start: false,
+
 	// Start synchronously...
 	//
 	// NOTE: this affects the start only, all other timeouts apply as-is... 
@@ -177,11 +180,19 @@ object.Constructor('Queue', Array, {
 	// NOTE: to start synchronously call .start(true), this will not 
 	// 		affect further operation...
 	// XXX would be nice to run a specific number of tasks and stop...
+	// XXX if starting empty need to start the timer only when something is 
+	// 		added...
+	// XXX might be a good idea to let the user set .__wait_for_items...
+	__wait_for_items: null,
 	start: events.Event('start', function(handle, sync){
+		// first start -- wait for items...
+		if('__state' in this){
+			this.__wait_for_items = true }
 		// can't start while running...
-		if(this.__state == 'running' || this.state == 'aborted'){
+		if(this.__state == 'running' || this.__state == 'aborted'){
 			return handle(false) }
 		this.__state = 'running'
+		// XXX if empty start polling...
 		this.__run_tasks__(sync) }),
 	stop: events.Event('stop', function(handle){
 		// can't stop while not running...
@@ -263,6 +274,7 @@ object.Constructor('Queue', Array, {
 					&& (pause == null
 						|| c < pause)){
 				var p = running.length
+				delete this.__wait_for_items
 
 				this.runTask(this.__run_tasks__.bind(this)) 
 
@@ -294,7 +306,9 @@ object.Constructor('Queue', Array, {
 					// pause -- let other stuff run...
 					: (this.pause_timeout || 0)
 
-				;(this.length == 0 && this.auto_stop) ?
+				;(this.length == 0 
+						&& this.auto_stop 
+						&& !this.__wait_for_items) ?
 					// auto-stop...
 					this.__onempty__()
 					// pole / pause...
@@ -523,11 +537,12 @@ object.Constructor('Queue', Array, {
 
 // Like Queue(..) but adds terminal states and conversion to promises...
 //
-// XXX Object.freeze(..) this when done... ???
 // XXX find a better name...
 var FinalizableQueue =
 module.FinalizableQueue =
 object.Constructor('FinalizableQueue', Queue, {
+	auto_stop: true,
+
 	__onempty__: function(){
 		return this.trigger('done') },
 
