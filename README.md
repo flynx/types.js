@@ -51,6 +51,7 @@ A library of JavaScript type extensions, types and type utilities.
     - [`<date>.setTimeStamp(..)`](#datesettimestamp)
   - [`String`](#string)
     - [`<string>.capitalize()`](#stringcapitalize)
+    - [`<string>.indent(..)`](#stringindent)
   - [`RegExp`](#regexp)
     - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
   - [`Promise`](#promise)
@@ -107,18 +108,29 @@ A library of JavaScript type extensions, types and type utilities.
     - [`event.EventMixin`](#eventeventmixin)
   - [Runner](#runner)
     - [Micro task queue](#micro-task-queue)
+      - [`STOP`](#stop)
+      - [`SKIP`](#skip)
       - [`Queue(..)` / `Queue.runTasks(..)`](#queue--queueruntasks)
       - [`Queue.handle(..)`](#queuehandle)
       - [`<queue>.state`](#queuestate)
       - [`<queue>.start(..)`](#queuestart)
       - [`<queue>.stop(..)`](#queuestop)
-      - [`<queue>.then(..)`](#queuethen)
       - [`<queue>.runTask(..)`](#queueruntask)
       - [`<queue>.tasksAdded(..)` (event)](#queuetasksadded-event)
       - [`<queue>.taskStarting(..)` (event)](#queuetaskstarting-event)
       - [`<queue>.taskFailed(..)` (event)](#queuetaskfailed-event)
       - [`<queue>.taskCompleted(..)` (event)](#queuetaskcompleted-event)
       - [`<queue>.queueEmpty(..)` (event)](#queuequeueempty-event)
+      - [`<queue>.prioritize(..)`](#queueprioritize)
+      - [`<queue>.delay(..)`](#queuedelay)
+      - [`<queue>.add(..)`](#queueadd)
+      - [`<queue>.clear(..)`](#queueclear)
+      - [`FinalizableQueue(..)` / `FinalizableQueue.runTasks(..)` (Queue)](#finalizablequeue--finalizablequeueruntasks-queue)
+      - [`<finalizable-queue>.done(..)` (event/method)](#finalizable-queuedone-eventmethod)
+      - [`<finalizable-queue>.abort(..)` (event/method)](#finalizable-queueabort-eventmethod)
+      - [`<finalizable-queue>.promise(..)`](#finalizable-queuepromise)
+      - [`<finalizable-queue>.then(..)`](#finalizable-queuethen)
+      - [`<finalizable-queue>.catch(..)`](#finalizable-queuecatch)
     - [Large task management](#large-task-management)
       - [`runner.TaskManager(..)`](#runnertaskmanager)
       - [`<task-manager>.Task(..)`](#task-managertask)
@@ -769,6 +781,8 @@ require('ig-types/String')
 
 ### `<string>.capitalize()`
 
+### `<string>.indent(..)`
+
 
 ## `RegExp`
 
@@ -1166,6 +1180,11 @@ var runner = require('ig-types/runner')
 
 This includes [`event.EventMixin`](#eventeventmixin).
 
+#### `STOP`
+
+#### `SKIP`
+
+
 #### `Queue(..)` / `Queue.runTasks(..)`
 
 #### `Queue.handle(..)`
@@ -1189,15 +1208,15 @@ var handler_queue = Queue({
     .. )
 ```
 
+<!-- XXX settings... -->
+
+
 #### `<queue>.state`
 
 
 #### `<queue>.start(..)`
 
 #### `<queue>.stop(..)`
-
-
-#### `<queue>.then(..)`
 
 
 #### `<queue>.runTask(..)`
@@ -1215,6 +1234,43 @@ Event, triggered when a task is completed passing in its result.
 
 
 #### `<queue>.queueEmpty(..)` (event)
+
+
+#### `<queue>.prioritize(..)`
+
+#### `<queue>.delay(..)`
+
+
+#### `<queue>.add(..)`
+
+#### `<queue>.clear(..)`
+
+
+
+#### `FinalizableQueue(..)` / `FinalizableQueue.runTasks(..)` (Queue)
+
+This is the similar as `Queue(..)` but adds two terminal states (`"done"` 
+and `"aborted"`) and a `promise`-mapping.
+
+```bnf
+FinalizableQueue.handle(<func>, ...<data>)
+FinalizableQueue.handle(<options>, <func>, ...<data>)
+    -> <finalizable-queue>
+```
+
+When a `<finalizable-queue>` reaches a terminal state it is frozen.
+
+#### `<finalizable-queue>.done(..)` (event/method)
+
+#### `<finalizable-queue>.abort(..)` (event/method)
+
+
+#### `<finalizable-queue>.promise(..)`
+
+#### `<finalizable-queue>.then(..)`
+
+#### `<finalizable-queue>.catch(..)`
+
 
 
 

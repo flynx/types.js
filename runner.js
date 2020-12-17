@@ -31,6 +31,7 @@ var events = require('./event')
 
 module.STOP = object.STOP
 
+module.SKIP = {doc: 'skip queue item',}
 
 
 //---------------------------------------------------------------------
@@ -179,10 +180,10 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: to start synchronously call .start(true), this will not 
 	// 		affect further operation...
+	//
 	// XXX would be nice to run a specific number of tasks and stop...
-	// XXX if starting empty need to start the timer only when something is 
-	// 		added...
 	// XXX might be a good idea to let the user set .__wait_for_items...
+	// XXX should we wait for items on empty?
 	__wait_for_items: null,
 	start: events.Event('start', function(handle, sync){
 		// first start -- wait for items...
@@ -220,6 +221,7 @@ object.Constructor('Queue', Array, {
 	//	.handler(task[, next])
 	//		-> STOP
 	//		-> STOP(value)
+	//		-> SKIP
 	//		-> queue
 	//		-> promise
 	//		-> func
@@ -410,6 +412,7 @@ object.Constructor('Queue', Array, {
 
 		// collect results...
 		this.collect_results
+			&& res !== module.SKIP
 			&& (this.__results = this.__results || []).push(res)
 
 		// handle task results...
@@ -535,8 +538,11 @@ object.Constructor('Queue', Array, {
 }))
 
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 // Like Queue(..) but adds terminal states and conversion to promises...
 //
+// XXX should this .freeze()??/
 // XXX find a better name...
 var FinalizableQueue =
 module.FinalizableQueue =
@@ -546,7 +552,6 @@ object.Constructor('FinalizableQueue', Queue, {
 	__onempty__: function(){
 		return this.trigger('done') },
 
-	// XXX sould these freeze???
 	done: events.Event('done', function(handle){
 		// abort only once...
 		if(this.state == 'aborted' || this.state == 'done'){
@@ -562,7 +567,6 @@ object.Constructor('FinalizableQueue', Queue, {
 
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
-	// XXX should this trigger on empty or on stop???
 	promise: function(){
 		var that = this
 		return new Promise(function(resolve, reject){

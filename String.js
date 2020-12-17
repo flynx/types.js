@@ -19,6 +19,16 @@ object.Mixin('StringProtoMixin', 'soft', {
 		return this == '' ? 
 			this 
 			: this[0].toUpperCase() + this.slice(1) },
+
+	//
+	// 	.indent(<width>)
+	// 	.indent(<str>)
+	//
+	indent: function(indent){
+		indent = typeof(indent) == typeof('str') ?
+			indent
+			: ' '.repeat(indent)
+		return indent + this.split(/\n/).join('\n'+ indent) },
 })
 
 
