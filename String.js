@@ -20,9 +20,11 @@ object.Mixin('StringProtoMixin', 'soft', {
 			this 
 			: this[0].toUpperCase() + this.slice(1) },
 
+	// Indent a block of text...
 	//
 	// 	.indent(<width>)
 	// 	.indent(<str>)
+	// 		-> <str>
 	//
 	indent: function(indent){
 		indent = typeof(indent) == typeof('str') ?
