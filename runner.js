@@ -44,16 +44,11 @@ module.SKIP = {doc: 'skip queue item',}
 // started only only when tasks in the running pool either finish or 
 // release their spot in the pool.
 //
+// XXX would be nice to:
+// 		- nest queues -- DONE
+// 		- chain queues
+// 		- weave queues -- a-la generator's .map(..) etc.
 // XXX need to configure to run a specific amount of jobs on each start...
-// XXX triggering .tasksAdded(..)...
-// 		there are two ways to go here:
-// 			- wrap the queue in a proxy
-// 				+ transparent-ish
-// 				- reported in a confusing way by node/chrome...
-// 			- force the user to use specific API
-// 				- not consistent -- a task can be added via .add(..) and 
-// 				  the Array interface and only .add(..) will trigger the 
-// 				  proper events...
 // XXX document the Queue({handler: e => e*e}, 1,2,3,4) use-case...
 // 		...this is essentially a .map(..) variant...
 var Queue =
@@ -205,7 +200,7 @@ object.Constructor('Queue', Array, {
 	//
 	// 	.tasksAdded(func(evt, [task, ..]))
 	// 	.taskStarting(func(evt, task))
-	// 	.taskCompleted(func(evt, task))
+	// 	.taskCompleted(func(evt, task, res))
 	// 	.queueEmpty(func(evt))
 	//
 	tasksAdded: events.PureEvent('tasksAdded'),
@@ -338,7 +333,6 @@ object.Constructor('Queue', Array, {
 	// run one task from queue...
 	// NOTE: this does not care about .state...
 	// XXX revise error handling...
-	// XXX add task runtime stat...
 	// XXX ABORT: added nested abort support...
 	__results: null,
 	runTask: function(next){
@@ -363,14 +357,16 @@ object.Constructor('Queue', Array, {
 				var i = ++s.count
 				var a = s.avg_t 
 				s.avg_t = a + (x - a)/i }
-
+			// report...
 			that.trigger('taskCompleted', task, res) }
-		var runningDone = function(){
+		var fail = {doc: 'fail runningDone(..)'}
+		var runningDone = function(mode){
 			running.splice(0, running.length, 
-				// NOTE: there can be multiple occurences of res...
+				// NOTE: there can be multiple occurrences of res...
 				...running
 					.filter(function(e){ return e !== res })) 
-			taskCompleted()
+			mode === fail
+				|| taskCompleted()
 			!stop && next
 				&& next() }
 
@@ -397,7 +393,7 @@ object.Constructor('Queue', Array, {
 				&& res.catch(function(err){
 					that.trigger('taskFailed', task, err) })
 
-		// ignore errors...
+		// let errors rain...
 		} else {
 			var res = this.handler(task, next) }
 
@@ -439,13 +435,24 @@ object.Constructor('Queue', Array, {
 					runningDone() }) }
 
 		// pool async (promise) task...
-		} else if(typeof((res || {}).finally) == 'function'
-				// one post handler is enough...
+		// XXX REVISE...
+		// XXX do we need to report errors???
+		} else if(typeof((res || {}).then) == 'function'
+				// one post handler is enough... 
+				// XXX will this prevent some tasks from reporting???
 				&& !running.includes(res)){
 			running.push(res) 
-			res.finally(runningDone)
+			//res.finally(runningDone)
+			res.then(
+				runningDone,
+				...(this.catch_errors ?
+					[function(err){
+						runningDone(fail)
+						that.trigger('taskFailed', task, err) }]
+					// let errors propagate...
+					: []))
 
-		// re-queue tasks...
+		// func -> re-queue tasks...
 		} else if(typeof(res) == 'function'){
 			taskCompleted()
 			this.push(res)
@@ -539,7 +546,6 @@ object.Constructor('Queue', Array, {
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 // Like Queue(..) but adds terminal states and conversion to promises...
 //
 // XXX should this .freeze()??/
