@@ -485,6 +485,7 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: adding tasks via the [..] notation will not trigger the 
 	// 		event...
+	//
 	// XXX add methods that can shorten the queue (like .pop()/.shift()/..)
 	// 		to test and trigger .queueEmpty()
 	// 		...this is not and will not be done on polling as that would 
@@ -508,7 +509,15 @@ object.Constructor('Queue', Array, {
 		return res },
 
 	// shorthands...
-	add: function(...tasks){
+	//
+	// NOTE: this helps get around the argument number limitation in JS...
+	add: function(tasks){
+		// handle too large a number of args...
+		var MAX_ARGS = 10000
+		if(tasks.length > MAX_ARGS){
+			while(tasks.length > 0){
+				this.push(...tasks.splice(0, MAX_ARGS)) }
+			return this }
 		this.push(...tasks)
 		return this },
 	// NOTE: this will also clear the results cache...
