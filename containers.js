@@ -16,7 +16,8 @@ var object = require('ig-object')
 /*********************************************************************/
 
 var UniqueKeyMap = 
-module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
+module.UniqueKeyMap = 
+object.Constructor('UniqueKeyMap', Map, {
 
 	// Format:
 	// 	Map([
@@ -172,6 +173,7 @@ module.UniqueKeyMap = object.Constructor('UniqueKeyMap', Map, {
 			this.unorderedRename(...arguments)
 			: this.orderedRename(...arguments) },
 })
+
 
 
 

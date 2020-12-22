@@ -260,7 +260,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 			: this[0]},
 	last: function(value){
 		return arguments.length > 0 ?
-			((this[this.length - 1 || 0] = value), this)
+			((this[Math.max(this.length - 1, 0)] = value), this)
 			: this[this.length - 1]},
 
 	// Roll left/right (in-place)...
