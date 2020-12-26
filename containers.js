@@ -175,6 +175,34 @@ object.Constructor('UniqueKeyMap', Map, {
 })
 
 
+//---------------------------------------------------------------------
+
+// XXX should this be a map???
+// XXX make two variants: ordered and unordered...
+var ObjectWithAutoKeys = 
+module.ObjectWithAutoKeys = 
+object.Constructor('ObjectWithAutoKeys', {
+
+	__last_key: null,
+	__new_key__: function(value){
+		return (this.__last_key = (this.__last_key || -1) + 1) },
+
+	// 
+	// 	.push(value)
+	// 		-> key
+	//
+	// 	.push(value, ..)
+	// 		-> [key, ..]
+	push: function(...values){
+		var that = this
+		var res = values
+			.map(function(value){
+				that[that.__new_key__(value)] = value })
+		return values.length == 1 ?
+   			res.pop()
+			: res },
+})
+
 
 
 /**********************************************************************
