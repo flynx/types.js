@@ -179,6 +179,7 @@ object.Constructor('UniqueKeyMap', Map, {
 
 // XXX should this be a map???
 // XXX make two variants: ordered and unordered...
+// 		...the ordered variant should have the same API as an array...
 var ObjectWithAutoKeys = 
 module.ObjectWithAutoKeys = 
 object.Constructor('ObjectWithAutoKeys', {
@@ -193,6 +194,7 @@ object.Constructor('ObjectWithAutoKeys', {
 	//
 	// 	.push(value, ..)
 	// 		-> [key, ..]
+	//
 	push: function(...values){
 		var that = this
 		var res = values

@@ -239,8 +239,9 @@ object.Constructor('Event', Eventfull, {
 			// add handler...
 			this.bind(context, args[0])
 			// call the action...
-			//: object.parentCall(Event.prototype.__call__, this, context, ...args)
-			: Eventfull.prototype.__call__.call(this, context, ...args)
+			: object.parentCall(Event.prototype.__call__, this, context, ...args)
+			// XXX workaround for above line -- remove when fully tested...
+			//: Eventfull.prototype.__call__.call(this, context, ...args)
 		return context }, 
 })
 
