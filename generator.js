@@ -21,21 +21,21 @@ var object = require('ig-object')
 // 			for(var e of lst){
 // 				yield e }}
 //
-// 		// this is the generator instance (constructod instance)...
+// 		// this is the generator instance (constructed instance)...
 // 		var iter = Iter([1,2,3])
 //
 //
 // In this module we need to add methods to be visible from either Iter
-// or iter from the above example, so we need the access the prototypes 
+// or iter from the above example, so we need to access the prototypes 
 // of each of them.
+// So, below we will define:
 //
 // 	GeneratorPrototype 
-// 		is the prototype of the generator construcotrs (i.e. Iter(..) 
-// 		from the above example)
+// 		prototype of the generator constructors (i.e. Iter(..) from the 
+// 		above example)
 //
 // 	GeneratorPrototype.prototype
-// 		is the generator instance prototype (i.e. iter for the above 
-// 		code)
+// 		generator instance prototype (i.e. iter for the above code)
 //
 //
 // Also the following applies:
@@ -45,7 +45,7 @@ var object = require('ig-object')
 // 		Iter instanceof Generator
 //
 //
-// NOTE: there appears no way to test if iter is instnace of some 
+// NOTE: there appears no way to test if iter is instance of some 
 // 		generic Generator...
 //
 //---------------------------------------------------------------------
@@ -72,7 +72,7 @@ module.iter =
 //---------------------------------------------------------------------
 // GeneratorPrototype "class" methods...
 //
-// the following are the same:
+// the following are effectively the same:
 // 	1) Wrapper
 // 		var combined = function(...args){
 // 			return someGenerator(...args)
@@ -88,6 +88,9 @@ module.iter =
 //
 // 		combined( .. )
 //
+//
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// Helpers...
 
 // XXX this needs to be of the correct type... (???)
 var makeGenerator = function(name){
