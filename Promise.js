@@ -2,6 +2,25 @@
 * 
 *
 *
+*
+* This defines the following extensions to Promise:
+*
+* 	Promise.iter(seq)
+* 		Iterable promise object.
+* 		Similar to Promise.all(..) but adds basic iterator/generator
+* 		API and will resolve the items as they are ready (resolved).
+*
+* 	Promise.interactive(handler)
+* 		Interactive promise object.
+* 		This adds a basic message passing API to the promise.
+*
+* 	Promise.cooperative()
+* 		Cooperative promise object.
+* 		Exposes the API to resolve/reject the promise object 
+* 		externally.
+*
+*
+*
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
 (function(require){ var module={} // make module AMD/node compatible...
