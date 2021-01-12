@@ -485,6 +485,7 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: adding tasks via the [..] notation will not trigger the 
 	// 		event...
+	// NOTE: the events will not be triggered on no-op calls...
 	//
 	// XXX add methods that can shorten the queue (like .pop()/.shift()/..)
 	// 		to test and trigger .queueEmpty()
@@ -492,11 +493,13 @@ object.Constructor('Queue', Array, {
 	// 		introduce issues -- queue can change between task runs... (revise!)
 	push: function(...tasks){
 		var res = object.parentCall(Queue.prototype.push, this, ...tasks)
-		this.trigger('tasksAdded', tasks)
+		tasks.length > 0
+			&& this.trigger('tasksAdded', tasks)
 		return res },
 	unsift: function(...tasks){
 		var res = object.parentCall(Queue.prototype.unshift, this, ...tasks)
-		this.trigger('tasksAdded', tasks)
+		tasks.length > 0
+			&& this.trigger('tasksAdded', tasks)
 		return res },
 	splice: function(...args){
 		var l = this.length
@@ -504,6 +507,7 @@ object.Constructor('Queue', Array, {
 		var tasks = args.slice(2)
 		tasks.length > 0
 			&& this.trigger('tasksAdded', tasks)
+		// length changed...
 		l != 0 && this.length == 0
 			&& this.trigger('queueEmpty')
 		return res },
