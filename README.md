@@ -13,6 +13,9 @@ A library of JavaScript type extensions, types and type utilities.
     - [`Object.matchPartial(..)`](#objectmatchpartial)
     - [`<object>.run(..)`](#objectrun)
     - [`Object.sort(..)`](#objectsort)
+  - [`Function`](#function)
+    - [`<function>.before(..)` (EXPERIMENTAL)](#functionbefore-experimental)
+    - [`<function>.after(..)` (EXPERIMENTAL)](#functionafter-experimental)
   - [`Array`](#array)
     - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
     - [`<array>.rol(..)`](#arrayrol)
@@ -321,6 +324,33 @@ Object.keys(o)
 // '0' and '100' are not affected by .sort(..) while ' 27 ' is...
 Object.keys(Object.sort(o, ['x', 'a', '100'])) 
 //    -> [ '0', '100', 'x', 'a', ' 27 ', 'b' ]
+```
+
+
+## `Function`
+
+```javascript
+require('ig-types/Function')
+```
+
+### `<function>.before(..)` (EXPERIMENTAL)
+
+```bnf
+<function>.before(<func>)
+  -> <function>
+
+<func>(...args)
+    -> <res>
+```
+
+### `<function>.after(..)` (EXPERIMENTAL)
+
+```bnf
+<function>.after(<func>)
+  -> <function>
+
+<func>(<res>, ...args)
+    -> <res>
 ```
 
 
