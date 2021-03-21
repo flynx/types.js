@@ -9,7 +9,6 @@
 
 // Extend built-in types...
 require('./Object')
-//require('./Function')
 require('./Array')
 require('./Set')
 require('./Map')
