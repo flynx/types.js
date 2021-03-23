@@ -251,6 +251,9 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		return this.promise().catch(func) },
 	finally: function(func){
 		return this.promise().finally(func) },
+
+
+	// XXX EXPERIMENTAL...
 })
 
 

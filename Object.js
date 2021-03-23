@@ -68,6 +68,7 @@ object.Mixin('ObjectMixin', 'soft', {
 					res[key] = obj[key] 
 					return res },
 				constructor == null ?
+					//Object.create(obj.__proto__)
 					{}
 					: constructor()) },
 

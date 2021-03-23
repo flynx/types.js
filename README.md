@@ -174,7 +174,7 @@ the module dealing with that constructor (`Array` in this case):
 // require `ig-types/<constructor-name>`...
 require('ig-types/Array')
 ```
-Note that type patching modules are mostly independent.
+Note that type patching modules are _mostly_ independent.
 
 And to import specific library modules only:
 ```javascript
@@ -188,14 +188,19 @@ var containers = require('ig-types/containers')
 require('ig-types/Object')
 ```
 
+Note that this module imports from 
+[`object.js`](https://github.com/flynx/object.js) and 
+[`object-run.js`](https://github.com/flynx/object-run.js),
+see those modules for more details.
+
+
 ### `Object.deepKeys(..)`
 
+Get list of keys from all objects in the prototype chain.
 ```bnf
 Object.deepKeys(<obj>)
     -> <keys>
 ```
-
-Get list of keys from all objects in the prototype chain.
 
 This is different from `Object.keys(..)` which only gets _own_ keys from the 
 current object.
@@ -213,38 +218,110 @@ Object.keys(b) // -> ['y']
 Object.deepKeys(b) // -> ['x', 'y']
 ```
 
+For more details see:
+https://github.com/flynx/object.js#deepkeys
+
+
 ### `Object.copy(..)` (EXPERIMENTAL)
 
+Create a copy of `<obj>`
 ```bnf
 Object.copy(<obj>)
     -> <obj-copy>
-```
 
-Create a copy of `<obj>`
+Object.copy(<obj>, <constructor>)
+    -> <obj-copy>
+```
 
 This will:
 - create a blank `<obj-copy>`
 - link `<obj-copy>` to the same prototype chain
-- copy all _own_ keys from `<obj>` to `<obj-copy>`
+- assign all _own_ keys from `<obj>` to `<obj-copy>`
 
-Note that this will make no attempt to clone object type.
+This is similar to `Object.clone(..)` but instead of creating a new descendant of 
+the input object with no data this will instead create a new sibling with a copy
+of the instance data.
 
-_XXX not yet sure how useful this is._
+`<constructor>` if given is called to create the instance to be populated, 
+otherwise `Object.create(<obj>)` is used.
+
+Note that `.assign(..)` is used to copy data, thus properties will be copied as values, to copy instance properties use `object.js`'s 
+[`.mixinFlat(..)`](https://github.com/flynx/object.js#mixinflat).
+
+Note that this will make no attempt to clone object type, a `<constructor>` 
+should be passed manually if any instance type other that `Object` is required.
 
 
 ### `Object.flatCopy(..)`
 
+Copy all attributes from the prototype chain of `<obj>` into `<new-obj>`.
 ```bnf
 Object.flatCopy(<obj>)
     -> <new-obj>
+
+Object.flatCopy(<obj>, <constructor>)
+    -> <new-obj>
 ```
 
-Copy all attributes from the prototype chain of `<obj>` into `<new-obj>`.
+This is different to [`.copy(..)`](#objectcopy-experimental) in that if 
+no `<constructor>` is given `<new-obj>` will _not_ be linked into the 
+prototype chain of `<obj>`, if this behavior is desired use `o => Object.create(o)`
+as the `<constructor>`.
 
 
 ### `Object.match(..)`
 
+Attribute/value match two objects (non-recursive).
+```bnf
+Object.match(<object>, <other>)
+    -> <bool>
+```
+
+Objects `A` and `B` match iff:
+- `A` and `B` are _identical_, i.e. `A === B`
+
+or
+- `typeof A == typeof B` _and_,
+- `A` and `B` have the same number of attributes _and_,
+- attribute names match _and_,
+- attribute values are _identical_.
+
+And for a less strict match:
+```bnf
+Object.match(<object>, <other>, true)
+    -> <bool>
+```
+Like the default case but uses _equality_ instead of _identity_ to match values.
+
+
+For more details see:
+https://github.com/flynx/object.js#match
+
+<!-- 
+XXX should this test based on equality or on identity by default??? 
+    ...see: Array.cmp(..)
+-->
+
+
 ### `Object.matchPartial(..)`
+
+```bnf
+Object.matchPartial(<object>, <other>)
+    -> <bool>
+
+Object.matchPartial(<object>, <other>, true)
+    -> <bool>
+```
+Like `.match(..)` but will check for a _partial_ match, i.e. when `<other>` is a non-strict subset of `<object>`.
+
+For more details see:
+https://github.com/flynx/object.js#matchpartial
+
+<!-- 
+XXX should this test based on equality or on identity by default??? 
+    ...see: Array.cmp(..)
+-->
+
 
 ### `<object>.run(..)`
 
@@ -279,13 +356,13 @@ console.log(L) // -> [1, 2, 6, 8]
 $ npm install -s object-run
 ```
 
-For more info see:  
+For more details see:  
 https://github.com/flynx/object-run.js
 
 
 ### `Object.sort(..)`
 
-Sort `<obj>` attributes (same as `Array`'s `.sort(..)`)
+Sort `<obj>` attributes (similar to `Array`'s `.sort(..)`)
 ```bnf
 Object.sort(<obj>)
     -> <obj>
@@ -370,7 +447,7 @@ Roll `<array>` in-place left.
     -> <array>
 ```
 
-To roll right pass a negative `n` to `.rol(..)`.
+To roll _right_ pass a negative `n` to `.rol(..)`.
 
 
 ### `<array>.compact()`
@@ -399,14 +476,21 @@ L.compact().length
 Note that this is different from `.length` in that writing to `.len` has
 no effect.
 
+
 ### `<array>.unique()` / `<array>.tailUnique()`
 
 Generate an array with all duplicate elements removed.
-
 ```bnf
 <array>.unique()
     -> <array>
+
+<array>.tailUnique()
+    -> <array>
 ```
+
+The difference between the two versions is in that `.unique(..)` keeps the 
+first occurrence of a value while `.tailUnique(..)` keeps the last.
+
 
 ### `<array>.trim()` / `<array>.trimStart()` / `<array>.trimEnd()`
 
@@ -422,6 +506,9 @@ Copy array removing empty slots from array start, end or both.
     -> <array>
 ```
 
+This is similar to `String`'s equivalent methods but removing _empty_ slots 
+instead of spaces.
+
 
 ### `<array>.cmp(..)`
 
@@ -432,19 +519,26 @@ Compare two arrays.
 ```
 
 This will return `true` if:
-- `<array>` === `<other>` or,
+- `<array> === <other>` 
+
+or
 - lengths are the same and,
 - values on the same positions are equal.
+
+<!-- 
+XXX should this test based on equality or on identity by default??? 
+    ...see: Object.match(..)
+-->
 
 
 ### `<array>.setCmp(..)`
 
 Compare to arrays ignoring element order and count.
-
 ```bnf
 <array>.setCmp(<other>)
     -> <bool>
 ```
+
 
 ### `<array>.sortAs(..)`
 
