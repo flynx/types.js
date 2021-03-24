@@ -67,7 +67,7 @@ A library of JavaScript type extensions, types and type utilities.
       - [Advanced handler](#advanced-handler)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
     - [The basics](#the-basics)
-      - [`Generator`](#generator)
+      - [`generator.Generator`](#generatorgenerator)
       - [`generator.iter(..)`](#generatoriter)
     - [Generator instance iteration](#generator-instance-iteration)
       - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)` / `<generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
@@ -75,12 +75,12 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Generator constructor iteration](#generator-constructor-iteration)
-      - [`Generator.at(..)`](#generatorat)
-      - [`Generator.shift()` / `Generator.pop()`](#generatorshift--generatorpop)
-      - [`Generator.slice(..)`](#generatorslice)
-      - [`Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat-1)
-      - [`Generator.toArray()`](#generatortoarray-1)
-      - [`Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
+      - [`<Generator>.at(..)`](#generatorat)
+      - [`<Generator>.shift()` / `<Generator>.pop()`](#generatorshift--generatorpop)
+      - [`<Generator>.slice(..)`](#generatorslice)
+      - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat-1)
+      - [`<Generator>.toArray()`](#generatortoarray-1)
+      - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -1026,9 +1026,62 @@ var generator = require('ig-types/generator')
 
 ### The basics
 
-#### `Generator`
+The _generator_ hierarchy in JavaScript is a bit complicated.
+
+Consider the following:
+```javascript
+// generator constructor function...
+var Iter = function*(L){
+    for(var e of L){
+        yield e }}
+
+// generator instance...
+var iter = Iter([1, 2, 3])
+```
+
+We can test that `iter` is an instance of `Iter`:
+```javascript
+iter instanceof Iter // -> true
+```
+
+
+#### `generator.Generator`
+
+Exposes the _hidden_ JavaScript generator constructor.
+
+```javascript
+Iter instanceof generator.Generator // -> true
+```
+
+Note that currently in JavaScript there is no built-in way to test if a 
+constructor, `Iter` in this case, is a _generator_ constructor.
+
 
 #### `generator.iter(..)`
+
+Generic generator wrapper
+```bnf
+generator.iter()
+    -> <generator>
+
+generator.iter(<iterable>)
+    -> <generator>
+```
+
+Example:
+```javascript
+for(var i of generator.iter([1, 2, 3])){
+    console.log(i) }
+```
+
+The following are equivalent:
+```javascript
+var b = generator.iter()
+
+var a = new generator.Generator()
+```
+
+But `Generator()` takes no arguments and thus can not be used as a wrapper.
 
 
 ### Generator instance iteration
@@ -1070,19 +1123,19 @@ console.log(sumOdds([1, 2, 3])) // -> 4
 console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 ```
 
-#### `Generator.at(..)`
+#### `<Generator>.at(..)`
 
-#### `Generator.shift()` / `Generator.pop()`
+#### `<Generator>.shift()` / `<Generator>.pop()`
 
-#### `Generator.slice(..)`
+#### `<Generator>.slice(..)`
 
 This is like `Array`'s `.slice(..)` but does not support negative indexes.
 
-#### `Generator.map(..)` / `Generator.filter(..)` / `Generator.reduce(..)` / `Generator.flat()`
+#### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
 
-#### `Generator.toArray()`
+#### `<Generator>.toArray()`
 
-#### `Generator.then(..)` / `Generator.catch(..)` / `Generator.finally(..)`
+#### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
 
 
 ## Containers

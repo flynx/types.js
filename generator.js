@@ -45,7 +45,7 @@ var object = require('ig-object')
 // 		Iter instanceof Generator
 //
 //
-// NOTE: there appears no way to test if iter is instance of some 
+// NOTE: there appears to be no way to test if iter is instance of some 
 // 		generic Generator...
 //
 //---------------------------------------------------------------------
