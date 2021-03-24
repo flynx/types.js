@@ -70,15 +70,19 @@ A library of JavaScript type extensions, types and type utilities.
       - [`generator.Generator`](#generatorgenerator)
       - [`generator.iter(..)`](#generatoriter)
     - [Generator instance iteration](#generator-instance-iteration)
-      - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)` / `<generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
+      - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`](#generatormap--generatorfilter--generatorreduce)
+      - [`<generator>.slice(..)`](#generatorslice)
+      - [`<generator>.at(..)`](#generatorat)
+      - [`<generator>.flat(..)`](#generatorflat)
+      - [`<generator>.shift()` / `<generator>.pop()`](#generatorshift--generatorpop)
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Generator constructor iteration](#generator-constructor-iteration)
-      - [`<Generator>.at(..)`](#generatorat)
-      - [`<Generator>.shift()` / `<Generator>.pop()`](#generatorshift--generatorpop)
-      - [`<Generator>.slice(..)`](#generatorslice)
-      - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat-1)
+      - [`<Generator>.at(..)`](#generatorat-1)
+      - [`<Generator>.shift()` / `<Generator>.pop()`](#generatorshift--generatorpop-1)
+      - [`<Generator>.slice(..)`](#generatorslice-1)
+      - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
       - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
   - [Containers](#containers)
@@ -1086,7 +1090,31 @@ But `Generator()` takes no arguments and thus can not be used as a wrapper.
 
 ### Generator instance iteration
 
-#### `<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)` / `<generator>.flat()`
+This is a set of `Array`-like iterator methods that enable chaining of 
+generators. 
+
+Chained generators handle items depth-first, i.e. the items are passed as they are yielded down the generator chain.
+
+
+#### `<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`
+
+Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
+generators that yield the handler return values.
+
+
+#### `<generator>.slice(..)`
+
+#### `<generator>.at(..)`
+
+#### `<generator>.flat(..)`
+
+#### `<generator>.shift()` / `<generator>.pop()`
+
+Return a generator yielding the first/last sequence item.
+
+Note that there are no equivalents to `.push(..)` or `.unshift(..)` as they 
+need break item processing order.
+
 
 #### `<generator>.promise()`
 
