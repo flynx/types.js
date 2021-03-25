@@ -235,8 +235,13 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		return [...this] },
 	pop: function(){
 		return [...this].pop() },
+	// XXX should this unwind the whole generator???
+	// XXX this will not get the first item if the generator is already
+	// 		partially depleted...
+	// 		...should we remove this???
 	shift: function(){
-		return [...this].shift() },
+		return this.next().value },
+		//return [...this].shift() },
 
 	// promises...
 	//

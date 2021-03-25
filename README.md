@@ -1115,6 +1115,10 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
     -> <generator>
 ```
 
+Equivalent to `Array`'s `.slice(..)` but will return a generator instead of an 
+array, for more info see:  
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
+
 
 #### `<generator>.at(..)`
 
@@ -1134,13 +1138,29 @@ available.
     -> <generator>
 ```
 
+Equivalent to `Array`'s `.flat(..)` but will return a generator instead of an 
+array, for more info see:  
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
+
 
 #### `<generator>.shift()` / `<generator>.pop()`
 
-Return a generator yielding the first/last sequence item.
+Return the first/last item in generator.
+```bnf
+<generator>.pop()
+    -> <value>
+    -> undefined
 
-Note that there are no equivalents to `.push(..)` or `.unshift(..)` as they 
-need break item processing order.
+<generator>.shift()
+    -> <value>
+    -> undefined
+```
+
+Note that there are no equivalents to `.push(..)` and `.unshift(..)` as they 
+would require breaking item processing order.
+
+Note that `.shift()` may not yield the actual first item if the generator is 
+partially depleted at time of call.
 
 
 #### `<generator>.promise()`
@@ -1168,18 +1188,25 @@ Note that this will deplete the generator.
 ```
 Shorthands to `<generator>.promise().then(..)` / `<generator>.promise().catch(..)` / `<generator>.promise().finally(..)`
 
+These are the same as equivalent `Promise` methods, for more info see:  
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
 
 #### `<generator>.toArray()`
 
+Unwind a generator into an array
 ```bnf
 <generator>.toArray()
     -> <array>
 ```
 
-This is equivalent to `[...<generator>]`.
+This is equivalent to `[...<generator>]` but more suited for the concatenative style.
 
 
 ### Generator constructor iteration
+
+This API is essentially the same as [generator iteration](#generator-instance-iteration) 
+but will return a reusable generator _pipeline_ instead of a generator
 
 ```javascript
 var sumOdds = generator.iter
