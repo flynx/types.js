@@ -1091,7 +1091,7 @@ But `Generator()` takes no arguments and thus can not be used as a wrapper.
 ### Generator instance iteration
 
 This is a set of `Array`-like iterator methods that enable chaining of 
-generators. 
+generators and `Promise`-like API to handle the generated results. 
 
 Chained generators handle items depth-first, i.e. the items are passed as they are yielded down the generator chain.
 
@@ -1101,12 +1101,39 @@ Chained generators handle items depth-first, i.e. the items are passed as they a
 Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
 generators that yield the handler return values.
 
+<!--
+XXX .reduce(..) can return a non-iterable -- test and document this case...
+-->
+
 
 #### `<generator>.slice(..)`
 
+```bnf
+<generator>.slice()
+<generator>.slice(<from>)
+<generator>.slice(<from>, <to>)
+    -> <generator>
+```
+
+
 #### `<generator>.at(..)`
 
+```bnf
+<generator>.at(<index>)
+    -> <generator>
+```
+Returns a generator that will yield an item at a specific position when it is 
+available.
+
+
 #### `<generator>.flat(..)`
+
+```bnf
+<generator>.flat()
+<generator>.flat(<depth>)
+    -> <generator>
+```
+
 
 #### `<generator>.shift()` / `<generator>.pop()`
 
@@ -1118,9 +1145,38 @@ need break item processing order.
 
 #### `<generator>.promise()`
 
+```bnf
+<generator>.promise()
+    -> <promise>
+```
+Return a promise and resolve it with the generator value.
+
+Note that this will deplete the generator.
+
+
 #### `<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`
 
+```bnf
+<generator>.then(<resolve>, <reject>)
+    -> <promise>
+
+<generator>.then(<reject>)
+    -> <promise>
+
+<generator>.finally(<handler>)
+    -> <promise>
+```
+Shorthands to `<generator>.promise().then(..)` / `<generator>.promise().catch(..)` / `<generator>.promise().finally(..)`
+
+
 #### `<generator>.toArray()`
+
+```bnf
+<generator>.toArray()
+    -> <array>
+```
+
+This is equivalent to `[...<generator>]`.
 
 
 ### Generator constructor iteration
