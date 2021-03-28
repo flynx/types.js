@@ -1115,6 +1115,10 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
     -> <generator>
 ```
 
+<!-- XXX check this 
+This does not support negative indexes.
+-->
+
 Equivalent to `Array`'s `.slice(..)` but will return a generator instead of an 
 array, for more info see:  
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
@@ -1206,7 +1210,8 @@ This is equivalent to `[...<generator>]` but more suited for the concatenative s
 ### Generator constructor iteration
 
 This API is essentially the same as [generator iteration](#generator-instance-iteration) 
-but will return a reusable generator _pipeline_ instead of a generator
+with some minor omissions, but will return a reusable generator _pipeline_ 
+instead of a generator.
 
 ```javascript
 var sumOdds = generator.iter
@@ -1216,6 +1221,7 @@ var sumOdds = generator.iter
         return r + e }, 0)
     .pop()
 
+// sumOdds(..) is essentially a function that can be reused...
 console.log(sumOdds([1, 2, 3])) // -> 4
 console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 ```
@@ -1233,6 +1239,11 @@ var sumOdds = function(lst){
 console.log(sumOdds([1, 2, 3])) // -> 4
 console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 ```
+
+<!--
+XXX only list the differences + reference to the above...
+-->
+
 
 #### `<Generator>.at(..)`
 
