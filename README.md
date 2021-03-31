@@ -1048,10 +1048,27 @@ We can test that `iter` is an instance of `Iter`:
 iter instanceof Iter // -> true
 ```
 
+Due to the three level structure of generators we use a slightly different 
+terminology to reference different levels of API's:
+- `Generator` - the generator meta-constructor.  
+    This is a constructor that is used to create/inherit `<Generator>`'s, i.e.
+    generator constructors.  
+    `Generator` is mainly used for `instanceof` checks, but can be used as a 
+    prototype for extending generators.
+- `<Generator>` - the generator constructor.  
+    This is the product of either a `Generator` meta-constructor or a 
+    `function*(..){ .. }` statement.  
+    In the above example `Iter` is a generator constructor.
+- `<generator>` - the generator instance.  
+    Generator instances are created by calling a `<Generator>` / generator 
+    constructor.  
+    In the above example `iter` is a generator instance.
+
+
 
 #### `generator.Generator`
 
-Exposes the _hidden_ JavaScript generator constructor.
+Exposes the _hidden_ JavaScript generator meta-constructor.
 
 ```javascript
 Iter instanceof generator.Generator // -> true
