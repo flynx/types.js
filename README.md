@@ -1080,12 +1080,12 @@ for(var i of generator.iter([1, 2, 3])){
 
 The following are equivalent:
 ```javascript
-var b = generator.iter()
+var a = generator.iter()
 
-var a = new generator.Generator()
+var b = new generator.Generator()
 ```
 
-But `Generator()` takes no arguments and thus can not be used as a wrapper.
+But `Generator()` takes no arguments and thus can not be used as a wrapper while `.iter(..)` is designed to accept an iterable value like an array object.
 
 
 ### Generator instance iteration
