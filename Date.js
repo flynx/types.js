@@ -19,14 +19,31 @@ object.Mixin('DateMixin', 'soft', {
 		return (new this()).getTimeStamp(...args) },
 	fromTimeStamp: function(ts){
 		return (new this()).setTimeStamp(ts) },
+
 	// convert string time period to milliseconds...
 	str2ms: function(str, dfl){
 		dfl = dfl || 'ms'
 
+		// number -- dfl unit...
 		if(typeof(str) == typeof(123)){
 			var val = str
 			str = dfl
 
+		// 00:00:00:00:000 format...
+		} else if(str.includes(':')){
+			var units = str.split(/\s*:\s*/g).reverse()
+			// parse units...
+			var ms = units[0].length == 3 ?
+				parseFloat(units.shift() || 0)
+				: 0
+			var [s=0, m=0, h=0, d=0] = units
+			// merge...
+			return ((((parseFloat(d || 0)*24 
+				+ parseFloat(h || 0))*60 
+					+ parseFloat(m || 0))*60 
+						+ parseFloat(s || 0))*1000 + ms)
+
+		// 00set format...
 		} else {
 			var val = parseFloat(str)
 			str = str.trim()
@@ -55,6 +72,9 @@ object.Mixin('DateMixin', 'soft', {
 		return c ? 
 			val * c 
 			: NaN },
+
+	isPeriod: function(str){
+		return !isNaN(this.str2ms(str)) },
 })
 
 
