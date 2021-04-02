@@ -32,14 +32,14 @@ object.Mixin('SetMixin', 'soft', {
 			.filter(function(e){ 
 				return !other.has(e) })) },
 
-	sort: function(keys=[]){
-		keys = (typeof(keys) == 'function' 
-				|| keys === undefined) ?
-			[...this].sort(keys)
-			: keys
+	sort: function(values=[]){
+		values = (typeof(values) == 'function' 
+				|| values === undefined) ?
+			[...this].sort(values)
+			: values
 		var del = this.delete.bind(this)
 		var add = this.add.bind(this)
-		new Set([...keys, ...this])
+		new Set([...values, ...this])
 			.forEach(function(e){
 				if(this.has(e)){
 					del(e)

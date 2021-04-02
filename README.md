@@ -404,6 +404,8 @@ Object.keys(Object.sort(o, ['x', 'a', '100']))
 //    -> [ '0', '100', 'x', 'a', ' 27 ', 'b' ]
 ```
 
+This is similar to [`<map>.sort(..)`](#mapsort) and [`<ser>.sort(..)`](#setsort).
+
 
 ## `Array`
 
@@ -836,14 +838,29 @@ but before the timeout.
 require('ig-types/Map')
 ```
 
-<!-- XXX -->
-
 
 ### `<map>.sort(..)`
 
-<!-- XXX -->
+Sort `<map>` keys in-place
+```bnf
+<map>.sort()
+    -> <map>
 
+<map>.sort(<cmp>)
+    -> <map>
+```
 
+In the general case this is similar to 
+[`<array>.sort(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) 
+with the addition of the [`<array>.sortAs(..)`](#arraysortas)'s ability to sort 
+as a list
+```bnf
+<map>.sort(<sorted-keys>)
+    -> <map>
+```
+
+This is similar to [`<set>.sort(..)`](#setsort) and [`Object.sort(..)`](#objectsort), 
+see the later for more info.
 
 
 ## `Set`
@@ -851,9 +868,6 @@ require('ig-types/Map')
 ```javascript
 require('ig-types/Set')
 ```
-
-<!-- XXX -->
-
 
 
 ### `<set>.unite(..)`
@@ -873,8 +887,27 @@ require('ig-types/Set')
 
 ### `<set>.sort(..)`
 
-<!-- XXX -->
+Sort `<set>` keys in-place
+```bnf
+<set>.sort()
+    -> <set>
 
+<set>.sort(<cmp>)
+    -> <set>
+```
+
+In the general case this is similar to 
+[`<array>.sort(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) 
+with the addition of the [`<array>.sortAs(..)`](#arraysortas)'s ability to sort 
+as a list
+```bnf
+<set>.sort(<sorted-values>)
+    -> <set>
+```
+
+
+This is similar to [`<map>.sort(..)`](#mapsort) and [`Object.sort(..)`](#objectsort),
+see the later for more info.
 
 
 ## `Date`
@@ -883,17 +916,36 @@ require('ig-types/Set')
 require('ig-types/Date')
 ```
 
-<!-- XXX -->
-
 
 ### `Date.timeStamp(..)`
 
-<!-- XXX -->
+Generate a timestamp (format: `'YYYYMMDDHHMMSS'`)
+```bnf
+Date.timeStamp()
+    -> <timestamp>
+```
+
+Generate a full timestamp, including milliseconds (format: `'YYYYMMDDHHMMSSmmm'`)
+```bnf
+Date.timeStamp(true)
+    -> <timestamp>
+```
+
+This is a shorthand to: [`(new Date()).getTimeStamp(..)`](#dategettimestamp)
+
+The timestamp is generated from the time of call, for generating timestamps form specific `<date>` objects see:
+[`<date>.getTimeStamp(..)`](#dategettimestamp)
 
 
 ### `Date.fromTimeStamp(..)`
 
-<!-- XXX -->
+Create a `<date>` from a timestamp
+```bnf
+Date.fromTimeStamp(<timestamp>)
+    -> <date>
+```
+
+This is a shorthand to: [`(new Date()).setTimeStamp(<timestamp>)`](#datesettimestamp)
 
 
 ### `Date.str2ms(..)`
@@ -966,18 +1018,55 @@ Supported formats:
 
 ### `<date>.toShortDate(..)`
 
-<!-- XXX -->
+Generate a short date string from `<date>` 
+(format: `'YYYY-MM-DD HH:MM:SS'`)
+```bnf
+<date>.toShortDate()
+    -> <short-date>
+```
+
+Generate a short date string including milliseconds from `<date>` 
+(format: `'YYYY-MM-DD HH:MM:SS:mmm'`)
+```bnf
+<date>.toShortDate(true)
+    -> <short-date>
+```
+
+Note that `<short-date>` is directly parseable by `new Date(..)`
+```javascript
+var a = (new Date()).toShortDate(true)
+
+// parse the <short-date> and generate a new short date from it...
+var b = (new Date(a)).toShortDate(true)
+
+a == b // -> true
+```
 
 
 ### `<date>.getTimeStamp(..)`
 
-<!-- XXX -->
+Generate a timestamp from `<date>`
+(format `'YYYYMMDDHHMMSS'`)
+```bnf
+<date>.getTimeStamp()
+    -> <timestamp>
+```
+
+Generate a timestamp from `<date>` including milliseconds 
+(format `'YYYYMMDDHHMMSSmmm'`)
+```bnf
+<date>.getTimeStamp(true)
+    -> <timestamp>
+```
 
 
 ### `<date>.setTimeStamp(..)`
 
-<!-- XXX -->
-
+Update a `<date>` from a timestamp
+```bnf
+<date>.setTimeStamp(<timestamp>)
+    -> <date>
+```
 
 
 ## `String`
