@@ -807,6 +807,9 @@ The `.map(..)`, `.filter(..)` and `.reduce(..)` alternatives respectively:
 <func>(<state>, <item>, <index>, <array>)
   -> <state>
 ```
+<!-- XXX Example -->
+
+
 
 All three support chunk handlers in the same way (illustrated on `.mapChunks(..)`):
 ```bnf
@@ -823,6 +826,8 @@ All three support chunk handlers in the same way (illustrated on `.mapChunks(..)
 The `<chunk-handler>` gets the completed chunk of data after it is computed 
 but before the timeout.
 
+<!-- XXX Example -->
+
 
 
 ## `Map`
@@ -831,7 +836,13 @@ but before the timeout.
 require('ig-types/Map')
 ```
 
+<!-- XXX -->
+
+
 ### `<map>.sort(..)`
+
+<!-- XXX -->
+
 
 
 
@@ -841,14 +852,29 @@ require('ig-types/Map')
 require('ig-types/Set')
 ```
 
+<!-- XXX -->
+
+
 
 ### `<set>.unite(..)`
 
+<!-- XXX -->
+
+
 ### `<set>.intersect(..)`
+
+<!-- XXX -->
+
 
 ### `<set>.subtract(..)`
 
+<!-- XXX -->
+
+
 ### `<set>.sort(..)`
+
+<!-- XXX -->
+
 
 
 ## `Date`
@@ -857,17 +883,101 @@ require('ig-types/Set')
 require('ig-types/Date')
 ```
 
+<!-- XXX -->
+
+
 ### `Date.timeStamp(..)`
+
+<!-- XXX -->
+
 
 ### `Date.fromTimeStamp(..)`
 
+<!-- XXX -->
+
+
 ### `Date.str2ms(..)`
+
+Convert a string describing a time period into milliseconds.
+```bnf
+Date.str2ms(<str>)
+    -> <number>
+```
+
+Examples:
+```javascript
+// time units (d/h/m/s/ms) and their variants...
+var a = Date.str2ms('3 seconds') // -> 3000
+
+var b = Date.str2ms('0.1h') // -> 360000
+
+// time period (DD:HH:MM:SS:mmm)...
+var c = Date.str2ms('00:20:001') // -> 20001
+var d = Date.str2ms('1:3') // -> 63000
+```
+
+Note that time periods are seconds-based by default unless it contains three 
+digits then it defaults to milliseconds:
+```javascript
+// least significant unit is seconds by default...
+var e = Date.str2ms(':3') // -> 3000
+
+// when the least significant unit contains 3 digits it is read as ms...
+var f = Date.str2ms(':030') // -> 30
+```
+
+
+Supported formats:
+```bnf
+<str> ::=
+    <milliseconds>
+    | <seconds>
+    | <minutes>
+    | <hours>
+    | <days>
+    | <period>
+
+<milliseconds> ::=
+    <number>
+    | <number>ms
+    | <number>m[illi][-]s[ec[ond[s]]]
+
+<seconds> ::=
+    <number>s
+    | <number>s[ec[ond[s]]]
+
+<seconds> ::=
+    <number>m
+    | <number>m[in[ute[s]]]
+
+<seconds> ::=
+    <number>h
+    | <number>h[our[s]]
+    
+<seconds> ::=
+    <number>d
+    | <number>d[ay[s]]
+
+<period> ::= 
+    [[[DD:]HH:]MM]:SS[:mmm]
+    | [[[[DD:]HH:]MM]:SS]:mmm
+```
+
 
 ### `<date>.toShortDate(..)`
 
+<!-- XXX -->
+
+
 ### `<date>.getTimeStamp(..)`
 
+<!-- XXX -->
+
+
 ### `<date>.setTimeStamp(..)`
+
+<!-- XXX -->
+
 
 
 ## `String`
@@ -878,7 +988,13 @@ require('ig-types/String')
 
 ### `<string>.capitalize()`
 
+<!-- XXX -->
+
+
 ### `<string>.indent(..)`
+
+<!-- XXX -->
+
 
 
 ## `RegExp`
@@ -887,7 +1003,13 @@ require('ig-types/String')
 require('ig-types/RegExp')
 ```
 
+<!-- XXX -->
+
+
 ### `RegExp.quoteRegExp(..)`
+
+<!-- XXX -->
+
 
 
 ## `Promise`
@@ -900,15 +1022,30 @@ or
 var promise = require('ig-types/Promise')
 ```
 
+<!-- XXX -->
+
+
 
 
 ### Cooperative promises
 
+<!-- XXX -->
+
+
 #### `Promise.cooperative(..)`
+
+<!-- XXX -->
+
 
 #### `<promise-coop>.set(..)`
 
+<!-- XXX -->
+
+
 #### `<promise-coop>.isSet`
+
+<!-- XXX -->
+
 
 
 ### Promise iteration
@@ -974,12 +1111,24 @@ Create an _iterable promise_
 Promise.iter(<array>)
     -> <iterable-promise>
 ```
+
+<!-- XXX -->
+
 #### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`
+
+<!-- XXX -->
+
 
 #### `<promise-iter>.flat(..)`
 
+<!-- XXX -->
+
+
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
+
+<!-- XXX -->
+
 
 #### Advanced handler
 
@@ -1026,6 +1175,9 @@ var p = Promise.iter(
 ```javascript
 var generator = require('ig-types/generator')
 ```
+
+<!-- XXX -->
+
 
 
 ### The basics
@@ -1131,6 +1283,9 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
 <generator>.slice(<from>, <to>)
     -> <generator>
 ```
+
+<!-- XXX -->
+
 
 <!-- XXX check this 
 This does not support negative indexes.
@@ -1264,7 +1419,13 @@ XXX only list the differences + reference to the above...
 
 #### `<Generator>.at(..)`
 
+<!-- XXX -->
+
+
 #### `<Generator>.shift()` / `<Generator>.pop()`
+
+<!-- XXX -->
+
 
 #### `<Generator>.slice(..)`
 
@@ -1272,9 +1433,18 @@ This is like `Array`'s `.slice(..)` but does not support negative indexes.
 
 #### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
 
+<!-- XXX -->
+
+
 #### `<Generator>.toArray()`
 
+<!-- XXX -->
+
+
 #### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
+
+<!-- XXX -->
+
 
 
 ## Containers
@@ -1404,17 +1574,38 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 
 #### `<unique-key-map>.orderedRename(..)`
 
+<!-- XXX -->
+
+
 #### `<unique-key-map>.unorderedRename(..)`
+
+<!-- XXX -->
+
 
 #### `<unique-key-map>.keysOf(..)`
 
+<!-- XXX -->
+
+
 #### `<unique-key-map>.originalKey(..)`
+
+<!-- XXX -->
+
 
 #### `<unique-key-map>.uniqueKey(..)`
 
+<!-- XXX -->
+
+
 #### `<unique-key-map>.__key_pattern__`
 
+<!-- XXX -->
+
+
 #### `<unique-key-map>.__unordered_rename__`
+
+<!-- XXX -->
+
 
 
 ## Event
@@ -1426,28 +1617,61 @@ var event = require('ig-types/event')
 
 ### `event.Eventfull(..)`
 
+<!-- XXX -->
+
+
 ### `event.Event(..)`
 
+<!-- XXX -->
+
+
 ### `event.TRIGGER`
+
+<!-- XXX -->
+
 
 Special value when passed to an event method as first argument will force it 
 to trigger event if the first argument was a function.
 
 ### `event.EventHandlerMixin`
 
+<!-- XXX -->
+
+
 #### `<obj>.on(..)`
+
+<!-- XXX -->
+
 
 #### `<obj>.one(..)`
 
+<!-- XXX -->
+
+
 #### `<obj>.off(..)`
+
+<!-- XXX -->
+
 
 #### `<obj>.trigger(..)`
 
+<!-- XXX -->
+
+
 ### `event.EventDocMixin`
+
+<!-- XXX -->
+
 
 #### `<obj>.eventfull`
 
+<!-- XXX -->
+
+
 #### `<obj>.events`
+
+<!-- XXX -->
+
 
 ### `event.EventMixin`
 
@@ -1462,15 +1686,27 @@ var runner = require('ig-types/runner')
 
 ### Micro task queue
 
+<!-- XXX -->
+
+
 
 This includes [`event.EventMixin`](#eventeventmixin).
 
 #### `STOP`
 
+<!-- XXX -->
+
+
 #### `SKIP`
+
+<!-- XXX -->
+
 
 
 #### `Queue(..)` / `Queue.runTasks(..)`
+
+<!-- XXX -->
+
 
 #### `Queue.handle(..)`
 
@@ -1498,37 +1734,76 @@ var handler_queue = Queue({
 
 #### `<queue>.state`
 
+<!-- XXX -->
+
+
 
 #### `<queue>.start(..)`
 
+<!-- XXX -->
+
+
 #### `<queue>.stop(..)`
+
+<!-- XXX -->
+
 
 
 #### `<queue>.runTask(..)`
 
+<!-- XXX -->
+
+
 
 #### `<queue>.tasksAdded(..)` (event)
 
+<!-- XXX -->
+
+
 #### `<queue>.taskStarting(..)` (event)
 
+<!-- XXX -->
+
+
 #### `<queue>.taskFailed(..)` (event)
+
+<!-- XXX -->
+
 
 #### `<queue>.taskCompleted(..)` (event)
 
 Event, triggered when a task is completed passing in its result.
 
+<!-- XXX -->
+
+
 
 #### `<queue>.queueEmpty(..)` (event)
+
+<!-- XXX -->
+
 
 
 #### `<queue>.prioritize(..)`
 
+<!-- XXX -->
+
+
 #### `<queue>.delay(..)`
+
+<!-- XXX -->
+
 
 
 #### `<queue>.add(..)`
 
+<!-- XXX -->
+
+
 #### `<queue>.clear(..)`
+
+<!-- XXX -->
+
 
 
 
@@ -1547,52 +1822,106 @@ When a `<finalizable-queue>` reaches a terminal state it is frozen.
 
 #### `<finalizable-queue>.done(..)` (event/method)
 
+<!-- XXX -->
+
+
 #### `<finalizable-queue>.abort(..)` (event/method)
+
+<!-- XXX -->
+
 
 
 #### `<finalizable-queue>.promise(..)`
 
+<!-- XXX -->
+
+
 #### `<finalizable-queue>.then(..)`
 
+<!-- XXX -->
+
+
 #### `<finalizable-queue>.catch(..)`
+
+<!-- XXX -->
+
 
 
 
 
 ### Large task management
 
+<!-- XXX -->
+
+
 #### `runner.TaskManager(..)`
+
+<!-- XXX -->
+
 
 
 This includes [`event.EventMixin`](#eventeventmixin).
 
 #### `<task-manager>.Task(..)`
 
+<!-- XXX -->
+
+
 #### `<task-manager>.sync_start`
 
+<!-- XXX -->
+
+
 #### `<task-manager>.record_times`
+
+<!-- XXX -->
+
 
 
 
 #### `<task-manager>.titled(..)`
 
+<!-- XXX -->
+
+
 #### `<task-manager>.send(..)`
 
+<!-- XXX -->
+
+
 #### `<task-manager>.stop(..)`
+
+<!-- XXX -->
+
 
 
 
 #### `<task-manager>.done(..)` (event)
 
+<!-- XXX -->
+
+
 #### `<task-manager>.error(..)` (event)
 
+<!-- XXX -->
+
+
 #### `<task-manager>.tasksDone(..)` (event)
+
+<!-- XXX -->
+
 
 
 
 #### `runner.TaskTicket(..)`
 
+<!-- XXX -->
+
+
 #### `runner.TaskMixin(..)`
+
+<!-- XXX -->
+
 
 
 

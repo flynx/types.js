@@ -43,7 +43,7 @@ object.Mixin('DateMixin', 'soft', {
 					+ parseFloat(m || 0))*60 
 						+ parseFloat(s || 0))*1000 + ms)
 
-		// 00set format...
+		// 00sec format...
 		} else {
 			var val = parseFloat(str)
 			str = str.trim()
