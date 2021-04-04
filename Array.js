@@ -396,6 +396,14 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 					-place
 				: i - j }) },
 
+	/*/ XXX EXPERIMENTAL...
+	//		...if this is successful then merge this with .sortAs(..)
+	sort: function(cmp){
+		return (arguments.length == 0 || typeof(cmp) == 'function') ?
+			object.parentCall(ArrayProtoMixin.data.sort, this, ...arguments)
+			: this.sortAs(...arguments) },
+	//*/
+
 	// Same as .sortAs(..) but will not change indexes of items not in other...
 	//
 	// Example:
