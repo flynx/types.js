@@ -872,17 +872,31 @@ require('ig-types/Set')
 
 ### `<set>.unite(..)`
 
-<!-- XXX -->
+Unite two sets and return the resulting set
+```bnf
+<set>.unite(<other>)
+    -> <union-set>
+```
+
+This is a shorthand for `new Set([...<set>, ...<other>])`
 
 
 ### `<set>.intersect(..)`
 
-<!-- XXX -->
+Intersect two sets and return the intersection set
+```bnf
+<set>.untersect(<other>)
+    -> <intersection-set>
+```
 
 
 ### `<set>.subtract(..)`
 
-<!-- XXX -->
+Subtract `<other>` from set and return resulting set
+```bnf
+<set>.subtract(<other>)
+    -> <sub-set>
+```
 
 
 ### `<set>.sort(..)`
@@ -1077,13 +1091,26 @@ require('ig-types/String')
 
 ### `<string>.capitalize()`
 
-<!-- XXX -->
+Capitalize the first character of a string
+```bnf
+<string>.capitalize()
+    -> <string>
+```
 
 
 ### `<string>.indent(..)`
 
-<!-- XXX -->
+Indent each line in `<string>` by `<size>` spaces
+```bnf
+<string>.indent(<size>)
+    -> <string>
+```
 
+Indent/prepend each line in `<string>` by the `<prefix>` string
+```bnf
+<string>.indent(<prefix>)
+    -> <string>
+```
 
 
 ## `RegExp`
@@ -1092,12 +1119,16 @@ require('ig-types/String')
 require('ig-types/RegExp')
 ```
 
-<!-- XXX -->
-
 
 ### `RegExp.quoteRegExp(..)`
 
-<!-- XXX -->
+Quote regexp reserved characters in a string
+```bnf
+RegExp.quoteRegExp(<str>)
+    -> <str>
+```
+
+This is mainly used to quote strings to be matched as-is within a regular expression.
 
 
 
@@ -1110,10 +1141,6 @@ or
 ```javascript
 var promise = require('ig-types/Promise')
 ```
-
-<!-- XXX -->
-
-
 
 
 ### Cooperative promises
