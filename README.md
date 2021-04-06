@@ -55,6 +55,9 @@ A library of JavaScript type extensions, types and type utilities.
   - [`RegExp`](#regexp)
     - [`RegExp.quoteRegExp(..)`](#regexpquoteregexp)
   - [`Promise`](#promise)
+    - [Interactive promises](#interactive-promises)
+      - [`Promise.interactive(..)`](#promiseinteractive)
+      - [`<promise-inter>.send(..)`](#promise-intersend)
     - [Cooperative promises](#cooperative-promises)
       - [`Promise.cooperative(..)`](#promisecooperative)
       - [`<promise-coop>.set(..)`](#promise-coopset)
@@ -1143,9 +1146,84 @@ var promise = require('ig-types/Promise')
 ```
 
 
+### Interactive promises
+
+_Interactive promises_ can be sent messages and then handle them.
+
+
+```javascript
+var printer = Promise.interactive(function(resolve, reject, onmessage){
+    var buf = []
+    var state = 'pending'
+    onmessage(function(type, ...args){
+        type == 'flush' ?
+            (buf = buf
+                .filter(function([type, state, ...args]){
+                    console[type](`(${ state }):`, ...args) }))
+        : type == 'close' ?
+            (resolve(...args), 
+                state = 'resolved')
+        : buf.push([type, state, ...args]) }) })
+
+printer
+    .send('log', 'some message...')
+    .send('warn', 'some warning...')
+    .send('flush')
+    .send('close')
+```
+
+Note that message handling is independent of promise state, so in the above case 
+we can still _flush_ the buffer even if the promise is resolved
+```javascript
+printer
+    .send('log', 'some other message...')
+    .send('flush')
+```
+
+If the user wants to reject messages after the promise is finalized it is their
+responsibility.
+
+
+#### `Promise.interactive(..)`
+
+Create and interactive promise
+```bnf
+Promise.interactive(<handler>)
+    -> <promise-inter>
+```
+
+The `<handler>` accepts one additional argument, compared to the `Promise(..)`
+handler, `<onmessage>`, used to register message handlers.
+```bnf
+<handler>(<resolve>, <reject>, <onmessage>)
+
+<onmessage>(<message-handler>)
+```
+
+`<message-handler>` is called when a message is sent via 
+[`<promise-inter>.send()`](#promise-intersend).
+
+
+#### `<promise-inter>.send(..)`
+
+Send a message to an interactive promise
+```bnf
+<promise-inter>.send()
+<promise-inter>.send(...)
+    -> <promise-inter>
+```
+
+Sending a message triggers message handlers registered via `<onmessage>(..)` 
+passing each handler the sent arguments.
+
+
+
 ### Cooperative promises
 
-<!-- XXX -->
+A _cooperative promise_ is one the state of which can be controlled 
+externally/cooperatively.
+
+<!-- XXX is this just a special case of the interactive promise??? -->
 
 
 #### `Promise.cooperative(..)`
