@@ -236,6 +236,7 @@ object.Constructor('IterablePromise', Promise, {
 var InteractivePromise =
 module.InteractivePromise =
 object.Constructor('InteractivePromise', Promise, {
+	// XXX do we need a way to remove handlers???
 	__message_handlers: null,
 
 	send: function(...args){
@@ -257,19 +258,33 @@ object.Constructor('InteractivePromise', Promise, {
 	//
 	__new__: function(_, handler){
 		var handlers = []
+
 		var onmessage = function(func){
-			var h = obj == null ?
-				// NOTE: we need to get the handlers from .__message_handlers
-				// 		unless we are not fully defined yet, then use the 
-				// 		bootstrap container (handlers)...
-				// 		...since we can call onmessage(..) while the promise 
-				// 		is still defined there is no way to .send(..) until it
-				// 		returns a promise object, this races here are highly 
-				// 		unlikely...
-				handlers
-				: (obj.__message_handlers = 
-					obj.__message_handlers ?? [])
-			handlers.push(func) }
+			// remove all handlers... (XXX TEST)
+			if(func === false){
+				obj == null ?
+					handlers.splice(0, handlers.length)
+					: (delete obj.__message_handlers)
+			// remove a specific handler... (XXX TEST)
+			} else if(arguments[1] === false){
+				var h = (obj == null ?
+					handlers
+					: (obj.__message_handlers || []))
+				h.splice(h.indexOf(func), 1)
+			// register a handler...
+			} else {
+				var h = obj == null ?
+					// NOTE: we need to get the handlers from .__message_handlers
+					// 		unless we are not fully defined yet, then use the 
+					// 		bootstrap container (handlers)...
+					// 		...since we can call onmessage(..) while the promise 
+					// 		is still defined there is no way to .send(..) until it
+					// 		returns a promise object, this races here are highly 
+					// 		unlikely...
+					handlers
+					: (obj.__message_handlers = 
+						obj.__message_handlers ?? [])
+				handlers.push(func) } }
 
 		var obj = Reflect.construct(
 			InteractivePromise.__proto__, 

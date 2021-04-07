@@ -1205,6 +1205,16 @@ handler, `<onmessage>`, used to register message handlers.
 <onmessage>(<message-handler>)
 ```
 
+Remove `<message-handler>`
+```bnf
+<onmessage>(<message-handler>, false)
+```
+
+Remove all handlers
+```bnf
+<onmessage>(false)
+```
+
 `<message-handler>` is called when a message is sent via 
 [`<promise-inter>.send()`](#promise-intersend).
 
