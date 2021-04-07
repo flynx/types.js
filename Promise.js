@@ -260,12 +260,13 @@ object.Constructor('InteractivePromise', Promise, {
 		var handlers = []
 
 		var onmessage = function(func){
-			// remove all handlers... (XXX TEST)
+			// remove all handlers...
 			if(func === false){
-				obj == null ?
-					handlers.splice(0, handlers.length)
-					: (delete obj.__message_handlers)
-			// remove a specific handler... (XXX TEST)
+				var h = (obj == null ?
+					handlers
+					: (obj.__message_handlers || []))
+				h.splice(0, handlers.length)
+			// remove a specific handler...
 			} else if(arguments[1] === false){
 				var h = (obj == null ?
 					handlers
@@ -296,6 +297,8 @@ object.Constructor('InteractivePromise', Promise, {
 		Object.defineProperty(obj, '__message_handlers', {
 			value: handlers,
 			enumerable: false,
+			// XXX should this be .configurable???
+			configurable: true,
 		})
    		return obj },
 })
