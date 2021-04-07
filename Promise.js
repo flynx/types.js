@@ -258,6 +258,17 @@ object.Constructor('InteractivePromise', Promise, {
 	__new__: function(_, handler){
 		var handlers = []
 		var onmessage = function(func){
+			var h = obj == null ?
+				// NOTE: we need to get the handlers from .__message_handlers
+				// 		unless we are not fully defined yet, then use the 
+				// 		bootstrap container (handlers)...
+				// 		...since we can call onmessage(..) while the promise 
+				// 		is still defined there is no way to .send(..) until it
+				// 		returns a promise object, this races here are highly 
+				// 		unlikely...
+				handlers
+				: (obj.__message_handlers = 
+					obj.__message_handlers ?? [])
 			handlers.push(func) }
 
 		var obj = Reflect.construct(
@@ -267,7 +278,6 @@ object.Constructor('InteractivePromise', Promise, {
 				: [function(resolve, reject){
 					return handler(resolve, reject, onmessage) }], 
 			InteractivePromise)
-
 		Object.defineProperty(obj, '__message_handlers', {
 			value: handlers,
 			enumerable: false,

@@ -1173,7 +1173,7 @@ printer
 ```
 
 Note that message handling is independent of promise state, so in the above case 
-we can still _flush_ the buffer even if the promise is resolved
+we can still populate the buffer and _flush_ it even if the promise is resolved
 ```javascript
 printer
     .send('log', 'some other message...')
@@ -1182,6 +1182,11 @@ printer
 
 If the user wants to reject messages after the promise is finalized it is their
 responsibility.
+
+<!-- 
+XXX to clear buffers just delete/empty the .__message_handlers...
+    ...not sure if this should be either tooled or documented...
+-->
 
 
 #### `Promise.interactive(..)`
@@ -1214,7 +1219,7 @@ Send a message to an interactive promise
 ```
 
 Sending a message triggers message handlers registered via `<onmessage>(..)` 
-passing each handler the sent arguments.
+passing each handler the arguments.
 
 
 
