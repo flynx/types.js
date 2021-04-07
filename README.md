@@ -58,10 +58,12 @@ A library of JavaScript type extensions, types and type utilities.
     - [Interactive promises](#interactive-promises)
       - [`Promise.interactive(..)`](#promiseinteractive)
       - [`<promise-inter>.send(..)`](#promise-intersend)
+      - [`<promise-inter>.then(..)`](#promise-interthen)
     - [Cooperative promises](#cooperative-promises)
-      - [`Promise.cooperative(..)`](#promisecooperative)
+      - [`Promise.cooperative()`](#promisecooperative)
       - [`<promise-coop>.set(..)`](#promise-coopset)
       - [`<promise-coop>.isSet`](#promise-coopisset)
+      - [`<promise-coop>.then(..)`](#promise-coopthen)
     - [Promise iteration](#promise-iteration)
       - [`Promise.iter(..)` / `promise.IterablePromise(..)`](#promiseiter--promiseiterablepromise)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
@@ -1232,16 +1234,45 @@ Sending a message triggers message handlers registered via `<onmessage>(..)`
 passing each handler the arguments.
 
 
+#### `<promise-inter>.then(..)`
+
+<!-- XXX -->
+
+See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
+
+
 
 ### Cooperative promises
 
-A _cooperative promise_ is one the state of which can be controlled 
-externally/cooperatively.
+A _cooperative promise_ is one that can be finalized externally/cooperatively.
 
-<!-- XXX is this just a special case of the interactive promise??? -->
+This can be useful when breaking recursive dependencies between promises or when
+it is simpler to thread the result receiver promise down the stack than building 
+a promise stack and manually threading the result up.
+
+<!-- XXX Example: show a clear use-case -- ping-pong?... -->
+```javascript
+```
+
+Note that functionally this can be considered a special-case of an 
+[interactive promise](#interactive-promises), but in reality they are two 
+different implementations, the main differences are:
+- _Cooperative promise_ constructor does not need a resolver function,
+- _Cooperative promises_ do not the implement `.send(..)` API.
+
+Note that implementing _Cooperative promises_ on top of _Interactive promises_ 
+cleanly, though feeling more _"beautiful"_, would be more complex than the 
+current standalone implementation, as it would require both implementing 
+the `.set(..)` API/logic _and_ active encapsulation of the message API.
 
 
-#### `Promise.cooperative(..)`
+
+#### `Promise.cooperative()`
+
+```bnf
+Promise.cooperative()
+    -> <promise-coop>
+```
 
 <!-- XXX -->
 
@@ -1254,6 +1285,13 @@ externally/cooperatively.
 #### `<promise-coop>.isSet`
 
 <!-- XXX -->
+
+
+#### `<promise-coop>.then(..)`
+
+<!-- XXX -->
+
+See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
 
 
 
@@ -1337,6 +1375,10 @@ Promise.iter(<array>)
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
 
 <!-- XXX -->
+
+Note that `.then(..)` here can be called without arguments returning a generic 
+promise wrapper. This can be useful to hide the extended promise API from further 
+code.
 
 
 #### Advanced handler

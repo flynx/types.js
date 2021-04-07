@@ -118,8 +118,11 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// NOTE: .catch(..) and .finally(..) are implemented through .then(..)
 	// 		so we do not need to overload those...
+	// NOTE: this is slightly different from .then(..) in that it can be 
+	// 		called without arguments and return a promise wrapper. This can
+	// 		be useful to hide special promise functionality...
 	then: function (onfulfilled, onrejected){
-		return new Promise(
+		var p = new Promise(
 			function(resolve, reject){
 				Promise.prototype.then.call(this,
 					// NOTE: resolve(..) / reject(..) return undefined so
@@ -130,7 +133,9 @@ object.Constructor('IterablePromise', Promise, {
 					function(res){
 						reject(res)
 						return res }) }.bind(this))
-			.then(...arguments) },
+		return arguments.length > 0 ?
+			p.then(...arguments) 
+			: p },
 
 
 	//
