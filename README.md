@@ -1279,6 +1279,11 @@ Promise.cooperative()
 
 #### `<promise-coop>.set(..)`
 
+```bnf
+<promise-coop>.set(<value>)
+    -> <promise-coop>
+```
+
 <!-- XXX -->
 
 
