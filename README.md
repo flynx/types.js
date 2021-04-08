@@ -1269,27 +1269,41 @@ the `.set(..)` API/logic _and_ active encapsulation of the message API.
 
 #### `Promise.cooperative()`
 
+Create a cooperative promise
 ```bnf
 Promise.cooperative()
     -> <promise-coop>
 ```
 
-<!-- XXX -->
-
 
 #### `<promise-coop>.set(..)`
 
+Resolve `<promise-coop>` with `<value>`
 ```bnf
 <promise-coop>.set(<value>)
+<promise-coop>.set(<value>, true)
     -> <promise-coop>
 ```
 
-<!-- XXX -->
+If `<value>` is a promise, then `<promise-coop>` will be bound to its state, i.e.
+resolved if `<value>` is resolved and rejected if it is rejected with the same
+values.
+
+Reject `<promise-coop>` with `<value>`
+```bnf
+<promise-coop>.set(<value>, false)
+    -> <promise-coop>
+```
+
+Calling `.set(..)` will set `.isSet` to `true`.
 
 
 #### `<promise-coop>.isSet`
 
-<!-- XXX -->
+Property representing if the cooperative promise was _set_ / `.set(..)` was 
+called (value is `true`) or no (`false`).
+
+This property is read-only.
 
 
 #### `<promise-coop>.then(..)`
