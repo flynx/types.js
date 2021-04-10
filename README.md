@@ -1182,12 +1182,10 @@ printer
     .send('flush')
 ```
 
-If the user wants to reject messages after the promise is finalized it is their
-responsibility.
+If the user wants to handle messages differently (ignore for example) after the
+promise is finalized it is their responsibility 
+(see: [`<onmessage>(..)`](#promiseinteractive) for more info)
 
-<!-- 
-XXX add example of clearing handlers...
--->
 
 
 #### `Promise.interactive(..)`
