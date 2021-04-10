@@ -1186,8 +1186,7 @@ If the user wants to reject messages after the promise is finalized it is their
 responsibility.
 
 <!-- 
-XXX to clear buffers just delete/empty the .__message_handlers...
-    ...not sure if this should be either tooled or documented...
+XXX add example of clearing handlers...
 -->
 
 
