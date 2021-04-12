@@ -1233,7 +1233,7 @@ passing each handler the arguments.
 
 #### `<promise-inter>.then(..)`
 
-<!-- XXX -->
+<!-- XXX do we need anything here?? -->
 
 See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
 
@@ -1305,7 +1305,7 @@ This property is read-only.
 
 #### `<promise-coop>.then(..)`
 
-<!-- XXX -->
+<!-- XXX do we need anything here?? -->
 
 See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
 
