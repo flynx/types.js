@@ -1233,7 +1233,7 @@ passing each handler the arguments.
 
 #### `<promise-inter>.then(..)`
 
-<!-- XXX do we need anything here?? -->
+Extended `.then(..)` implementation.
 
 See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
 
@@ -1305,7 +1305,7 @@ This property is read-only.
 
 #### `<promise-coop>.then(..)`
 
-<!-- XXX do we need anything here?? -->
+Extended `.then(..)` implementation.
 
 See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally) for details.
 
@@ -1390,11 +1390,16 @@ Promise.iter(<array>)
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
 
-<!-- XXX -->
+An extension to
+[`<promise>.then(..)` API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then)
+this adds the ability to pass no arguments
+```bnf
+<promise-iter>.then()
+    -> <promise>
+```
 
-Note that `.then(..)` here can be called without arguments returning a generic 
-promise wrapper. This can be useful to hide the extended promise API from further 
-code.
+This will return a generic promise wrapper passing through the results as-is. This 
+can be useful to hide the extended promise API from further code.
 
 
 #### Advanced handler
