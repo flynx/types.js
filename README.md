@@ -1247,8 +1247,29 @@ This can be useful when breaking recursive dependencies between promises or when
 it is simpler to thread the result receiver promise down the stack than building 
 a promise stack and manually threading the result up.
 
-<!-- XXX Example: show a clear use-case -- ping-pong?... -->
+<!-- 
+XXX Example: show a clear use-case -- entangled promises...
+-->
+Example: _entangled_ promises, resolving one will resolve the other
 ```javascript
+var a = Promise.cooperative()
+
+var b = new Promise(function(resolve, reject){
+        // we are finalized by a...
+        a.then(resolve, reject) 
+
+        // do something in competition with a...
+    })
+    // a is finalized by us...
+    .then(
+        function(res){
+            a.isSet
+                || a.set(res, true) 
+            return res }, 
+        function(res){
+            a.isSet
+                || a.set(res, false) 
+            return res })
 ```
 
 Note that functionally this can be considered a special-case of an 
@@ -1370,7 +1391,7 @@ And some disadvantages:
 #### `Promise.iter(..)` / `promise.IterablePromise(..)`
 
 Create an _iterable promise_
-```
+```bnf
 Promise.iter(<array>)
     -> <iterable-promise>
 ```
