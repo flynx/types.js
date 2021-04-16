@@ -1249,6 +1249,10 @@ a promise stack and manually threading the result up.
 
 <!-- 
 XXX Example: show a clear use-case -- entangled promises...
+    ...not sure if this is a good example...
+    ......this can simply be implemented by creating a single promise and passing 
+    it to clients...
+    ...is a mutex a good example?
 -->
 Example: _entangled_ promises, resolving one will resolve the other
 ```javascript
