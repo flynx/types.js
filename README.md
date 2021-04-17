@@ -1247,33 +1247,41 @@ This can be useful when breaking recursive dependencies between promises or when
 it is simpler to thread the result receiver promise down the stack than building 
 a promise stack and manually threading the result up.
 
-<!-- 
-XXX Example: show a clear use-case -- entangled promises...
-    ...not sure if this is a good example...
-    ......this can simply be implemented by creating a single promise and passing 
-    it to clients...
-    ...is a mutex a good example?
--->
-Example: _entangled_ promises, resolving one will resolve the other
+Example:
 ```javascript
-var a = Promise.cooperative()
+// NOTE: implementing this via Promise.any(..) would also require implementing a 
+//      way to stop the "workers" that did not succeed to get the result first...
+async function controller(trigger){
+    while(!trigger.isSet)
 
-var b = new Promise(function(resolve, reject){
-        // we are finalized by a...
-        a.then(resolve, reject) 
+        // do things...
 
-        // do something in competition with a...
-    })
-    // a is finalized by us...
-    .then(
-        function(res){
-            a.isSet
-                || a.set(res, true) 
-            return res }, 
-        function(res){
-            a.isSet
-                || a.set(res, false) 
-            return res })
+        trigger.isSet
+            || trigger.set(result) } }
+
+async function controlled(trigger){
+
+    // do things independently of trigger...
+
+    trigger
+        .then(function(){
+            // do things depending on trigger...
+        }) }
+
+
+var t = Promise.cooperative()
+
+// multiple cooperative controllers competing to create a result...
+controller(t)
+controller(t)
+controller(t)
+// ...
+
+// prepare and process result...
+// NOTE: calling .then() here is completely optional and done out of role
+//      hygene -- isolating cooperative API from the client...
+controlled(t.then())
+// ...
 ```
 
 Note that functionally this can be considered a special-case of an 
