@@ -1265,7 +1265,7 @@ async function controlled(trigger){
 
     trigger
         .then(function(){
-            // do things depending on trigger...
+            // do things after trigger...
         }) }
 
 
