@@ -1243,14 +1243,14 @@ See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-it
 
 A _cooperative promise_ is one that can be finalized externally/cooperatively.
 
-This can be useful when breaking recursive dependencies between promises or when
+This can be useful for breaking recursive dependencies between promises or when
 it is simpler to thread the result receiver promise down the stack than building 
 a promise stack and manually threading the result up.
 
 Example:
 ```javascript
 // NOTE: implementing this via Promise.any(..) would also require implementing a 
-//      way to stop the "workers" that did not succeed to get the result first...
+//      way to stop the "workers" after the result is found...
 async function controller(trigger){
     while(!trigger.isSet)
 
