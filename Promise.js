@@ -170,6 +170,9 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	//
 	// XXX if list is an iterator, can we fill this async???
+	// XXX iterator/generator as input:
+	// 		- do we unwind here or externally?
+	// 			...feels like with the generator external unwinding is needed...
 	__new__: function(_, list, handler){
 		var promise
 

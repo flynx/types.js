@@ -1348,11 +1348,11 @@ See [`<promise-iter>.then(..)`](#promise-iterthen--promise-itercatch--promise-it
 
 An _iterable promise_ is on one hand very similar to `Promise.all(..)` in that it
 generally takes a list of values each could be either an explicit value or a 
-promise, and it is similar to a _generator_ in that allows iteration over the 
+promise, and it is similar to a _generator_ in that it allows iteration over the 
 contained values and chaining of operations but unlike `Promise.all(..)` this 
-iteration occurs depth first instead of breadth first.
+iteration occurs depth-first instead of breadth first.
 
-Essentially one can think about _promise iterators_ vs. _generators_ as the former
+Essentially one can think of _promise iterators_ vs. _generators_ as the former
 being internally controlled and asynchronous while the later being externally
 controlled and synchronous.
 
@@ -1363,30 +1363,31 @@ var p = Promise.all([ .. ])
     .then(function(lst){
         return lst
           .filter(function(e){
-
+              // ...
           })
           // this will not run until ALL of lst is filtered...
           .map(function(e){
-
+              // ...
           }) })
 ```
 
+And a _promise iterator_:
 ```javascript
 var p = Promise.iter([ .. ])
     // each element is processed as soon as it is ready disregarding of its order
     // in the input array...
     .filter(function(e){
-
+        // ...
     })
-    // items reach here as soon as they are returned by the filter stage...
+    // items reach here as soon as they are returned by the filter stage handler...
     // NOTE: the filter handler may return promises, those will not be processed
     //    until they are resolved...
     .map(function(e){
-
+        // ...
     })
     // .then(..) explicitly waits for the whole list of inputs to resolve...
     .then(function(lst){
-
+        // ...
     })
 ```
 
@@ -1398,6 +1399,10 @@ This approach has a number of advantages:
 And some disadvantages:
 - item indexes are unknowable until all the promises resolve.
 
+<!-- 
+XXX should we support generators as input?
+XXX should we support infinite generators as input?
+-->
 
 
 #### `Promise.iter(..)` / `promise.IterablePromise(..)`
