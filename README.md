@@ -1401,6 +1401,9 @@ And some disadvantages:
 
 <!-- 
 XXX should we support generators as input?
+    ...not sure about the control flow direction here, on one hand the generator
+    should be unwound by the client (not sure how to do this within a promise) on 
+    the other hand...
 XXX should we support infinite generators as input?
 -->
 
