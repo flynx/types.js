@@ -1404,6 +1404,8 @@ XXX should we support generators as input?
     ...not sure about the control flow direction here, on one hand the generator
     should be unwound by the client (not sure how to do this within a promise) on 
     the other hand...
+    ...not sure if it is possible/correct to control the flow upstream in a 
+    promise chain...
 XXX should we support infinite generators as input?
 -->
 
