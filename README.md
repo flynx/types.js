@@ -1418,7 +1418,6 @@ Promise.iter(<array>)
     -> <iterable-promise>
 ```
 
-<!-- XXX -->
 
 #### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`
 
