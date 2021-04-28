@@ -78,6 +78,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
+	// XXX should these support STOP???
 	map: function(func){
 		return this.constructor(this.__list, function(e){
 			return [func(e)] }) },
