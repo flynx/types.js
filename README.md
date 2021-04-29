@@ -1417,7 +1417,7 @@ XXX should we support infinite generators as input?
 Create an _iterable promise_
 ```bnf
 Promise.iter(<array>)
-    -> <iterable-promise>
+    -> <promise-iter>
 ```
 
 
@@ -1425,11 +1425,40 @@ Promise.iter(<array>)
 
 <!-- XXX -->
 
+```bnf
+<promise-iter>.map(<handler>)
+    -> <promise-iter>
+
+<promise-iter>.filter(<handler>)
+    -> <promise-iter>
+
+<handler>(<elem>)
+```
+
+```bnf
+<promise-iter>.reduce(<handler>, <state>)
+    -> <promise-iter>
+
+<handler>(<state>, <elem>)
+```
+
+Note that these are different to `Array`'s equivalents in some details: 
+- `<handler>` is _not_ called in the order of element occurrence but rather 
+  in the order of elements are resolved/ready.
+- `<handler>` does not get either the element _index_ or the _container_.  
+    this is because the index with _out-of-order_ and _depth-first_ execution the 
+    index is unknowable and the container is a promise/black-box.
+
 
 #### `<promise-iter>.flat(..)`
 
-<!-- XXX -->
+```bnf
+<promise-iter>.flat()
+<promise-iter>.flat(<depth>)
+    -> <promise-iter>
+```
 
+This is similar to [`<array>.flat(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat) see it for more info.
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
