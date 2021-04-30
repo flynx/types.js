@@ -1423,7 +1423,6 @@ Promise.iter(<array>)
 
 #### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`
 
-<!-- XXX -->
 
 
 #### `<promise-iter>.flat(..)`
