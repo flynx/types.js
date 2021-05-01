@@ -1423,15 +1423,24 @@ Promise.iter(<array>)
 
 #### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`
 
-
+Methods similar but not fully equivalent to `Array`'s 
+[`.map(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map), 
+[`.filter(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter),
+and [`.reduce(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce)
 ```bnf
 <promise-iter>.map(<handler>)
     -> <promise-iter>
 
+<handler>(<elem>)
+    -> <elem>
+```
+
+```bnf
 <promise-iter>.filter(<handler>)
     -> <promise-iter>
 
 <handler>(<elem>)
+    -> <bool>
 ```
 
 ```bnf
@@ -1439,6 +1448,7 @@ Promise.iter(<array>)
     -> <promise-iter>
 
 <handler>(<state>, <elem>)
+    -> <state>
 ```
 
 Note that these are different to `Array`'s equivalents in some details: 
