@@ -1530,9 +1530,6 @@ var p = Promise.iter(
 var generator = require('ig-types/generator')
 ```
 
-<!-- XXX -->
-
-
 
 ### The basics
 
@@ -1554,10 +1551,13 @@ We can test that `iter` is an instance of `Iter`:
 iter instanceof Iter // -> true
 ```
 
+Note that there is no generator constructor constructor or _meta-generator_, 
+i.e. `Iter` is created syntactically and not constructed via a `new` _constructor_.
+
 Due to the three level structure of generators we use a slightly different 
 terminology to reference different levels of API's:
 - `Generator` - the generator meta-constructor.  
-    This is a constructor that is used to create/inherit `<Generator>`'s, i.e.
+    This is a constructor that is used to create/prototype `<Generator>`'s, i.e.
     generator constructors.  
     `Generator` is mainly used for `instanceof` checks, but can be used as a 
     prototype for extending generators.
@@ -1576,12 +1576,25 @@ terminology to reference different levels of API's:
 
 Exposes the _hidden_ JavaScript generator meta-constructor.
 
+This is similar to the JavaScript's
+[`Function`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) constructor
+```javascript
+var g = generator.Generator(`
+    yield 123
+    yield 321 `)
+
+// prints 123 then 321...
+for(var e of g()){
+    console.log(e.value) }
+```
+
+This can be used to test if a function is a _generator constructor_
 ```javascript
 Iter instanceof generator.Generator // -> true
 ```
 
-Note that currently in JavaScript there is no built-in way to test if a 
-constructor, `Iter` in this case, is a _generator_ constructor.
+Note that currently in JavaScript there is no _built-in_ way to test if a 
+constructor/function, `Iter` in this case, is a _generator_ constructor.
 
 
 #### `generator.iter(..)`
