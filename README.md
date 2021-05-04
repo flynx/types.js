@@ -1621,7 +1621,8 @@ var a = generator.iter()
 var b = new generator.Generator()
 ```
 
-But `Generator()` takes no arguments and thus can not be used as a wrapper while `.iter(..)` is designed to accept an iterable value like an array object.
+But `Generator()` takes no arguments and thus can not be used as a wrapper 
+while `.iter(..)` is designed to accept an iterable value like an array object.
 
 
 ### Generator instance iteration
@@ -1629,7 +1630,8 @@ But `Generator()` takes no arguments and thus can not be used as a wrapper while
 This is a set of `Array`-like iterator methods that enable chaining of 
 generators and `Promise`-like API to handle the generated results. 
 
-Chained generators handle items depth-first, i.e. the items are passed as they are yielded down the generator chain.
+Chained generators handle items depth-first, i.e. the items are passed as they 
+are yielded down the generator chain.
 
 
 #### `<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`
