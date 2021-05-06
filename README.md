@@ -1640,8 +1640,8 @@ Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return
 generators that yield the handler return values.
 
 <!--
-XXX doc all differences (revise)
 XXX .reduce(..) can return a non-iterable -- test and document this case...
+    ...compare with Array.prototype.reduce(..)
 -->
 
 
