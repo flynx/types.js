@@ -1640,8 +1640,8 @@ Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return
 generators that yield the handler return values.
 
 <!--
-XXX doc all differences (revise)
 XXX .reduce(..) can return a non-iterable -- test and document this case...
+    ...compare with Array.prototype.reduce(..)
 -->
 
 
@@ -1654,15 +1654,11 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
     -> <generator>
 ```
 
-<!-- XXX -->
+Note that this does not support negative indexes as it not possible to know the
+generator length until it is fully done.
 
-
-<!-- XXX check this 
-This does not support negative indexes.
--->
-
-Equivalent to `Array`'s `.slice(..)` but will return a generator instead of an 
-array, for more info see:  
+Otherwise this is similar to `Array`'s `.slice(..)` but will return a generator 
+instead of an array, for more info see:  
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
 
 
