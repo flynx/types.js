@@ -1797,6 +1797,7 @@ XXX only list the differences...
 
 This is like `Array`'s `.slice(..)` but does not support negative indexes.
 
+
 #### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
 
 <!-- XXX -->
@@ -1888,7 +1889,6 @@ z.rename('a (2)', 'c')
 console.log([...z.keys()]) // -> ['a', 'a (1)', 'b', 'a (3)', 'c']
 ```
 
-
 For more info on `Map` see:  
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
@@ -1918,6 +1918,7 @@ Key updating is done via [`<unique-key-map>.__key_pattern__`](#unique-key-map__k
 ```
 
 Explicitly write an `<item>` under `<key>` as-is, this is like `Map`'s `.set(..)`.
+
 
 #### `<unique-key-map>.rename(..)`
 
@@ -2175,8 +2176,8 @@ Event, triggered when a task is completed passing in its result.
 
 #### `FinalizableQueue(..)` / `FinalizableQueue.runTasks(..)` (Queue)
 
-This is the similar as `Queue(..)` but adds two terminal states (`"done"` 
-and `"aborted"`) and a `promise`-mapping.
+This is similar to `Queue(..)` but adds two terminal states (`"done"` and 
+`"aborted"`) and a `promise`-mapping.
 
 ```bnf
 FinalizableQueue.handle(<func>, ...<data>)
