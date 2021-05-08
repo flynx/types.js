@@ -1783,7 +1783,7 @@ console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 ```
 
 <!--
-XXX only list the differences + reference to the above...
+XXX only list the differences...
 -->
 
 
