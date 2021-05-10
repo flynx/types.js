@@ -1785,10 +1785,24 @@ XXX only list the differences...
 
 #### `<Generator>.at(..)`
 
+```bnf
+<Generator>.at(<index>)
+    -> <Generator>
+```
+
 <!-- XXX -->
 
 
 #### `<Generator>.shift()` / `<Generator>.pop()`
+
+```bnf
+<Generator>.shift()
+<Generator>.pop()
+    -> <func>
+```
+
+Note that `.shift()` will get the element the generator is at currently which may 
+not be the first element in the sequence.
 
 <!-- XXX -->
 
