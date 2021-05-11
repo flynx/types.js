@@ -119,8 +119,15 @@ var GeneratorMixin =
 module.GeneratorMixin =
 object.Mixin('GeneratorMixin', 'soft', {
 
-	// XXX should this be a generator???
-	at: makeGenerator('at'),
+	gat: makeGenerator('gat'),
+	at: function(i){
+		var that = this
+		return Object.assign(
+			function(){
+				return that(...arguments).at(i) },
+			{ toString: function(){
+				return that.toString() 
+					+ '\n    .at('+ i +')'}, }) },
 
 	slice: makeGenerator('slice'),
 	flat: makeGenerator('flat'),
@@ -139,22 +146,26 @@ object.Mixin('GeneratorMixin', 'soft', {
 			{ toString: function(){
 				return that.toString() 
 					+ '\n    .toString()'}, }) },
+	gpop: makeGenerator('gpop'),
 	pop: function(){
 		var that = this
 		return Object.assign(
 			function(){
-				return that(...arguments).toArray().pop() },
+				//return that(...arguments).toArray().pop() },
+				return that(...arguments).pop() },
 			{ toString: function(){
 				return that.toString() 
-					+ '\n    .pop()'}, }) },
+					+ '\n    .gpop()'}, }) },
+	gshift: makeGenerator('gshift'),
 	shift: function(){
 		var that = this
 		return Object.assign(
 			function(){
-				return that(...arguments).toArray().shift() }, 
+				//return that(...arguments).toArray().shift() }, 
+				return that(...arguments).shift() }, 
 			{ toString: function(){
 				return that.toString() 
-					+ '\n    .shift()'}, }) },
+					+ '\n    .gshift()'}, }) },
 
 	// promises...
 	//
@@ -167,11 +178,13 @@ object.Mixin('GeneratorMixin', 'soft', {
 var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
-	// XXX should this be a generator???
-	at: function*(i){
+	at: function(i){
+		return this.gat(i).next().value },
+	// XXX this needs the value to be iterable... why???
+	gat: function*(i){
 		// sanity check...
 		if(i < 0){
-			throw new Error('.at(..): '
+			throw new Error('.gat(..): '
 				+'generator index can\'t be a negative value.')}
 		for(var e of this){
 			if(i-- == 0){
@@ -229,19 +242,21 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 			res = func(res, e, i++, this) } 
 		yield res },
 
+	pop: function(){
+		return [...this].pop() },
+	// XXX this needs the value to be iterable...
+	gpop: function*(){
+		yield [...this].pop() },
+	shift: function(){
+		return this.next().value },
+	// XXX this needs the value to be iterable...
+	gshift: function*(){
+		yield this.next().value },
+
 	// non-generators...
 	//
 	toArray: function(){
 		return [...this] },
-	pop: function(){
-		return [...this].pop() },
-	// XXX should this unwind the whole generator???
-	// XXX this will not get the first item if the generator is already
-	// 		partially depleted...
-	// 		...should we remove this???
-	shift: function(){
-		return this.next().value },
-		//return [...this].shift() },
 
 	// promises...
 	//
