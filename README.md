@@ -77,15 +77,15 @@ A library of JavaScript type extensions, types and type utilities.
     - [Generator instance iteration](#generator-instance-iteration)
       - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`](#generatormap--generatorfilter--generatorreduce)
       - [`<generator>.slice(..)`](#generatorslice)
-      - [`<generator>.at(..)`](#generatorat)
+      - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
       - [`<generator>.shift()` / `<generator>.pop()`](#generatorshift--generatorpop)
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Generator constructor iteration](#generator-constructor-iteration)
-      - [`<Generator>.at(..)`](#generatorat-1)
-      - [`<Generator>.shift()` / `<Generator>.pop()`](#generatorshift--generatorpop-1)
+      - [`<Generator>.at(..)` / `<Generator>.gat(..)`](#generatorat--generatorgat-1)
+      - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
       - [`<Generator>.slice(..)`](#generatorslice-1)
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
@@ -1662,14 +1662,17 @@ instead of an array, for more info see:
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
 
 
-#### `<generator>.at(..)`
+#### `<generator>.at(..)` / `<generator>.gat(..)`
 
 ```bnf
 <generator>.at(<index>)
+    -> <value>
+    -> undefined
+
+<generator>.gat(<index>)
     -> <generator>
 ```
-Returns a generator that will yield an item at a specific position when it is 
-available.
+<!-- XXX -->
 
 
 #### `<generator>.flat(..)`
@@ -1778,36 +1781,74 @@ console.log(sumOdds([1, 2, 3])) // -> 4
 console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 ```
 
+
+<!-- XXX explain this as a language -->
+
+`<Generator>` methods fall into two categories:
+- `<constructor>`  
+  create a new chained `<Generator>` object that when called will return 
+  a `<generator>`
+- `<finalizer>`  
+  create a chained _function_ that when called will return a `<value>`/`undefined`
+
+```bnf
+<Generator>.<constructor>(..)
+    -> <Generator>
+
+<Generator>.<finalizer>(..)
+    -> <func>
+
+<Generator>(<iterable>)
+    -> <generator>
+
+<func>(<iterable>)
+    -> <value>
+    -> undefined
+```
+
 <!--
-XXX only list the differences...
+XXX list the differences...
 -->
 
 
-#### `<Generator>.at(..)`
+#### `<Generator>.at(..)` / `<Generator>.gat(..)`
 
 ```bnf
 <Generator>.at(<index>)
+    -> <func>
+
+<Generator>.gat(<index>)
     -> <Generator>
 ```
 
 <!-- XXX -->
 
 
-#### `<Generator>.shift()` / `<Generator>.pop()`
+#### `<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`
 
 ```bnf
 <Generator>.shift()
 <Generator>.pop()
     -> <func>
+
+<Generator>.gshift()
+<Generator>.gpop()
+    -> <Generator>
 ```
 
-Note that `.shift()` will get the element the generator is at currently which may 
-not be the first element in the sequence.
+Note that `.shift()`/`.gshift()` will get the element the generator is at 
+currently which may not be the first element in the sequence.
 
 <!-- XXX -->
 
 
 #### `<Generator>.slice(..)`
+
+```bnf
+<Generator>.slice(<from>)
+<Generator>.slice(<from>, <to>)
+    -> <Generator>
+```
 
 This is like `Array`'s `.slice(..)` but does not support negative indexes.
 
