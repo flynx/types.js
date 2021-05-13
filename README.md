@@ -79,13 +79,13 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<generator>.slice(..)`](#generatorslice)
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
-      - [`<generator>.shift()` / `<generator>.pop()`](#generatorshift--generatorpop)
+      - [`<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Generator constructor iteration](#generator-constructor-iteration)
       - [`<Generator>.at(..)` / `<Generator>.gat(..)`](#generatorat--generatorgat-1)
-      - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
+      - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop-1)
       - [`<Generator>.slice(..)`](#generatorslice-1)
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
@@ -1688,24 +1688,29 @@ array, for more info see:
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
 
 
-#### `<generator>.shift()` / `<generator>.pop()`
+#### `<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`
 
 Return the first/last item in generator.
 ```bnf
+<generator>.shift()
 <generator>.pop()
     -> <value>
     -> undefined
+```
 
-<generator>.shift()
-    -> <value>
-    -> undefined
+Return a `<generator>` that will yield the first/last item in the generator.
+```bnf
+<generator>.gshift()
+<generator>.gpop()
+    -> <generator>
 ```
 
 Note that there are no equivalents to `.push(..)` and `.unshift(..)` as they 
 would require breaking item processing order.
 
-Note that `.shift()` may not yield the actual first item if the generator is 
-partially depleted at time of call.
+Note that `.shift()`/`.gshift()` will yield the item the generator is at at 
+time of call, this may not be the _first_ item if the generator is partially 
+depleted.
 
 
 #### `<generator>.promise()`
@@ -1821,7 +1826,8 @@ XXX list the differences...
     -> <Generator>
 ```
 
-<!-- XXX -->
+Equivalents to [`<generator>`'s `.at(..)`/`.gat(..)`](#generatorat--generatorgat) 
+but returning a reusable `<func>`/`<Generator>`.
 
 
 #### `<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`
@@ -1839,7 +1845,8 @@ XXX list the differences...
 Note that `.shift()`/`.gshift()` will get the element the generator is at 
 currently which may not be the first element in the sequence.
 
-<!-- XXX -->
+Equivalents to [`<generator>`'s `.shift(..)`/`.pop(..)`/..](#generatorshift--generatorpop--generatorgshift--generatorgpop) 
+but returning a reusable `<func>`/`<Generator>`.
 
 
 #### `<Generator>.slice(..)`
@@ -1850,7 +1857,10 @@ currently which may not be the first element in the sequence.
     -> <Generator>
 ```
 
-This is like `Array`'s `.slice(..)` but does not support negative indexes.
+Unlike `Array`'s `.slice(..)` this does not support negative indexes.
+
+Equivalent to [`<generator>`'s `.slice(..)`](#generatorslice) 
+but returning a reusable `<Generator>`.
 
 
 #### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
@@ -1879,7 +1889,7 @@ or, to only import containers:
 var containers = require('ig-types/containers')
 ```
 
-Note that this will also import `ig-types/Map`.
+Note that this will also import [`ig-types/Map`](#map).
 
 
 ### `containers.UniqueKeyMap()` (`Map`)
