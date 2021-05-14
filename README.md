@@ -1870,6 +1870,10 @@ but returning a reusable `<Generator>`.
 
 #### `<Generator>.toArray()`
 
+```bnf
+<Generator>.toArray()
+    -> <function>
+```
 <!-- XXX -->
 
 
