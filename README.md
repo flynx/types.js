@@ -1870,11 +1870,11 @@ but returning a reusable `<Generator>`.
 
 #### `<Generator>.toArray()`
 
+Return a function that will return a `<generator>` output as an `Array`.
 ```bnf
 <Generator>.toArray()
     -> <function>
 ```
-<!-- XXX -->
 
 
 #### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
