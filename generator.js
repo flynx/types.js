@@ -93,11 +93,21 @@ module.iter =
 // Helpers...
 
 // XXX this needs to be of the correct type... (???)
+// XXX need to accept generators as handlers...
 var makeGenerator = function(name){
 	return function(...args){
 		var that = this
 		return Object.assign(
 			function*(){
+				// XXX need to accept generator as handler (i.e. args[0] instanceof Generator)...
+				/*/ XXX EXPERIMENTAL...
+				if(args[0] instanceof Generator){
+					yield* that(...arguments)[name](...args)
+						.map(function(g){ 
+							return [...g] })
+						.flat()
+					return }
+				//*/
 				yield* that(...arguments)[name](...args) }, 
 			{ toString: function(){
 				return [
@@ -227,10 +237,16 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 			} else {
 				yield e } } },
 
+	// NOTE: if func is instanceof Generator then it's result (iterator) 
+	// 		will be expanded...
 	map: function*(func){
 		var i = 0
-		for(var e of this){
-			yield func(e, i++, this) } },
+		if(func instanceof Generator){
+			for(var e of this){
+				yield* func(e, i++, this) } 
+		} else {
+			for(var e of this){
+				yield func(e, i++, this) } } },
 	filter: function*(func){
 		var i = 0
 		for(var e of this){
@@ -239,7 +255,7 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	reduce: function*(func, res){
 		var i = 0
 		for(var e of this){
-			res = func(res, e, i++, this) } 
+			res = func(res, e, i++, this) }
 		yield res },
 
 	pop: function(){

@@ -1639,6 +1639,18 @@ are yielded down the generator chain.
 Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
 generators that yield the handler return values.
 
+Note that `.map(..)` here also supports a generator as a handler
+```javascript
+var expand = function*(n){ 
+    yield* (new Array(n)).fill(n) }
+
+// will create: [1, 2, 2, 3, 3, 3]
+var L = [1,2,3]
+    .iter()
+    .map(expand)
+    .toArray()
+```
+
 <!--
 XXX .reduce(..) can return a non-iterable -- test and document this case...
     ...compare with Array.prototype.reduce(..)
@@ -1864,6 +1876,11 @@ but returning a reusable `<Generator>`.
 
 
 #### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
+
+Counterparts to `<generator>`'s 
+[`.map(..)` and friends](#generatormap--generatorfilter--generatorreduce) and 
+[`.flat(..)`](#generatorflat) 
+but return a `<Generator>`.
 
 <!-- XXX -->
 
