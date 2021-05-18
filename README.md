@@ -1639,7 +1639,7 @@ are yielded down the generator chain.
 Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
 generators that yield the handler return values.
 
-Note that `.map(..)` here also supports a generator as a handler
+`.map(..)` here also supports a generator as a handler
 ```javascript
 var expand = function*(n){ 
     yield* (new Array(n)).fill(n) }
@@ -1647,8 +1647,8 @@ var expand = function*(n){
 // will create: [1, 2, 2, 3, 3, 3]
 var L = [1,2,3]
     .iter()
-    .map(expand)
-    .toArray()
+        .map(expand)
+        .toArray()
 ```
 
 <!--

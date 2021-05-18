@@ -239,6 +239,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 
 	// NOTE: if func is instanceof Generator then it's result (iterator) 
 	// 		will be expanded...
+	// NOTE: there is no point to add generator-handler support to either 
+	// 		.filter(..)  or .reduce(..)
 	map: function*(func){
 		var i = 0
 		if(func instanceof Generator){
