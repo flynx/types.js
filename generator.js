@@ -63,6 +63,7 @@ module.Generator =
 // generic generator wrapper...
 var iter = 
 module.iter = 
+Generator.iter =
 	function*(lst=[]){
 		for(var e of lst){
 			yield e } }
