@@ -25,6 +25,12 @@ module.event = require('./event')
 module.runner = require('./runner')
 
 
+// Shorthands...
+// NOTE: this is a generic enough type to be accessible at the root...
+module.Generator = module.generator.Generator
+
+
+
 
 /**********************************************************************
 * vim:set ts=4 sw=4 :                               */ return module })
