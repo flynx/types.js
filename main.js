@@ -7,6 +7,8 @@
 (function(require){ var module={} // make module AMD/node compatible...
 /*********************************************************************/
 
+var object = require('ig-object')
+
 // Extend built-in types...
 require('./Object')
 require('./Array')
@@ -26,6 +28,7 @@ module.runner = require('./runner')
 
 
 // Shorthands...
+module.STOP = object.STOP
 // NOTE: this is a generic enough type to be accessible at the root...
 module.Generator = module.generator.Generator
 

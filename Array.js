@@ -21,6 +21,7 @@ var generator = require('./generator')
 
 // NOTE: this is used in a similar fashion to Python's StopIteration...
 var STOP =
+module.STOP =
 	object.STOP
 
 
@@ -42,7 +43,7 @@ var wrapIterFunc = function(iter){
 		} catch(err){
 			if(err === STOP){
 				return
-			} else if( err instanceof STOP){
+			} else if(err instanceof STOP){
 				return err.value }
 			throw err } } }
 

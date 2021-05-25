@@ -74,6 +74,7 @@ A library of JavaScript type extensions, types and type utilities.
     - [The basics](#the-basics)
       - [`generator.Generator`](#generatorgenerator)
       - [`generator.iter(..)`](#generatoriter)
+      - [`generator.STOP`](#generatorstop)
     - [Generator instance iteration](#generator-instance-iteration)
       - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`](#generatormap--generatorfilter--generatorreduce)
       - [`<generator>.slice(..)`](#generatorslice)
@@ -90,6 +91,15 @@ A library of JavaScript type extensions, types and type utilities.
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
       - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
+    - [Generator combinators](#generator-combinators)
+      - [`<Generator>.chain(..)` / `<generator>.chain(..)`](#generatorchain--generatorchain)
+      - [`<Generator>.concat(..)` / `<generator>.concat(..)`](#generatorconcat--generatorconcat)
+    - [Generator library](#generator-library)
+      - [`generator.range(..)`](#generatorrange)
+      - [`generator.repeat(..)`](#generatorrepeat)
+      - [`generator.produce(..)`](#generatorproduce)
+    - [Generator helpers](#generator-helpers)
+      - [`generator.stoppable(..)`](#generatorstoppable)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -1625,6 +1635,12 @@ But `Generator()` takes no arguments and thus can not be used as a wrapper
 while `.iter(..)` is designed to accept an iterable value like an array object.
 
 
+#### `generator.STOP`
+
+<!-- XXX -->
+
+
+
 ### Generator instance iteration
 
 This is a set of `Array`-like iterator methods that enable chaining of 
@@ -1648,6 +1664,22 @@ var expand = function*(n){
 var L = [1,2,3]
     .iter()
         .map(expand)
+        .toArray()
+```
+
+Throwing `STOP` form within the handler will stop generation, throwing 
+`STOP(<value>)` will yield the `<value>` then stop.
+```javascript
+var stopAt = function(n){
+    return function(e){
+        if(e == n){
+            // stop iteration yielding the value we are stopping at...
+            throw generator.STOP(e) } 
+        return e } }
+
+var L = [1,2,3,4,5]
+    .iter()
+        .map(stopAt(3))
         .toArray()
 ```
 
@@ -1897,6 +1929,124 @@ Return a function that will return a `<generator>` output as an `Array`.
 #### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
 
 <!-- XXX -->
+
+
+
+### Generator combinators
+
+<!-- XXX -->
+
+#### `<Generator>.chain(..)` / `<generator>.chain(..)`
+
+```bnf
+<Generator>.chain(<Generator>, ..)
+    -> <Generator>
+    
+<generator>.chain(<Generator>, ..)
+    -> <generator>
+```
+<!-- XXX -->
+
+```javascript
+// double each element...
+var x2 = generator.iter
+    .map(function(e){ return e * 2 })
+
+generator.range(0, 100).chain(x2)
+```
+
+#### `<Generator>.concat(..)` / `<generator>.concat(..)` 
+
+Concatenate the results from generators
+```bnf
+<Generator>.concat(<Generator>, ..)
+    -> <Generator>
+    
+<generator>.concat(<generator>, ..)
+    -> <generator>
+```
+
+
+<!-- XXX Example -->
+
+
+<!-- XXX
+#### generator.zip(..) / `<Generator>.zip(..)` / `<generator>.zip(..)` 
+-->
+
+<!-- XXX
+#### `<Generator>.tee(..)` / `<generator>.tee(..)` 
+-->
+
+
+
+### Generator library
+
+#### `generator.range(..)`
+
+Create a generator yielding a range of numbers
+```bnf
+range()
+range(<to>)
+range(<from>, <to>)
+range(<from>, <to>, <step>)
+    -> <generator>
+```
+
+<!-- XXX examples... -->
+
+
+#### `generator.repeat(..)`
+
+Create a generator repeatedly yielding `<value>`
+```bnf
+repeat()
+repeat(<value>)
+repeat(<value>, <stop>)
+    -> <generator>
+
+<stop>(<value>)
+    -> <bool>
+```
+
+If no value is given `true` is yielded by default.
+
+`<stop>` if given will be called with each `<value>` before it is yielded and 
+if it returns `false` the iteration is stopped.
+
+<!-- XXX examples... -->
+
+
+#### `generator.produce(..)`
+
+Create a generator calling a function to produce yielded values
+```bnf
+produce()
+produce(<func>)
+    -> <generator>
+
+<func>()
+    -> <value>
+```
+
+`<func>(..)` can `throw` `STOP` or `STOP(<value>)` to stop production at any time.
+
+<!-- XXX examples... -->
+
+
+
+### Generator helpers
+
+#### `generator.stoppable(..)`
+
+Wrap function/generator adding support for stopping mid-iteration by throwing `STOP`.
+
+```bnf
+stoppable(<generator>)
+    -> <generator>
+```
+
+<!-- XXX example? -->
 
 
 

@@ -12,7 +12,15 @@ var object = require('ig-object')
 
 
 /*********************************************************************/
-// The generator hirearchy in JS is a bit complicated.
+
+// NOTE: this is used in a similar fashion to Python's StopIteration...
+var STOP =
+module.STOP =
+	object.STOP
+
+
+//---------------------------------------------------------------------
+// The generator hierarchy in JS is a bit complicated.
 //
 // Consider the following:
 //
@@ -93,35 +101,76 @@ Generator.iter =
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // Helpers...
 
+//
+// 	makeGenerator(<name>)
+// 		-> <func>
+//
+// 	makeGenerator(<name>, <handler>)
+// 		-> <func>
+//
+//
+// 	<func>(...args)
+// 		-> <Generator>
+//
+// 	<Generator>(...inputs)
+// 		-> <generator>
+//
+// 	<handler>(args, ...inputs)
+// 		-> args
+//
+//
 // XXX this needs to be of the correct type... (???)
 // XXX need to accept generators as handlers...
-var makeGenerator = function(name){
+var makeGenerator = function(name, pre){
 	return function(...args){
 		var that = this
 		return Object.assign(
 			function*(){
-				// XXX need to accept generator as handler (i.e. args[0] instanceof Generator)...
-				/*/ XXX EXPERIMENTAL...
-				if(args[0] instanceof Generator){
-					yield* that(...arguments)[name](...args)
-						.map(function(g){ 
-							return [...g] })
-						.flat()
-					return }
-				//*/
-				yield* that(...arguments)[name](...args) }, 
+				var a = pre ? 
+					pre.call(this, args, ...arguments)
+					: args
+				yield* that(...arguments)[name](...a) }, 
 			{ toString: function(){
 				return [
 					that.toString(), 
 					// XXX need to normalize args better...
 					`.${ name }(${ args.join(', ') })`,
 				].join('\n    ') }, }) } }
+
 // XXX do a better doc...
 var makePromise = function(name){
 	return function(...args){
 		var that = this
 		return function(){
 			return that(...arguments)[name](func) } } }
+
+
+var stoppable = 
+module.stoppable =
+function(func){
+	return Object.assign(
+		func instanceof Generator ?
+			function*(){
+				try{
+					yield* func.call(this, ...arguments)
+				} catch(err){
+					if(err === STOP){
+						return
+					} else if(err instanceof STOP){
+						yield err.value 
+						return }
+					throw err } }
+			: function(){
+				try{
+					return func.call(this, ...arguments)
+				} catch(err){
+					if(err === STOP){
+						return
+					} else if(err instanceof STOP){
+						return err.value }
+					throw err } },
+		{ toString: function(){
+			return func.toString() }, }) }
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -183,6 +232,20 @@ object.Mixin('GeneratorMixin', 'soft', {
 	then: makePromise('then'),
 	catch: makePromise('catch'),
 	finally: makePromise('finally'),
+
+	// combinators...
+	//
+	chain: makeGenerator('chain'),
+	concat: makeGenerator('concat', 
+		// initialize arguments...
+		function(next, ...args){
+			return next
+				.map(function(e){
+					return (e instanceof Generator
+							|| typeof(e) == 'function') ?
+						e(...args)
+						: e }) }),
+	//zip: makeGenerator('zip'),
 })
 
 
@@ -242,24 +305,24 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// 		will be expanded...
 	// NOTE: there is no point to add generator-handler support to either 
 	// 		.filter(..)  or .reduce(..)
-	map: function*(func){
+	map: stoppable(function*(func){
 		var i = 0
 		if(func instanceof Generator){
 			for(var e of this){
 				yield* func(e, i++, this) } 
 		} else {
 			for(var e of this){
-				yield func(e, i++, this) } } },
-	filter: function*(func){
+				yield func(e, i++, this) } } }),
+	filter: stoppable(function*(func){
 		var i = 0
 		for(var e of this){
 			if(func(e, i++, this)){
-				yield e } } },
-	reduce: function*(func, res){
+				yield e } } }),
+	reduce: stoppable(function*(func, res){
 		var i = 0
 		for(var e of this){
 			res = func(res, e, i++, this) }
-		yield res },
+		yield res }),
 
 	pop: function(){
 		return [...this].pop() },
@@ -291,13 +354,64 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	finally: function(func){
 		return this.promise().finally(func) },
 
+	// combinators...
+	//
+	chain: function*(...next){
+		yield* next
+			.reduce(function(cur, next){
+				return next(cur) }, this) },
+	concat: function*(...next){
+		yield* this
+		for(var e of next){
+			yield* e } },
 
 	// XXX EXPERIMENTAL...
+	/* XXX not sure how to do this yet...
+	tee: function*(...next){
+		// XXX take the output of the current generator and feed it into 
+		// 		each of the next generators... (???)
+	},
+	zip: function*(...items){
+		// XXX
+	},
+	//*/
 })
 
 
 GeneratorMixin(GeneratorPrototype)
 GeneratorProtoMixin(GeneratorPrototype.prototype)
+
+
+//---------------------------------------------------------------------
+// Generators...
+
+// NOTE: step can be 0, this will repeat the first element infinitely...
+var range =
+module.range =
+function*(from, to, step){
+	if(to == null){
+		to = from
+		from = 0 }
+	step = step ?? (from > to ? -1 : 1)
+	while(step > 0 ? 
+			from < to 
+			: from > to){
+		yield from 
+		from += step } }
+
+
+var repeat =
+module.repeat =
+function*(value=true, stop){
+	while( typeof(stop) == 'function' && stop(value) ){
+		yield value } }
+
+
+var produce =
+module.produce =
+stoppable(function*(func){
+	while(true){
+		yield func() } })
 
 
 
