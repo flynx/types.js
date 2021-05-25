@@ -29,14 +29,14 @@ module.STOP =
 //---------------------------------------------------------------------
 // Mixins...
 
-// Equivalent to .map(..) / .filter(..) / .reduce(..) / .. with support for
-// STOP...
+// Wrap .map(..) / .filter(..) / .reduce(..) / .. to support STOP...
 // 
 // NOTE: these add almost no overhead to the iteration.
 // NOTE: these will not return a partial result if stopped.
 // 
-// XXX should these return a partial result on STOP?
-var wrapIterFunc = function(iter){
+/*/ XXX should these return a partial result on STOP?
+// 		...use generators to do this...
+var stoppable = function(iter){
 	return function(func){
 		try {
 			return this[iter](...arguments)
@@ -46,6 +46,17 @@ var wrapIterFunc = function(iter){
 			} else if(err instanceof STOP){
 				return err.value }
 			throw err } } }
+/*/
+var stoppableList = function(iter){
+	return function(func){
+		return [...this.iter()[iter](...arguments)] } }
+var stoppableValue = function(iter, no_return=false){
+	return function(func){
+		var res = this.iter()[iter](...arguments) 
+		return no_return ?
+			undefined
+			: res } }
+//*/
 
 
 // Equivalent to .map(..) / .filter(..) / .reduce(..) that process the 
@@ -493,10 +504,10 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 
 	// Stoppable iteration...
 	//
-	smap: wrapIterFunc('map'),
-	sfilter: wrapIterFunc('filter'),
-	sreduce: wrapIterFunc('reduce'),
-	sforEach: wrapIterFunc('forEach'),
+	smap: stoppableList('map'),
+	sfilter: stoppableList('filter'),
+	sreduce: stoppableValue('reduce'),
+	sforEach: stoppableValue('map', true),
 
 	// Chunk iteration...
 	//

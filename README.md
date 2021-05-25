@@ -76,7 +76,8 @@ A library of JavaScript type extensions, types and type utilities.
       - [`generator.iter(..)`](#generatoriter)
       - [`generator.STOP`](#generatorstop)
     - [Generator instance iteration](#generator-instance-iteration)
-      - [`<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`](#generatormap--generatorfilter--generatorreduce)
+      - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
+      - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
       - [`<generator>.slice(..)`](#generatorslice)
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
@@ -1650,7 +1651,7 @@ Chained generators handle items depth-first, i.e. the items are passed as they
 are yielded down the generator chain.
 
 
-#### `<generator>.map(..)` / `<generator>.filter(..)` / `<generator>.reduce(..)`
+#### `<generator>.map(..)` / `<generator>.filter(..)` 
 
 Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
 generators that yield the handler return values.
@@ -1682,6 +1683,9 @@ var L = [1,2,3,4,5]
         .map(stopAt(3))
         .toArray()
 ```
+
+
+#### `<generator>.reduce(..)` / `<generator>.greduce(..)`
 
 <!--
 XXX .reduce(..) can return a non-iterable -- test and document this case...
@@ -1910,7 +1914,7 @@ but returning a reusable `<Generator>`.
 #### `<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`
 
 Counterparts to `<generator>`'s 
-[`.map(..)` and friends](#generatormap--generatorfilter--generatorreduce) and 
+[`.map(..)`, `.filter(..)`](#generatormap--generatorfilter), [`.reduce(..)`/`.greduce(..)`](#generatorreduce--generatorgreduce) and 
 [`.flat(..)`](#generatorflat) 
 but return a `<Generator>`.
 

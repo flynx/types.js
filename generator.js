@@ -157,7 +157,7 @@ function(func){
 					if(err === STOP){
 						return
 					} else if(err instanceof STOP){
-						yield err.value 
+						yield err.value
 						return }
 					throw err } }
 			: function(){
@@ -305,24 +305,36 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// 		will be expanded...
 	// NOTE: there is no point to add generator-handler support to either 
 	// 		.filter(..)  or .reduce(..)
-	map: stoppable(function*(func){
-		var i = 0
-		if(func instanceof Generator){
-			for(var e of this){
-				yield* func(e, i++, this) } 
-		} else {
-			for(var e of this){
-				yield func(e, i++, this) } } }),
+	map: stoppable(
+		function*(func){
+			var i = 0
+			if(func instanceof Generator){
+				for(var e of this){
+					yield* func(e, i++, this) } 
+			} else {
+				for(var e of this){
+					yield func(e, i++, this) } } }),
 	filter: stoppable(function*(func){
-		var i = 0
-		for(var e of this){
-			if(func(e, i++, this)){
-				yield e } } }),
-	reduce: stoppable(function*(func, res){
+			var i = 0
+			try{
+				for(var e of this){
+					if(func(e, i++, this)){
+						yield e } } 
+			// normalize the stop value...
+			} catch(err){
+				if(err instanceof STOP){
+					if(!err.value){
+						throw STOP }
+					err.value = e }
+				throw err } }),
+
+	reduce: stoppable(function(func, res){
 		var i = 0
 		for(var e of this){
 			res = func(res, e, i++, this) }
-		yield res }),
+		return res }),
+	greduce: function*(func, res){
+		yield this.reduce(...arguments) },
 
 	pop: function(){
 		return [...this].pop() },
