@@ -31,22 +31,7 @@ module.STOP =
 
 // Wrap .map(..) / .filter(..) / .reduce(..) / .. to support STOP...
 // 
-// NOTE: these add almost no overhead to the iteration.
-// NOTE: these will not return a partial result if stopped.
-// 
-/*/ XXX should these return a partial result on STOP?
-// 		...use generators to do this...
-var stoppable = function(iter){
-	return function(func){
-		try {
-			return this[iter](...arguments)
-		} catch(err){
-			if(err === STOP){
-				return
-			} else if(err instanceof STOP){
-				return err.value }
-			throw err } } }
-/*/
+// NOTE: internally these are implemented as for-of loops...
 var stoppableList = function(iter){
 	return function(func){
 		return [...this.iter()[iter](...arguments)] } }
@@ -56,7 +41,6 @@ var stoppableValue = function(iter, no_return=false){
 		return no_return ?
 			undefined
 			: res } }
-//*/
 
 
 // Equivalent to .map(..) / .filter(..) / .reduce(..) that process the 
@@ -504,6 +488,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 
 	// Stoppable iteration...
 	//
+	// NOTE: internally these are generators...
 	smap: stoppableList('map'),
 	sfilter: stoppableList('filter'),
 	sreduce: stoppableValue('reduce'),

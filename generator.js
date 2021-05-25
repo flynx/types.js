@@ -178,6 +178,7 @@ function(func){
 var GeneratorMixin =
 module.GeneratorMixin =
 object.Mixin('GeneratorMixin', 'soft', {
+	STOP: object.STOP,
 
 	gat: makeGenerator('gat'),
 	at: function(i){
