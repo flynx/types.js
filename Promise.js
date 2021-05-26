@@ -80,25 +80,28 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.sort(..)
 	// XXX should these support STOP???
 	map: function(func){
-		return this.constructor(this.__list, function(e){
-			return [func(e)] }) },
-	filter: function(func){
-		return this.constructor(this.__list, function(e){
-			return func(e) ? 
-				[e] 
-				: [] }) },
-	reduce: function(func, res){
 		return this.constructor(this.__list, 
 			function(e){
-				res = func(res, e)
-				return [] })
+				return [func(e)] }) },
+	filter: function(func){
+		return this.constructor(this.__list, 
+			function(e){
+				return func(e) ? 
+					[e] 
+					: [] }) },
+	reduce: function(func, res){
+		return this.constructor(this.__list, 
+				function(e){
+					res = func(res, e)
+					return [] })
 			.then(function(){ 
 				return res }) },
 	flat: function(depth=1){
-		return this.constructor(this.__list, function(e){ 
-			return (e && e.flat) ? 
-				e.flat(depth) 
-				: e }) },
+		return this.constructor(this.__list, 
+			function(e){ 
+				return (e && e.flat) ? 
+					e.flat(depth) 
+					: e }) },
 
 
 	// XXX do we need:
@@ -173,7 +176,15 @@ object.Constructor('IterablePromise', Promise, {
 	// XXX if list is an iterator, can we fill this async???
 	// XXX iterator/generator as input:
 	// 		- do we unwind here or externally?
-	// 			...feels like with the generator external unwinding is needed...
+	// 			...feels like with the generator external unwinding is 
+	// 			needed...
+	// XXX would be nice to support trowing STOP...
+	// 		- this is more complicated than simply suing .smap(..) instead 
+	// 			of .map(..) because the list can contain async promises...
+	// 			...would need to wrap each .then(..) call in try-catch and
+	// 			manually handle the stop...
+	// 		- another issue here is that the stop would happen in order of 
+	// 			execution and not order of elements...
 	__new__: function(_, list, handler){
 		var promise
 
@@ -197,6 +208,7 @@ object.Constructor('IterablePromise', Promise, {
 			list =
 				// apply the handler...
 				handler ?
+					// XXX can we handle STOP here???
 					list.map(function(block){
 						return (block instanceof Array ? 
 								block 

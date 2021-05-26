@@ -1,6 +1,6 @@
 # types.js
 
-A library of JavaScript type extensions, types and type utilities.
+Library of JavaScript type extensions, types and utilities.
 
 - [types.js](#typesjs)
   - [Installation](#installation)
@@ -128,8 +128,8 @@ A library of JavaScript type extensions, types and type utilities.
     - [`event.EventMixin`](#eventeventmixin)
   - [Runner](#runner)
     - [Micro task queue](#micro-task-queue)
-      - [`STOP`](#stop)
-      - [`SKIP`](#skip)
+      - [`runner.STOP`](#runnerstop)
+      - [`runner.SKIP`](#runnerskip)
       - [`Queue(..)` / `Queue.runTasks(..)`](#queue--queueruntasks)
       - [`Queue.handle(..)`](#queuehandle)
       - [`<queue>.state`](#queuestate)
@@ -2299,12 +2299,12 @@ var runner = require('ig-types/runner')
 
 This includes [`event.EventMixin`](#eventeventmixin).
 
-#### `STOP`
+#### `runner.STOP`
 
 <!-- XXX -->
 
 
-#### `SKIP`
+#### `runner.SKIP`
 
 <!-- XXX -->
 
