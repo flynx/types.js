@@ -31,7 +31,7 @@ module.STOP =
 
 // Wrap .map(..) / .filter(..) / .reduce(..) / .. to support STOP...
 // 
-// NOTE: internally these are implemented as for-of loops...
+// NOTE: internally these are implemented as for-of loops (./generator.js)
 var stoppableList = function(iter){
 	return function(func){
 		return [...this.iter()[iter](...arguments)] } }

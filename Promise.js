@@ -28,9 +28,21 @@
 
 var object = require('ig-object')
 
+// XXX required for STOP...
+//var generator = require('./generator')
 
 
 /*********************************************************************/
+
+/* XXX not used yet...
+// NOTE: this is used in a similar fashion to Python's StopIteration...
+var STOP =
+module.STOP =
+	object.STOP
+//*/
+
+
+//---------------------------------------------------------------------
 // Iterable promise...
 // 
 // Like Promise.all(..) but adds ability to iterate through results
@@ -40,6 +52,9 @@ var object = require('ig-object')
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
+	// XXX
+	//STOP: object.STOP,
+
 	//
 	// Format:
 	// 	[
@@ -202,6 +217,7 @@ object.Constructor('IterablePromise', Promise, {
 			IterablePromise)
 
 		if(promise){
+			//var __stop = false
 			// apply handler(..) to the list...
 			//
 			// NOTE: the top level promises are not wrapped in arrays...
@@ -209,10 +225,21 @@ object.Constructor('IterablePromise', Promise, {
 				// apply the handler...
 				handler ?
 					// XXX can we handle STOP here???
+					// 		...we will not be able to stop already started 
+					// 		promises...
 					list.map(function(block){
+						//* XXX STOP...
 						return (block instanceof Array ? 
 								block 
 								: [block])
+						/*/
+						// NOTE: we are not using Array's .iter() so as to
+						// 		keep the dependency minimal...
+						return generator.iter(
+								block instanceof Array ? 
+									block 
+									: [block])
+						//*/
 							.map(function(e){
 								// NOTE: we are counting actual expanded 
 								// 		values and not the "blocks"...
@@ -223,6 +250,8 @@ object.Constructor('IterablePromise', Promise, {
 									// basic value...
 									: handler(e) }) })
 						.flat()
+						// XXX STOP
+						//.toArray()
 				// normal constructor...
 				: handler === undefined ?
 					list.map(function(e){ 
