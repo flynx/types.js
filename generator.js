@@ -66,7 +66,17 @@ module.Generator =
 	(function*(){}).constructor
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// base iterator prototypes...
+var ITERATOR_PROTOTYPES = [
+	Array,
+	Set,
+	Map,
+].map(function(e){ 
+	return (new e()).values().__proto__ })
+
+
+
+//---------------------------------------------------------------------
 
 // generic generator wrapper...
 var iter = 
@@ -393,6 +403,13 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 
 GeneratorMixin(GeneratorPrototype)
 GeneratorProtoMixin(GeneratorPrototype.prototype)
+
+
+// Extend base iterators...
+ITERATOR_PROTOTYPES
+	.forEach(function(proto){
+		GeneratorProtoMixin(proto) })
+
 
 
 //---------------------------------------------------------------------

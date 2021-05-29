@@ -1582,6 +1582,12 @@ terminology to reference different levels of API's:
     In the above example `iter` is a generator instance.
 
 
+Iterators and generators are similar but not the same. Some objects like `Array`'s, 
+`Map`'s and `Set`'s provide a number of generic iterators that are not implemented 
+as generators. These objects are also extended by `ig-types/generator` to match the 
+`<generator>` object API defined below.
+
+
 
 #### `generator.Generator`
 
