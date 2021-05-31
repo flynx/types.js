@@ -85,6 +85,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
+    - [Treating iterators the same as generators](#treating-iterators-the-same-as-generators)
     - [Generator constructor iteration](#generator-constructor-iteration)
       - [`<Generator>.at(..)` / `<Generator>.gat(..)`](#generatorat--generatorgat-1)
       - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop-1)
@@ -1805,6 +1806,23 @@ Unwind a generator into an array
 ```
 
 This is equivalent to `[...<generator>]` but more suited for the concatenative style.
+
+
+### Treating iterators the same as generators
+
+Most _iterator_ methods of `Array`, `Set` and `Map` are extended with the same
+API supported by the [`<generator>`](#generator-instance-iteration), so 
+effectively most built-in iterator methods can be transparently treated as 
+generators.
+
+```javascript
+// this will generate: [1, 4, 9]
+var L = [ ...[1, 2, 3]
+    // Note that this is implemented as an iterator in JS and not a generator...
+    .values()
+    .map(function(e){
+        return e * e }) ]
+```
 
 
 ### Generator constructor iteration
