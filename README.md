@@ -893,10 +893,15 @@ require('ig-types/Set')
 Replace value in set with other value retaining item order
 ```bnf
 <set>.replace(<old>, <new>)
-    -> <union-set>
+    -> <set>
 ```
 
-Note that this might not be cheap for very large sets.
+This might not be cheap for very large sets, to simply replace 
+the value without sorting use:
+```bnf
+<set>.replace(<old>, <new>, false)
+    -> <set>
+```
 
 
 ### `<set>.unite(..)`
