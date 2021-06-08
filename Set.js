@@ -54,10 +54,23 @@ object.Mixin('SetMixin', 'soft', {
 			var order = [...this]
 			// XXX is this fast enough???
 			order[order.lastIndexOf(old)] = value }
-
+		// replace...
 		this.delete(old)
 		this.add(value)
-
+		ordered
+			&& this.sort(order)
+		return this },
+	replaceIndex: function(index, value, ordered=true){
+		// nothing to do...
+		if(this.size < index || old === value){
+			return this }
+		var order = [...this]
+		var old = order[index]
+		ordered
+			&& (order[index] = value)
+		// replace...
+		this.delete(old)
+		this.add(value)
 		ordered
 			&& this.sort(order)
 		return this },

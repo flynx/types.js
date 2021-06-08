@@ -39,6 +39,7 @@ Library of JavaScript type extensions, types and utilities.
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
     - [`<set>.replace(..)`](#setreplace)
+    - [`<set>.replaceIndex(..)`](#setreplaceindex)
     - [`<set>.unite(..)`](#setunite)
     - [`<set>.intersect(..)`](#setintersect)
     - [`<set>.subtract(..)`](#setsubtract)
@@ -896,12 +897,32 @@ Replace value in set with other value retaining item order
     -> <set>
 ```
 
-This might not be cheap for very large sets, to simply replace 
-the value without sorting use:
+Replace the value without sorting
 ```bnf
 <set>.replace(<old>, <new>, false)
     -> <set>
 ```
+
+Note that when sorting large sets this can get expensive.
+
+
+
+### `<set>.replaceIndex(..)`
+
+Replace item at position in set retaining order
+```bnf
+<set>.replace(<old>, <new>)
+    -> <set>
+```
+
+Replace the value at index without sorting
+```bnf
+<set>.replace(<old>, <new>, false)
+    -> <set>
+```
+
+Note that when sorting large sets this can get expensive.
+
 
 
 ### `<set>.unite(..)`
