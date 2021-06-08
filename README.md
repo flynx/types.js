@@ -40,7 +40,7 @@ Library of JavaScript type extensions, types and utilities.
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
     - [`<set>.replace(..)`](#setreplace)
-    - [`<set>.replaceIndex(..)`](#setreplaceindex)
+    - [`<set>.replaceAt(..)`](#setreplaceat)
     - [`<set>.unite(..)`](#setunite)
     - [`<set>.intersect(..)`](#setintersect)
     - [`<set>.subtract(..)`](#setsubtract)
@@ -926,7 +926,7 @@ Note that when sorting large sets this can get expensive.
 
 
 
-### `<set>.replaceIndex(..)`
+### `<set>.replaceAt(..)`
 
 Replace item at position in set retaining order
 ```bnf

@@ -60,7 +60,7 @@ object.Mixin('SetMixin', 'soft', {
 		ordered
 			&& this.sort(order)
 		return this },
-	replaceIndex: function(index, value, ordered=true){
+	replaceAt: function(index, value, ordered=true){
 		// nothing to do...
 		if(this.size < index || old === value){
 			return this }
