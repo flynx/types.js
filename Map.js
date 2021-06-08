@@ -40,6 +40,20 @@ object.Mixin('MapProtoMixin', 'soft', {
 					del(k)
 					set(k, v) } }.bind(this))
 		return this },
+
+	replaceKey: function(old, key, ordered=true){
+		if(!this.has(old)){
+			return this }
+		if(ordered){
+			var order = [...this.keys()]
+			order[order.lastIndexOf(old)] = key }
+		// replace...
+		var value = this.get(old)
+		this.delete(old)
+		this.set(key, value)
+		ordered
+			&& this.sort(order)
+		return this },
 })
 
 

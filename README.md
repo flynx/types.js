@@ -36,6 +36,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<array>.CHUNK_SIZE`](#arraychunk_size)
       - [`<array>.mapChunks(..)` / `<array>.filterChunks(..)` / `<array>.reduceChunks(..)`](#arraymapchunks--arrayfilterchunks--arrayreducechunks)
   - [`Map`](#map)
+    - [`<map>.replaceKey(..)`](#mapreplacekey)
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
     - [`<set>.replace(..)`](#setreplace)
@@ -856,6 +857,24 @@ but before the timeout.
 ```javascript
 require('ig-types/Map')
 ```
+
+
+### `<map>.replaceKey(..)`
+
+Replace key in map retaining item order
+```bnf
+<map>.replaceKey(<old>, <new>)
+    -> <map>
+```
+
+Replace the key without sorting
+```bnf
+<map>.replaceKey(<old>, <new>, false)
+    -> <map>
+```
+
+Note that when sorting large maps this can get expensive.
+
 
 
 ### `<map>.sort(..)`
