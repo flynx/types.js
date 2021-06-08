@@ -38,6 +38,7 @@ Library of JavaScript type extensions, types and utilities.
   - [`Map`](#map)
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
+    - [`<set>.replace(..)`](#setreplace)
     - [`<set>.unite(..)`](#setunite)
     - [`<set>.intersect(..)`](#setintersect)
     - [`<set>.subtract(..)`](#setsubtract)
@@ -885,6 +886,17 @@ see the later for more info.
 ```javascript
 require('ig-types/Set')
 ```
+
+
+### `<set>.replace(..)`
+
+Replace value in set with other value retaining item order
+```bnf
+<set>.replace(<old>, <new>)
+    -> <union-set>
+```
+
+Note that this might not be cheap for very large sets.
 
 
 ### `<set>.unite(..)`
