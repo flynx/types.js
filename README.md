@@ -864,6 +864,7 @@ require('ig-types/Map')
 Replace key in map retaining item order
 ```bnf
 <map>.replaceKey(<old>, <new>)
+<map>.replaceKey(<old>, <new>, true)
     -> <map>
 ```
 
@@ -913,6 +914,7 @@ require('ig-types/Set')
 Replace value in set with other value retaining item order
 ```bnf
 <set>.replace(<old>, <new>)
+<set>.replace(<old>, <new>, true)
     -> <set>
 ```
 
@@ -930,15 +932,23 @@ Note that when sorting large sets this can get expensive.
 
 Replace item at position in set retaining order
 ```bnf
-<set>.replace(<old>, <new>)
+<set>.replaceAt(<index>, <new>)
+<set>.replaceAt(<index>, <new>, true)
     -> <set>
 ```
 
+If `<index>` is less than `0` the `<new>` item will be prepended to `<set>`,
+if the `<index>` is greater than or equal to `<set>.size` then `<new>` is 
+appended.
+
 Replace the value at index without sorting
 ```bnf
-<set>.replace(<old>, <new>, false)
+<set>.replaceAt(<index>, <new>, false)
     -> <set>
 ```
+
+Here, if `<index>` is less than `0` or greater than or equal to `<set>.size`
+`<new>` will always be appended to `<set>`.
 
 Note that when sorting large sets this can get expensive.
 

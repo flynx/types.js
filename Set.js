@@ -60,17 +60,33 @@ object.Mixin('SetMixin', 'soft', {
 		ordered
 			&& this.sort(order)
 		return this },
+	// NOTE: if index is <0 then the value is prepended to the set, if 
+	// 		it's >=this.size then the value will be appended.
+	// 		if ordered is set to false in both cases the value is appended.
 	replaceAt: function(index, value, ordered=true){
-		// nothing to do...
-		if(this.size < index || old === value){
+		// append...
+		if(index >= this.size){
+			this.add(value)
 			return this }
-		var order = [...this]
-		var old = order[index]
+		// prepend...
+		if(index < 0){
+			index = 0
+			var order = [, ...this]
+		// replace...
+		} else {
+			var order = [...this]
+			var old = order[index] 
+			// nothing to do...
+			if(old === value){
+				return this } }
 		ordered
 			&& (order[index] = value)
+
 		// replace...
-		this.delete(old)
+		this.has(old)
+			&& this.delete(old)
 		this.add(value)
+
 		ordered
 			&& this.sort(order)
 		return this },
