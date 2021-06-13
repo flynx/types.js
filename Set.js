@@ -63,6 +63,7 @@ object.Mixin('SetMixin', 'soft', {
 	// NOTE: if index is <0 then the value is prepended to the set, if 
 	// 		it's >=this.size then the value will be appended.
 	// 		if ordered is set to false in both cases the value is appended.
+	// XXX should this be implemented via .splice(..) ???
 	replaceAt: function(index, value, ordered=true){
 		// append...
 		if(index >= this.size){
@@ -90,6 +91,18 @@ object.Mixin('SetMixin', 'soft', {
 		ordered
 			&& this.sort(order)
 		return this },
+
+	splice: function(from, count, ...items){
+		var that = this
+		var order = [...this]
+		var removed = order.splice(...arguments)
+
+		// update the set...
+		removed.forEach(this.delete.bind(this))
+		items.forEach(this.add.bind(this))
+		this.sort(order) 
+
+		return removed },
 })
 
 

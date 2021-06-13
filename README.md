@@ -39,11 +39,12 @@ Library of JavaScript type extensions, types and utilities.
     - [`<map>.replaceKey(..)`](#mapreplacekey)
     - [`<map>.sort(..)`](#mapsort)
   - [`Set`](#set)
-    - [`<set>.replace(..)`](#setreplace)
-    - [`<set>.replaceAt(..)`](#setreplaceat)
     - [`<set>.unite(..)`](#setunite)
     - [`<set>.intersect(..)`](#setintersect)
     - [`<set>.subtract(..)`](#setsubtract)
+    - [`<set>.splice(..)`](#setsplice)
+    - [`<set>.replace(..)`](#setreplace)
+    - [`<set>.replaceAt(..)`](#setreplaceat)
     - [`<set>.sort(..)`](#setsort)
   - [`Date`](#date)
     - [`Date.timeStamp(..)`](#datetimestamp)
@@ -909,51 +910,6 @@ require('ig-types/Set')
 ```
 
 
-### `<set>.replace(..)`
-
-Replace value in set with other value retaining item order
-```bnf
-<set>.replace(<old>, <new>)
-<set>.replace(<old>, <new>, true)
-    -> <set>
-```
-
-Replace the value without sorting
-```bnf
-<set>.replace(<old>, <new>, false)
-    -> <set>
-```
-
-Note that when sorting large sets this can get expensive.
-
-
-
-### `<set>.replaceAt(..)`
-
-Replace item at position in set retaining order
-```bnf
-<set>.replaceAt(<index>, <new>)
-<set>.replaceAt(<index>, <new>, true)
-    -> <set>
-```
-
-If `<index>` is less than `0` the `<new>` item will be prepended to `<set>`,
-if the `<index>` is greater than or equal to `<set>.size` then `<new>` is 
-appended.
-
-Replace the value at index without sorting
-```bnf
-<set>.replaceAt(<index>, <new>, false)
-    -> <set>
-```
-
-Here, if `<index>` is less than `0` or greater than or equal to `<set>.size`
-`<new>` will always be appended to `<set>`.
-
-Note that when sorting large sets this can get expensive.
-
-
-
 ### `<set>.unite(..)`
 
 Unite two sets and return the resulting set
@@ -983,9 +939,67 @@ Subtract `<other>` from set and return resulting set
 ```
 
 
+### `<set>.splice(..)`
+
+In-place splice a set
+```bnf
+<set>.splice(<from>)
+<set>.splice(<from>, <count>)
+<set>.splice(<from>, <count>, ...<items>)
+    -> <removed>
+```
+
+This is the same as 
+[`<array>.splice(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice) 
+but without the ability to add more than one instance of an item.
+
+
+### `<set>.replace(..)`
+
+Replace value in set with other value retaining item order (in-place)
+```bnf
+<set>.replace(<old>, <new>)
+<set>.replace(<old>, <new>, true)
+    -> <set>
+```
+
+Replace the value without sorting
+```bnf
+<set>.replace(<old>, <new>, false)
+    -> <set>
+```
+
+Note that when sorting large sets this can get expensive.
+
+
+### `<set>.replaceAt(..)`
+
+Replace item at position in set retaining order (in-place)
+```bnf
+<set>.replaceAt(<index>, <new>)
+<set>.replaceAt(<index>, <new>, true)
+    -> <set>
+```
+
+If `<index>` is less than `0` the `<new>` item will be prepended to `<set>`,
+if the `<index>` is greater than or equal to `<set>.size` then `<new>` is 
+appended.
+
+Replace the value at index without sorting
+```bnf
+<set>.replaceAt(<index>, <new>, false)
+    -> <set>
+```
+
+Here, if `<index>` is less than `0` or greater than or equal to `<set>.size`
+`<new>` will always be appended to `<set>`.
+
+Note that when sorting large sets this can get expensive.
+
+
 ### `<set>.sort(..)`
 
-Sort `<set>` keys in-place
+Sort `<set>` (in-place)
 ```bnf
 <set>.sort()
     -> <set>
@@ -1003,9 +1017,9 @@ as a list
     -> <set>
 ```
 
-
 This is similar to [`<map>.sort(..)`](#mapsort) and [`Object.sort(..)`](#objectsort),
 see the later for more info.
+
 
 
 ## `Date`
