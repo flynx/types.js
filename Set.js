@@ -92,6 +92,9 @@ object.Mixin('SetMixin', 'soft', {
 			&& this.sort(order)
 		return this },
 
+	// XXX do we need this???
+	// 		...should this be enough???
+	// 			new Set([...set].splice(..))
 	splice: function(from, count, ...items){
 		var that = this
 		var order = [...this]
