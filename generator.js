@@ -279,7 +279,7 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// NOTE: this is different from Array's .slice(..) in that it does not 
 	// 		support negative indexes -- this is done because there is no way 
 	// 		to judge the length of a generator until it is fully done...
-	slice: function*(from=0, to=Infity){
+	slice: function*(from=0, to=Infinity){
 		// sanity check...
 		if(from < 0 || to < 0){
 			throw new Error('.slice(..): '
