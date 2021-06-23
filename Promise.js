@@ -117,6 +117,9 @@ object.Constructor('IterablePromise', Promise, {
 				return (e && e.flat) ? 
 					e.flat(depth) 
 					: e }) },
+	// XXX do we need this???
+	//iter: function(){
+	//	return this },
 
 
 	// XXX do we need:

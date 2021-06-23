@@ -190,6 +190,10 @@ module.GeneratorMixin =
 object.Mixin('GeneratorMixin', 'soft', {
 	STOP: object.STOP,
 
+	// NOTE: this is here for compatibility with Array.iter(..)
+	iter: function*(lst=[]){
+		yield* module.iter(lst) },
+
 	gat: makeGenerator('gat'),
 	at: function(i){
 		var that = this
@@ -263,6 +267,10 @@ object.Mixin('GeneratorMixin', 'soft', {
 var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
+	// NOTE: this is here for compatibility with [..].iter()
+	iter: function*(){ 
+		yield* this },
+
 	at: function(i){
 		return this.gat(i).next().value },
 	// XXX this needs the value to be iterable... why???

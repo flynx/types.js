@@ -80,6 +80,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`generator.iter(..)`](#generatoriter)
       - [`generator.STOP`](#generatorstop)
     - [Generator instance iteration](#generator-instance-iteration)
+      - [`<generator>.iter()`](#generatoriter-1)
       - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
       - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
       - [`<generator>.slice(..)`](#generatorslice)
@@ -91,6 +92,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.toArray()`](#generatortoarray)
     - [Treating iterators the same as generators](#treating-iterators-the-same-as-generators)
     - [Generator constructor iteration](#generator-constructor-iteration)
+      - [`<Generator>.iter(..)`](#generatoriter-2)
       - [`<Generator>.at(..)` / `<Generator>.gat(..)`](#generatorat--generatorgat-1)
       - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop-1)
       - [`<Generator>.slice(..)`](#generatorslice-1)
@@ -1739,6 +1741,17 @@ Chained generators handle items depth-first, i.e. the items are passed as they
 are yielded down the generator chain.
 
 
+#### `<generator>.iter()`
+
+Iterate over the generator.
+```bnf
+<generator>.iter()
+    -> <generator>
+```
+
+This is here mainly for compatibility with [`<array>`'s `.iter()`](#arrayiter--arrayiter).
+
+
 #### `<generator>.map(..)` / `<generator>.filter(..)` 
 
 Equivalents to `Array`'s `.map(..)`, `.filter(..)` and `.reduce(..)` but return 
@@ -1968,6 +1981,13 @@ console.log(sumOdds([1, 2, 3, 4, 5, 6, 7])) // -> 16
 XXX list the differences...
 -->
 
+
+#### `<Generator>.iter(..)`
+
+This is a shorthand to [`iter(..)`](#generatoriter).
+
+This is here mainly for compatibility with 
+[`Array`'s `.iter(..)`](#arrayiter--arrayiter).
 
 #### `<Generator>.at(..)` / `<Generator>.gat(..)`
 

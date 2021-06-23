@@ -16,6 +16,10 @@ var object = require('ig-object')
 var MapProtoMixin =
 module.MapProtoMixin =
 object.Mixin('MapProtoMixin', 'soft', {
+	iter: function*(){
+		for(var e of this){
+			yield e } },
+
 	// NOTE: we do not touch .__keys here as no renaming is ever done...
 	//
 	// XXX this essentially rewrites the whole map, is there a faster/better 

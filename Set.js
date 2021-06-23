@@ -16,6 +16,10 @@ var object = require('ig-object')
 var SetProtoMixin =
 module.SetProtoMixin =
 object.Mixin('SetMixin', 'soft', {
+	iter: function*(){
+		for(var e of this){
+			yield e } },
+
 	// Set set operation shorthands...
 	unite: function(other=[]){ 
 		return new Set([...this, ...other]) },
