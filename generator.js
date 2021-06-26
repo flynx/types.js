@@ -231,6 +231,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 			{ toString: function(){
 				return that.toString() 
 					+ '\n    .gpop()'}, }) },
+	push: makeGenerator('push'),
 	gshift: makeGenerator('gshift'),
 	shift: function(){
 		var that = this
@@ -241,6 +242,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 			{ toString: function(){
 				return that.toString() 
 					+ '\n    .gshift()'}, }) },
+	unshift: makeGenerator('unshift'),
 
 	// promises...
 	//
@@ -360,11 +362,17 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// XXX this needs the value to be iterable...
 	gpop: function*(){
 		yield [...this].pop() },
+	push: function*(value){
+		yield* this
+		yield value },
 	shift: function(){
 		return this.next().value },
 	// XXX this needs the value to be iterable...
 	gshift: function*(){
 		yield this.next().value },
+	unshift: function*(value){
+		yield value
+		yield* this },
 
 	// non-generators...
 	//

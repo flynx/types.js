@@ -87,6 +87,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
       - [`<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
+      - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush)
       - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
@@ -95,6 +96,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<Generator>.iter(..)`](#generatoriter-2)
       - [`<Generator>.at(..)` / `<Generator>.gat(..)`](#generatorat--generatorgat-1)
       - [`<Generator>.shift()` / `<Generator>.pop()` / `<Generator>.gshift()` / `<Generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop-1)
+      - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush-1)
       - [`<Generator>.slice(..)`](#generatorslice-1)
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
@@ -1861,6 +1863,18 @@ Note that `.shift()`/`.gshift()` will yield the item the generator is at at
 time of call, this may not be the _first_ item if the generator is partially 
 depleted.
 
+#### `<generator>.unshift(..)` / `<generator>.push(..)`
+
+Add a value to the generator sequence at start/end.
+```bnf
+<generator>.unshift(<value>)
+<generator>.push(<value>)
+    -> <generator>
+```
+
+Value added by `.unshift(..)` will be yielded by `<generator>` "first", i.e. on _next_ call to `.next()`, regardless of the current generator state.
+
+
 
 #### `<generator>.promise()`
 
@@ -2020,6 +2034,17 @@ currently which may not be the first element in the sequence.
 
 Equivalents to [`<generator>`'s `.shift(..)`/`.pop(..)`/..](#generatorshift--generatorpop--generatorgshift--generatorgpop) 
 but returning a reusable `<func>`/`<Generator>`.
+
+#### `<generator>.unshift(..)` / `<generator>.push(..)`
+
+```bnf
+<Generator>.unshift(<value>)
+<Generator>.push(<value>)
+    -> <Generator>
+```
+
+Equivalents to [`<generator>`'s `.unshift(..)`/`.push(..)`](#generatorunshift--generatorpush) 
+but returning a reusable `<Generator>`.
 
 
 #### `<Generator>.slice(..)`
