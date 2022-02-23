@@ -1872,8 +1872,8 @@ Add a value to the generator sequence at start/end.
     -> <generator>
 ```
 
-Value added by `.unshift(..)` will be yielded by `<generator>` "first", i.e. on _next_ call to `.next()`, regardless of the current generator state.
-
+Value added by `.unshift(..)` will be yielded by `<generator>` "first", i.e. on 
+_next_ call to `.next()`, regardless of the current generator state.
 
 
 #### `<generator>.promise()`
@@ -2034,6 +2034,7 @@ currently which may not be the first element in the sequence.
 
 Equivalents to [`<generator>`'s `.shift(..)`/`.pop(..)`/..](#generatorshift--generatorpop--generatorgshift--generatorgpop) 
 but returning a reusable `<func>`/`<Generator>`.
+
 
 #### `<generator>.unshift(..)` / `<generator>.push(..)`
 

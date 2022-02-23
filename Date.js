@@ -57,7 +57,7 @@ object.Mixin('DateMixin', 'soft', {
 		str = ' '+str
 		var c = 
 			(/[^a-z](m(illi)?(-)?s(ec(ond(s)?)?)?)$/i.test(str)
-		   			|| /^[0-9]*(\.[0-9]+)?$/.test(str) ) ? 
+		   			|| /^([0-9]*\.)?[0-9]+$/.test(str) ) ? 
 				1
 			: /[^a-z]s(ec(ond(s)?)?)?$/i.test(str) ? 
 				1000
@@ -75,6 +75,8 @@ object.Mixin('DateMixin', 'soft', {
 
 	isPeriod: function(str){
 		return !isNaN(this.str2ms(str)) },
+	isDateStr: function(str){
+		return !isNaN(new Date(str).valueOf()) },
 })
 
 
