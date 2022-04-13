@@ -20,6 +20,11 @@ object.Mixin('RegExpMixin', 'soft', {
 	quoteRegExp: function(str){
 		return str
 			.replace(/([\.\\\/\(\)\[\]\$\*\+\-\{\}\@\^\&\?\<\>])/g, '\\$1') }
+
+	// XXX add introspection interface...
+	// 		- number of groups
+	// 		- group info
+	// 		- ...
 })
 
 
