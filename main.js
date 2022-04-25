@@ -29,8 +29,10 @@ module.runner = require('./runner')
 
 // Shorthands...
 module.STOP = object.STOP
-// NOTE: this is a generic enough type to be accessible at the root...
+
+// frequently used stuff...
 module.Generator = module.generator.Generator
+module.iter = module.generator.iter
 
 
 
