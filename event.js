@@ -63,6 +63,11 @@ module.TRIGGER = module.EventCommand('TRIGGER')
 //		-> true
 //		-> false
 //
+//	trigger event handlers and overload handler arguments...
+//	handle(true, ...)
+//		-> true
+//		-> false
+//
 //	prevent event handlers from triggering...
 //	handle(false)
 //		-> undefined
@@ -151,11 +156,15 @@ object.Constructor('Eventful', {
 		// NOTE: to explicitly disable calling the handlers func must 
 		// 		call handle(false)
 		var did_handle = false
-		var handle = function(run=true){
+		var handle = function(run=true, ...alt_args){
 			did_handle = true
-			var a = args[0] instanceof EventCommand ?
-				args.slice(1)
+			var a = (run === true 
+					&& arguments.length > 1) ?
+				alt_args
 				: args
+			a = a[0] instanceof EventCommand ?
+				a.slice(1)
+				: a
 			return run ?
 				handlers
 					.reduce(function(res, handler){ 
