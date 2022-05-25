@@ -34,17 +34,17 @@ module.TRIGGER = module.EventCommand('TRIGGER')
 
 
 
-// Create an "eventfull" method...
+// Create an "eventful" method...
 //
 // The resulting method can be either called directly or via .trigger(..).
 // Handlrs can be bound to it via .on(..) and unbound via .off(..) and 
 // calling it will trigger the handlers either after the user func(..)
 // return or when the user calles the passed handler(..) function.
 //
-// 	Eventfull(name[, options])
+// 	Eventful(name[, options])
 // 		-> method
 //
-// 	Eventfull(name, func[, options])
+// 	Eventful(name, func[, options])
 // 		-> method
 //
 //
@@ -88,9 +88,9 @@ module.TRIGGER = module.EventCommand('TRIGGER')
 //
 // NOTE: calling handle(false) will exiplicitly disable calling the 
 // 		handlers for that call...
-var Eventfull =
-module.Eventfull =
-object.Constructor('Eventfull', {
+var Eventful =
+module.Eventful =
+object.Constructor('Eventful', {
 
 	handlerLocation: 'context',
 
@@ -189,7 +189,7 @@ object.Constructor('Eventfull', {
 })
 
 
-// Extends Eventfull(..) adding ability to bind events via the 
+// Extends Eventful(..) adding ability to bind events via the 
 // resulting method directly by passing it a function...
 //
 //	Event(name[, options])
@@ -225,7 +225,7 @@ object.Constructor('Eventfull', {
 // arg is a function or not...
 var Event =
 module.Event =
-object.Constructor('Event', Eventfull, {
+object.Constructor('Event', Eventful, {
 	toString: function(){
 		return this.orig_func ?
 			'Event '
@@ -241,7 +241,7 @@ object.Constructor('Event', Eventfull, {
 			// call the action...
 			: object.parentCall(Event.prototype.__call__, this, context, ...args)
 			// XXX workaround for above line -- remove when fully tested...
-			//: Eventfull.prototype.__call__.call(this, context, ...args)
+			//: Eventful.prototype.__call__.call(this, context, ...args)
 		return context }, 
 })
 
@@ -330,13 +330,13 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 // 		instead...
 var EventDocMixin = 
 module.EventDocMixin = object.Mixin('EventDocMixin', {
-	get eventfull(){
+	get eventful(){
 		return object.deepKeys(this)
 			.filter(function(n){ 
 				// avoid triggering props...
 				return !object.values(this, n, function(){ return object.STOP }, true)[0].get
 					// XXX this is too strict...
-					&& (this[n] || {}).constructor === Eventfull}.bind(this)) },
+					&& (this[n] || {}).constructor === Eventful}.bind(this)) },
 	get events(){
 		return object.deepKeys(this)
 			.filter(function(n){ 

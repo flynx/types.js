@@ -381,19 +381,19 @@ Events.cases({
 
 					// blank events...
 					bareEventBlank: assert(
-						events.Eventfull('bareEventBlank'), 
-						'.Eventfull(..): blank'),
+						events.Eventful('bareEventBlank'), 
+						'.Eventful(..): blank'),
 					eventBlank: assert(
 						events.Event('eventBlank'), 
 						'.Event(..): blank'),
 
 					// normal events...
-					bareEvent: assert(events.Eventfull('bareEvent', 
+					bareEvent: assert(events.Eventful('bareEvent', 
 						function(handle, ...args){
 							called['bareEvent-call'] = true
-							assert(handle(), '.Eventfull(..) -> handle(..)')
+							assert(handle(), '.Eventful(..) -> handle(..)')
 							return 'bareEvent'
-						}), '.Eventfull(..)'),
+						}), '.Eventful(..)'),
 					event: assert(events.Event('event', 
 						function(handle, ...args){
 							called['event-call'] = true
@@ -408,7 +408,7 @@ Events.cases({
 
 		// test event list...
 		assert.array(obj.events, ['event', 'eventBlank'], '.events')
-		assert.array(obj.eventfull, ['bareEvent', 'bareEventBlank'], '.eventfull')
+		assert.array(obj.eventful, ['bareEvent', 'bareEventBlank'], '.eventful')
 
 		// bind...
 		var bind = function(evt){
@@ -418,7 +418,7 @@ Events.cases({
 
 		;['moo', 
 				...obj.events,
-				...obj.eventfull]
+				...obj.eventful]
 			.forEach(bind)
 
 		assert(obj.event(function(evt, ...args){
