@@ -417,6 +417,58 @@ object.Constructor('CooperativePromise', Promise, {
 
 //---------------------------------------------------------------------
 
+var ProxyPromise =
+module.ProxyPromise =
+object.Constructor('ProxyPromise', Promise, {
+	__new__: function(context, constructor){
+		var proto = 'prototype' in constructor ?
+			constructor.prototype
+			: constructor
+		var obj = Reflect.construct(
+			ProxyPromise.__proto__, 
+			[function(resolve, reject){
+				context.then(resolve)
+				context.catch(reject) }], 
+			ProxyPromise) 
+		// populate...
+		// NOTE: we are not using object.deepKeys(..) here as we need 
+		// 		the key origin not to trigger property getters...
+		var seen = new Set()
+		while(proto != null){
+			Object.entries(Object.getOwnPropertyDescriptors(proto))
+				.forEach(function([key, value]){
+					// skip overloaded keys...
+					if(seen.has(key)){
+						return }
+					// skip non-functions...
+					if(typeof(value.value) != 'function'){
+						return }
+					// skip non-enumerable except for Object.prototype.run(..)...
+					if(!(key == 'run' 
+								&& Object.prototype.run === value.value) 
+							&& !value.enumerable){
+						return }
+					// proxy...
+					obj[key] = function(...args){
+						// XXX should we also .catch(..) here???
+						return context.then(function(res){
+							return res[key](...args) }) } })
+			proto = proto.__proto__ } 
+		return obj },
+})
+
+
+
+//---------------------------------------------------------------------
+
+// XXX EXPEREMENTAL...
+var PromiseProtoMixin =
+module.PromiseProtoMixin =
+object.Mixin('PromiseProtoMixin', 'soft', {
+	as: ProxyPromise,
+})
+
+
 var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
@@ -425,8 +477,10 @@ object.Mixin('PromiseMixin', 'soft', {
 	cooperative: CooperativePromise,
 })
 
-
 PromiseMixin(Promise)
+
+// XXX EXPEREMENTAL...
+PromiseProtoMixin(Promise.prototype)
 
 
 
