@@ -417,6 +417,7 @@ object.Constructor('CooperativePromise', Promise, {
 
 //---------------------------------------------------------------------
 
+// XXX EXPEREMENTAL...
 var ProxyPromise =
 module.ProxyPromise =
 object.Constructor('ProxyPromise', Promise, {
@@ -478,7 +479,6 @@ object.Mixin('PromiseMixin', 'soft', {
 })
 
 PromiseMixin(Promise)
-
 // XXX EXPEREMENTAL...
 PromiseProtoMixin(Promise.prototype)
 

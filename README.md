@@ -74,6 +74,9 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
       - [Advanced handler](#advanced-handler)
+    - [Promise proxies](#promise-proxies)
+      - [`<promise>.as(..)`](#promiseas)
+      - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
     - [The basics](#the-basics)
       - [`generator.Generator`](#generatorgenerator)
@@ -1619,6 +1622,56 @@ var p = Promise.iter(
         console.log(lst) // -> [2, 2, 4, 4, [5, 6]]
     })
 ```
+
+
+### Promise proxies
+
+_Promise proxies_ generate a set of prototype methods returning promises that when the parent promise is resolved will resolve to a specific method call.
+
+Example:
+```javascript
+var o = {
+    method: function(...args){
+        console.log('method:', ...args)
+    },
+}
+
+var p = Peomise.cooperative().as(o)
+
+p.method(1, 2, 3) // returns a promise...
+
+// ...
+
+// resolving a promise will trigger all the proxy emthod execution, so 
+// here 'method: 1, 2, 3' will get printed...
+p.set(o)
+
+```
+
+#### `<promise>.as(..)`
+
+Create a promise proxy
+
+```bnf
+<promise>.as(<object>)
+<promise>.as(<constructor>)
+    -> <promise-proxy>
+```
+
+A proxy promise will be populated with proxy methods to all the methods of the `<object>` or `<constructor>.prototype`.
+
+#### `<promise-proxy>.<method>(..)`
+
+When `<promise>` resolves, call the `.<method>(..)` on the resolved value.
+
+```bnf
+<promise-proxy>.<method>(..)
+    -> <method-promise>
+```
+
+`<method-promise>` will resolve the the return value of the `<method>` when 
+the main `<promise>` is resolved.
+
 
 
 ## Generator extensions and utilities
