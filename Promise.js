@@ -80,12 +80,13 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: these are different to Array's equivalents in that the handler
 	// 		is called not in the order of the elements but rather in order 
 	// 		of promise resolution...
-	// NOTE: index of items is unknowable because items can expand on 
+	// NOTE: index of items is unknowable because items can expand and
 	// 		contract depending on handlrs (e.g. .filter(..) can remove 
 	// 		items)...
 	// 		This the following can not be implemented here:
 	// 			.slice(..)
 	// 			.splice(..)
+	// 			.values() / .keys()
 	// 			.at(..)
 	// 			[Symbol.iterator]()		- needs to be sync...
 	// 		The followng methods are questionable:
@@ -93,36 +94,61 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
+	// XXX BUG:
+	// 			Promise.iter([1,2,3])
+	// 				.map(e => e)
+	// 		is not the same as:
+	// 			Promise.iter([1,2,3])
+	// 				.map(e => e)
+	// 				.map(e => e)
 	// XXX should these support STOP???
 	map: function(func){
-		return this.constructor(this.__list, 
+		return this.constructor(this.__list.flat(), 
 			function(e){
 				return [func(e)] }) },
 	filter: function(func){
-		return this.constructor(this.__list, 
+		return this.constructor(this.__list.flat(), 
 			function(e){
 				return func(e) ? 
 					[e] 
 					: [] }) },
+	// NOTE: this does not return an iterable promise as we can't know 
+	// 		what the user reduces to...
 	reduce: function(func, res){
-		return this.constructor(this.__list, 
+		return this.constructor(this.__list.flat(), 
 				function(e){
 					res = func(res, e)
 					return [] })
 			.then(function(){ 
 				return res }) },
+	/*/ XXX this is wrong...
+	reduceRight: function(func, res){
+		return this.constructor(this.__list.flat().reverse(), 
+				function(e){
+					res = func(res, e)
+					return [] })
+			.then(function(){ 
+				return res }) },
+	// XXX this is wrong...
+	reverse: function(){
+		return this.constructor(this.__list.flat().reverse()) },
 	flat: function(depth=1){
-		return this.constructor(this.__list, 
+		return this.constructor(this.__list.flat(), 
 			function(e){ 
-				return (e && e.flat) ? 
-					e.flat(depth) 
-					: e }) },
-	// XXX do we need this???
-	//iter: function(){
-	//	return this },
+				return (depth > 1 
+							&& e != null 
+							&& e.flat) ? 
+						e.flat(depth-1) 
+					: depth != 0 ?
+						e
+					: [e] }) },
 
-
-	// XXX do we need:
+	// compatibility with root promise...
+	iter: function(){
+		return this.constructor(this.__list.flat()) },
+	//*/
+	
+	// XXX do we need these?
 	// 			.pop()
 	// 			.shift()
 	// 			.first() / .last()
@@ -204,9 +230,8 @@ object.Constructor('IterablePromise', Promise, {
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
 	__new__: function(_, list, handler){
-		var promise
-
 		// instance...
+		var promise
 		var obj = Reflect.construct(
 			IterablePromise.__proto__, 
 			[function(resolve, reject){
@@ -220,49 +245,29 @@ object.Constructor('IterablePromise', Promise, {
 			IterablePromise)
 
 		if(promise){
-			//var __stop = false
-			// apply handler(..) to the list...
-			//
-			// NOTE: the top level promises are not wrapped in arrays...
-			list =
-				// apply the handler...
-				handler ?
-					// XXX can we handle STOP here???
-					// 		...we will not be able to stop already started 
-					// 		promises...
-					list.map(function(block){
-						//* XXX STOP...
-						return (block instanceof Array ? 
-								block 
-								: [block])
-						/*/
-						// NOTE: we are not using Array's .iter() so as to
-						// 		keep the dependency minimal...
-						return generator.iter(
-								block instanceof Array ? 
-									block 
-									: [block])
-						//*/
-							.map(function(e){
-								// NOTE: we are counting actual expanded 
-								// 		values and not the "blocks"...
-								return (e && e.then && e.catch) ?
-									// promise...
-									e.then(function(v){ 
-										return handler(v) })
-									// basic value...
-									: handler(e) }) })
-						.flat()
-						// XXX STOP
-						//.toArray()
-				// normal constructor...
-				: handler === undefined ?
-					list.map(function(e){ 
-						return e instanceof Promise ?
-							e
-							: [e] })
-				// clone...
-				: list.slice()
+			// clone/normalize...
+			list = list
+				.map(function(e){
+					return (e && e.then) ?
+						e.then(function(e){ 
+							return [e] })
+						: [e] })
+
+			if(handler){
+				// NOTE: this is recursive to handle expanding nested promises...
+				var handle = function(elem){
+					// call the handler...
+					return (elem && elem.then) ?
+						elem.then(function(elems){
+							return elems
+								.map(handle)
+								.flat() })
+						: elem
+							.map(handler)
+							.flat() }
+
+				// handle the list...
+				list = list.map(handle) }
 
 			Object.defineProperty(obj, '__list', {
 				value: list,
@@ -462,14 +467,6 @@ object.Constructor('ProxyPromise', Promise, {
 
 //---------------------------------------------------------------------
 
-// XXX EXPEREMENTAL...
-var PromiseProtoMixin =
-module.PromiseProtoMixin =
-object.Mixin('PromiseProtoMixin', 'soft', {
-	as: ProxyPromise,
-})
-
-
 var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
@@ -479,7 +476,15 @@ object.Mixin('PromiseMixin', 'soft', {
 })
 
 PromiseMixin(Promise)
+
+
 // XXX EXPEREMENTAL...
+var PromiseProtoMixin =
+module.PromiseProtoMixin =
+object.Mixin('PromiseProtoMixin', 'soft', {
+	as: ProxyPromise,
+})
+
 PromiseProtoMixin(Promise.prototype)
 
 
