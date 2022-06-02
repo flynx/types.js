@@ -114,6 +114,11 @@ object.Constructor('IterablePromise', Promise, {
 					: [] }) },
 	// NOTE: this does not return an iterable promise as we can't know 
 	// 		what the user reduces to...
+	// NOTE: the items can be handled out of order because the nested 
+	// 		promises can resolve in any order.
+	//		XXX write how to go around this...
+	// NOTE: since order of execution can not be guaranteed there is no
+	// 		point in implementing .reduceRight(..)
 	reduce: function(func, res){
 		return this.constructor(this.__list.flat(), 
 				function(e){
@@ -121,17 +126,6 @@ object.Constructor('IterablePromise', Promise, {
 					return [] })
 			.then(function(){ 
 				return res }) },
-	/*/ XXX this is wrong...
-	reduceRight: function(func, res){
-		return this.constructor(this.__list.flat().reverse(), 
-				function(e){
-					res = func(res, e)
-					return [] })
-			.then(function(){ 
-				return res }) },
-	// XXX this is wrong...
-	reverse: function(){
-		return this.constructor(this.__list.flat().reverse()) },
 	flat: function(depth=1){
 		return this.constructor(this.__list.flat(), 
 			function(e){ 
@@ -142,11 +136,41 @@ object.Constructor('IterablePromise', Promise, {
 					: depth != 0 ?
 						e
 					: [e] }) },
+	// XXX REVERSE...
+	// XXX BUG: 
+	//			await Promise.iter([1, Promise.iter(['a', ['b', 'c']]), [2, 3], 4])
+	//				.flat()
+	//					-> [ 1, 'a', [ 'b', 'c' ], 2, 3, 4 ]
+	// 			await Promise.iter([1, Promise.iter(['a', ['b', 'c']]), [2, 3], 4])
+	// 				.flat()
+	// 				.reverse()
+	//					-> [ 4, 2, 3, [ 'b', 'c', 'a' ], 1 ]
+	//		...should be:
+	//					-> [ 4, 2, 3, [ 'b', 'c' ], 'a', 1 ]
+	//		it's odd we are not seeing this in other places...
+	reverse: function(){
+		return this.constructor(this.__list
+			.map(function(elems){
+				return elems && elems.then ?
+					elems.then(function(res){
+						return res
+							.reverse()
+				   			.flat() })
+					: elems })
+			.reverse()
+			.flat()) },
 
 	// compatibility with root promise...
 	iter: function(){
-		return this.constructor(this.__list.flat()) },
-	//*/
+		return this.constructor(
+			// clone and unwrap the .__list
+			this.__list
+				.map(function(elems){
+					return elems && elems.then ?
+						elems.then(function(res){
+							return res.flat() })
+						: elems })
+				.flat()) },
 	
 	// XXX do we need these?
 	// 			.pop()
@@ -229,7 +253,13 @@ object.Constructor('IterablePromise', Promise, {
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
+	// XXX add support for list as a promise....
 	__new__: function(_, list, handler){
+		// handle: IterablePromise(<list>, <mode>)
+		if(typeof(handler) == 'string'){
+			mode = handler
+			handler = undefined }
+
 		// instance...
 		var promise
 		var obj = Reflect.construct(
@@ -246,12 +276,16 @@ object.Constructor('IterablePromise', Promise, {
 
 		if(promise){
 			// clone/normalize...
-			list = list
-				.map(function(e){
-					return (e && e.then) ?
-						e.then(function(e){ 
-							return [e] })
-						: [e] })
+			list = 
+				list instanceof Promise ?
+					// XXX broken by reverse/flat but seems to work OK with others...
+					[list]
+				: list
+					.map(function(e){
+						return (e && e.then) ?
+							e.then(function(e){ 
+								return [e] })
+							: [e] })
 
 			if(handler){
 				// NOTE: this is recursive to handle expanding nested promises...
@@ -262,7 +296,7 @@ object.Constructor('IterablePromise', Promise, {
 							return elems
 								.map(handle)
 								.flat() })
-						: elem
+						: elem 
 							.map(handler)
 							.flat() }
 
@@ -483,6 +517,10 @@ var PromiseProtoMixin =
 module.PromiseProtoMixin =
 object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
+
+	// XXX
+	iter: function(){
+		return IterablePromise(this) },
 })
 
 PromiseProtoMixin(Promise.prototype)

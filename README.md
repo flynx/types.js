@@ -70,6 +70,8 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-coop>.then(..)`](#promise-coopthen)
     - [Promise iteration](#promise-iteration)
       - [`Promise.iter(..)` / `promise.IterablePromise(..)`](#promiseiter--promiseiterablepromise)
+      - [`<promise>.iter()`](#promiseiter)
+      - [`<promise-iter>.iter()`](#promise-iteriter)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
@@ -1452,8 +1454,8 @@ promise, and it is similar to a _generator_ in that it allows iteration over the
 contained values and chaining of operations but unlike `Promise.all(..)` this 
 iteration occurs depth-first instead of breadth first.
 
-Essentially one can think of _promise iterators_ vs. _generators_ as the former
-being internally controlled and asynchronous while the later being externally
+One can think of _promise iterators_ vs. _generators_ as the former being 
+internally controlled and asynchronous while the later being externally
 controlled and synchronous.
 
 Here is a traditional example using `Promise.all(..)`:
@@ -1515,8 +1517,27 @@ XXX should we support infinite generators as input?
 #### `Promise.iter(..)` / `promise.IterablePromise(..)`
 
 Create an _iterable promise_
+
 ```bnf
 Promise.iter(<array>)
+Promise.iter(<promise>)
+    -> <promise-iter>
+```
+
+#### `<promise>.iter()`
+
+```bnf
+<promise>.iter()
+    -> <promise-iter>
+```
+
+
+#### `<promise-iter>.iter()`
+
+Return a shallow copy of the current iterator.
+
+```bnf
+<promise-iter>.iter()
     -> <promise-iter>
 ```
 
@@ -1545,7 +1566,7 @@ and [`.reduce(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 ```bnf
 <promise-iter>.reduce(<handler>, <state>)
-    -> <promise-iter>
+    -> <promise>
 
 <handler>(<state>, <elem>)
     -> <state>
@@ -1557,6 +1578,15 @@ Note that these are different to `Array`'s equivalents in some details:
 - `<handler>` does not get either the element _index_ or the _container_.  
     this is because the index with _out-of-order_ and _depth-first_ execution the 
     index is unknowable and the container is a promise/black-box.
+
+This is especially critical for `.reduce(..)` as iteration in an order different 
+from the order of elements _can_ affect actual result if this is not expected.
+
+`.reduce(..)` is also a bit different here in that it will return a basic 
+`<promise>` object as we can't know what will it will reduce to.
+
+Note that since `.reduce(..)` order can not be guaranteed there is no point 
+in implementing `.reduceRigth(..)`.
 
 
 #### `<promise-iter>.flat(..)`
