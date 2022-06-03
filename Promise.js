@@ -103,11 +103,11 @@ object.Constructor('IterablePromise', Promise, {
 	// 				.map(e => e)
 	// XXX should these support STOP???
 	map: function(func){
-		return this.constructor(this.__list.flat(), 
+		return this.constructor(this, 
 			function(e){
 				return [func(e)] }) },
 	filter: function(func){
-		return this.constructor(this.__list.flat(), 
+		return this.constructor(this, 
 			function(e){
 				return func(e) ? 
 					[e] 
@@ -120,14 +120,14 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: since order of execution can not be guaranteed there is no
 	// 		point in implementing .reduceRight(..)
 	reduce: function(func, res){
-		return this.constructor(this.__list.flat(), 
+		return this.constructor(this, 
 				function(e){
 					res = func(res, e)
 					return [] })
 			.then(function(){ 
 				return res }) },
 	flat: function(depth=1){
-		return this.constructor(this.__list.flat(), 
+		return this.constructor(this, 
 			function(e){ 
 				return (depth > 1 
 							&& e != null 
@@ -136,41 +136,36 @@ object.Constructor('IterablePromise', Promise, {
 					: depth != 0 ?
 						e
 					: [e] }) },
-	// XXX REVERSE...
-	// XXX BUG: 
-	//			await Promise.iter([1, Promise.iter(['a', ['b', 'c']]), [2, 3], 4])
-	//				.flat()
-	//					-> [ 1, 'a', [ 'b', 'c' ], 2, 3, 4 ]
-	// 			await Promise.iter([1, Promise.iter(['a', ['b', 'c']]), [2, 3], 4])
-	// 				.flat()
-	// 				.reverse()
-	//					-> [ 4, 2, 3, [ 'b', 'c', 'a' ], 1 ]
-	//		...should be:
-	//					-> [ 4, 2, 3, [ 'b', 'c' ], 'a', 1 ]
-	//		it's odd we are not seeing this in other places...
+	// XXX does not work yet...
+	//		> await Promise.iter([1, [2, [3]], Promise.iter([4, [5], Promise.resolve(777)])])
+	//			.flat()
+	//				-> [ 1, 2, [ 3 ], 4, [ 5 ], 777 ]
+	//		> await Promise.iter([1, [2, [3]], Promise.iter([4, [5], Promise.resolve(777)])])
+	//			.flat()
+	//			.reverse()
+	//				-> [ 4, [ 5 ], 777, [ 3 ], 2, 1 ]
+	//		The problem above is in that we seem to forget we got flattened...
 	reverse: function(){
-		return this.constructor(this.__list
-			.map(function(elems){
-				return elems && elems.then ?
-					elems.then(function(res){
-						return res
+		var lst = this.__list
+		return this.constructor(
+			lst instanceof Promise ?
+				lst.then(function(elems){
+					return elems instanceof Array ?
+						elems.slice()
 							.reverse()
-				   			.flat() })
-					: elems })
-			.reverse()
-			.flat()) },
+						: elems })
+			: lst
+				.map(function(elems){
+					return elems instanceof Array ?
+						elems.slice()
+							.reverse()
+						: elems })
+				.reverse(),
+			'raw') },
 
 	// compatibility with root promise...
 	iter: function(){
-		return this.constructor(
-			// clone and unwrap the .__list
-			this.__list
-				.map(function(elems){
-					return elems && elems.then ?
-						elems.then(function(res){
-							return res.flat() })
-						: elems })
-				.flat()) },
+		return this.constructor(this) },
 	
 	// XXX do we need these?
 	// 			.pop()
@@ -232,11 +227,11 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// Spectial cases usefull for extending this constructor...
 	//
-	//	Clone the iterator...
-	//	Promise.iter([ .. ], false)
+	//	Set raw .__list without any pre-processing...
+	//	Promise.iter([ .. ], 'raw')
 	//		-> iterable-promise
 	//
-	//	Create a rejected iterator...
+	//	XXX Create a rejected iterator...
 	//	Promise.iter(false)
 	//		-> iterable-promise
 	//
@@ -255,11 +250,6 @@ object.Constructor('IterablePromise', Promise, {
 	// 			execution and not order of elements...
 	// XXX add support for list as a promise....
 	__new__: function(_, list, handler){
-		// handle: IterablePromise(<list>, <mode>)
-		if(typeof(handler) == 'string'){
-			mode = handler
-			handler = undefined }
-
 		// instance...
 		var promise
 		var obj = Reflect.construct(
@@ -275,33 +265,46 @@ object.Constructor('IterablePromise', Promise, {
 			IterablePromise)
 
 		if(promise){
-			// clone/normalize...
-			list = 
-				list instanceof Promise ?
-					// XXX broken by reverse/flat but seems to work OK with others...
-					[list]
-				: list
-					.map(function(e){
-						return (e && e.then) ?
-							e.then(function(e){ 
-								return [e] })
-							: [e] })
 
-			if(handler){
+			if(handler != 'raw'){
+				handler = handler
+					?? function(e){ 
+						return [e] }
+
 				// NOTE: this is recursive to handle expanding nested promises...
 				var handle = function(elem){
 					// call the handler...
 					return (elem && elem.then) ?
-						elem.then(function(elems){
-							return elems
-								.map(handle)
-								.flat() })
-						: elem 
-							.map(handler)
-							.flat() }
+						elem.then(function(elem){
+							return handler(elem) })
+						: handler(elem) }
 
 				// handle the list...
-				list = list.map(handle) }
+				// NOTE: we can't .flat() the results here as we need to 
+				// 		wait till all the promises resolve...
+				list =
+					(list instanceof IterablePromise 
+							&& !(list.__list instanceof Promise)) ?
+						// NOTE: this is essentially the same as below but 
+						// 		with a normalized list as input...
+						// 		XXX can we merge the two???
+						list.__list
+							.map(function(elems){
+								return elems instanceof Promise ?
+									elems.then(function(elems){
+										return elems
+											.map(handle) 
+											.flat() })
+									: elems
+										.map(handle)
+										.flat() })
+					: list instanceof Promise ?
+						// special case: promised list...
+						list.then(function(list){
+							return [list].flat()
+								.map(handle) })	
+					: [list].flat()
+						.map(handle) }
 
 			Object.defineProperty(obj, '__list', {
 				value: list,
@@ -309,9 +312,15 @@ object.Constructor('IterablePromise', Promise, {
 			})
 
 			// handle promise state...
-			Promise.all(list)
+			//Promise.all(list)
+			;(list instanceof Promise ?
+					// special case: promised list...
+					list
+					: Promise.all([list].flat()))
 				.then(function(res){
-					promise.resolve(res.flat()) })
+					promise.resolve(handler ?
+						res.flat()
+						: res) })
 				.catch(promise.reject) }
 
 		return obj },

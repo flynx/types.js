@@ -492,6 +492,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	smap: stoppableList('map'),
 	sfilter: stoppableList('filter'),
 	sreduce: stoppableValue('reduce'),
+	sreduceRight: stoppableValue('reduceRight'),
 	sforEach: stoppableValue('map', true),
 
 	// Chunk iteration...

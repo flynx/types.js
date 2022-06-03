@@ -210,6 +210,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 	map: makeGenerator('map'),
 	filter: makeGenerator('filter'),
 	reduce: makeGenerator('reduce'),
+	reduceRight: makeGenerator('reduceRight'),
 
 	// non-generators...
 	//

@@ -20,15 +20,52 @@ object.Mixin('RegExpMixin', 'soft', {
 	quoteRegExp: function(str){
 		return str
 			.replace(/([\.\\\/\(\)\[\]\$\*\+\-\{\}\@\^\&\?\<\>])/g, '\\$1') }
+})
 
-	// XXX add introspection interface...
-	// 		- number of groups
-	// 		- group info
-	// 		- ...
+
+var GROUP_PATERN =
+//module.GROUP_PATERN = /(^\(|[^\\]\()/g
+module.GROUP_PATERN = new RegExp([
+	'^\\(',
+	// non-escaped braces...
+	'[^\\\\]\\(',
+	// XXX ignore braces in ranges...
+	// XXX '\\[.*(.*\\]',
+].join('|'))
+
+// Pattern group introspection...
+var RegExpProtoMixin =
+module.RegExpProtoMixin =
+object.Mixin('RegExpProtoMixin', 'soft', {
+	// Format:
+	// 	[
+	// 		{
+	//			index: <index>,
+	//			name: <name>,
+	//			pattern: <string>,
+	//			offset: <offset>,
+	// 		},
+	// 		...
+	// 	]
+	// XXX cache this...
+	get groups(){
+		this.toString()
+			.matchAll(GROUP_PATERN)
+	},
+	get namedGroups(){
+		return this.groups
+			.reduce(function(res, e){
+				e.name
+					&& (res[name] = e)
+				return res }, {}) },
+	get groupCount(){
+		return this.groups.length },
 })
 
 
 RegExpMixin(RegExp)
+// XXX EXPEREMENTAL...
+//RegExpProtoMixin(RegExp.prototype)
 
 
 var quoteRegExp =

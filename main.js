@@ -32,6 +32,7 @@ module.STOP = object.STOP
 
 // frequently used stuff...
 module.Generator = module.generator.Generator
+// XXX doc...
 module.iter = module.generator.iter
 
 
