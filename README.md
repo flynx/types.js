@@ -74,6 +74,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.iter()`](#promise-iteriter)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
+      - [`<promise-iter>.reverse()`](#promise-iterreverse)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
       - [Advanced handler](#advanced-handler)
     - [Promise proxies](#promise-proxies)
@@ -1526,15 +1527,20 @@ Promise.iter(<promise>)
 
 #### `<promise>.iter()`
 
+Wrap a promise in an promise iterator. 
+
 ```bnf
 <promise>.iter()
     -> <promise-iter>
 ```
 
+If `<promise>` resolves to a non-array value it will be treated as a single 
+element, otherwise the array will be iterated over.
+
 
 #### `<promise-iter>.iter()`
 
-Return a shallow copy of the current iterator.
+Return a shallow copy of the current promise iterator.
 
 ```bnf
 <promise-iter>.iter()
@@ -1598,6 +1604,16 @@ in implementing `.reduceRigth(..)`.
 ```
 
 This is similar to [`<array>.flat(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat) see it for more info.
+
+
+#### `<promise-iter>.reverse()`
+
+```bnf
+<promise-iter>.reverse()
+    -> <promise-iter>
+```
+
+This is similar to [`<array>.reverse(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse) see it for more info.
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`

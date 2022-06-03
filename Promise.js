@@ -94,13 +94,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
-	// XXX BUG:
-	// 			Promise.iter([1,2,3])
-	// 				.map(e => e)
-	// 		is not the same as:
-	// 			Promise.iter([1,2,3])
-	// 				.map(e => e)
-	// 				.map(e => e)
+	//
 	// XXX should these support STOP???
 	map: function(func){
 		return this.constructor(this, 
@@ -114,6 +108,7 @@ object.Constructor('IterablePromise', Promise, {
 					: [] }) },
 	// NOTE: this does not return an iterable promise as we can't know 
 	// 		what the user reduces to...
+	// 		XXX we could look at the initial state though...
 	// NOTE: the items can be handled out of order because the nested 
 	// 		promises can resolve in any order.
 	//		XXX write how to go around this...
@@ -136,15 +131,6 @@ object.Constructor('IterablePromise', Promise, {
 					: depth != 0 ?
 						e
 					: [e] }) },
-	// XXX does not work yet...
-	//		> await Promise.iter([1, [2, [3]], Promise.iter([4, [5], Promise.resolve(777)])])
-	//			.flat()
-	//				-> [ 1, 2, [ 3 ], 4, [ 5 ], 777 ]
-	//		> await Promise.iter([1, [2, [3]], Promise.iter([4, [5], Promise.resolve(777)])])
-	//			.flat()
-	//			.reverse()
-	//				-> [ 4, [ 5 ], 777, [ 3 ], 2, 1 ]
-	//		The problem above is in that we seem to forget we got flattened...
 	reverse: function(){
 		var lst = this.__list
 		return this.constructor(
@@ -157,16 +143,15 @@ object.Constructor('IterablePromise', Promise, {
 			: lst
 				.map(function(elems){
 					return elems instanceof Array ?
-						elems.slice()
-							.reverse()
+							elems.slice()
+								.reverse()
+						: elems instanceof Promise ?
+							elems.then(function(elems){
+								return elems.reverse() })
 						: elems })
 				.reverse(),
 			'raw') },
 
-	// compatibility with root promise...
-	iter: function(){
-		return this.constructor(this) },
-	
 	// XXX do we need these?
 	// 			.pop()
 	// 			.shift()
@@ -231,7 +216,7 @@ object.Constructor('IterablePromise', Promise, {
 	//	Promise.iter([ .. ], 'raw')
 	//		-> iterable-promise
 	//
-	//	XXX Create a rejected iterator...
+	//	Create a rejected iterator...
 	//	Promise.iter(false)
 	//		-> iterable-promise
 	//
@@ -248,7 +233,6 @@ object.Constructor('IterablePromise', Promise, {
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
-	// XXX add support for list as a promise....
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -275,8 +259,9 @@ object.Constructor('IterablePromise', Promise, {
 				var handle = function(elem){
 					// call the handler...
 					return (elem && elem.then) ?
-						elem.then(function(elem){
-							return handler(elem) })
+						//elem.then(function(elem){
+						//	return handler(elem) })
+						elem.then(handler)
 						: handler(elem) }
 
 				// handle the list...
@@ -312,7 +297,6 @@ object.Constructor('IterablePromise', Promise, {
 			})
 
 			// handle promise state...
-			//Promise.all(list)
 			;(list instanceof Promise ?
 					// special case: promised list...
 					list
