@@ -1389,7 +1389,7 @@ controlled(t.then())
 // ...
 ```
 
-Note that functionally this can be considered a special-case of an 
+Note that this functionally can be considered a special-case of an 
 [interactive promise](#interactive-promises), but in reality they are two 
 different implementations, the main differences are:
 - _Cooperative promise_ constructor does not need a resolver function,
