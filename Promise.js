@@ -160,19 +160,8 @@ object.Constructor('IterablePromise', Promise, {
 				.reverse(),
 			'raw') },
 
-	// XXX do we need these?
-	// 			.pop()
-	// 			.shift()
-	// 			.first() / .last()
-	// 		...would be nice if these could stop everything that's not
-	// 		needed to execute...
-	// XXX these can change the "resolved" state...
-	// 		...i.e. return a pending promise when called from a fulfilled 
-	// 		promise....
-	// 			.concat(..)
-	// 			.push(..)
-	// 			.unshift(..)
-	// 			.first(..) / .last(..)
+	// NOTE: these can create an unresolved promise from a resolved 
+	// 		promise...
 	// XXX EXPEREMENTAL...
 	// 		....can we remove a level of indirection here???
 	// 		would be better to use the raw mode...
@@ -199,11 +188,17 @@ object.Constructor('IterablePromise', Promise, {
 				'raw') },
 	push: function(elem){
 		return this.concat([elem]) },
-	// XXX this can be written in the same style as .concat(..)
 	unshift: function(elem){
 		return this.constructor([elem])
 			.concat(this) },
 
+	// XXX do we need these?
+	// 			.pop()
+	// 			.shift()
+	// 			.first() / .last()
+	// 		...would be nice if these could stop everything that's not
+	// 		needed to execute...
+	
 
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 
 	// Promise instnace...

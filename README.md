@@ -75,6 +75,8 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
       - [`<promise-iter>.reverse()`](#promise-iterreverse)
+      - [`<promise-iter>.concat(..)`](#promise-iterconcat)
+      - [`<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`](#promise-iterpush--promise-iterunshift)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
       - [Advanced handler](#advanced-handler)
     - [Promise proxies](#promise-proxies)
@@ -1617,6 +1619,31 @@ This is deferent from `<array>.reverse()` in that it will _not_ reverse in-place
 but rather a _reversed copy_ will be created.
 
 This is similar to [`<array>.reverse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse) see it for more info.
+
+
+#### `<promise-iter>.concat(..)`
+
+```bnf
+<promise-iter>.concat(<other>)
+    -> <promise-iter>
+```
+
+This is similar to [`<array>.concat(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat) see it for more info.
+
+
+#### `<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`
+
+```bnf
+<promise-iter>.push(<elem>)
+    -> <promise-iter>
+
+<promise-iter>.unshift(<elem>)
+    -> <promise-iter>
+```
+
+These are similar to [`<array>.push(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push) 
+and [`<array>.unshift(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift) 
+see them for more info.
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
