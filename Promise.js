@@ -121,6 +121,14 @@ object.Constructor('IterablePromise', Promise, {
 					return [] })
 			.then(function(){ 
 				return res }) },
+	/* // XXX since order of execution is not fixed there is no point in 
+	//		adding this.
+	reduceRight: function(func, res){
+		return this
+			.reverse()
+			.reduce(...arguments)
+			.reverse() },
+	//*/
 	flat: function(depth=1){
 		return this.constructor(this, 
 			function(e){ 
@@ -156,6 +164,8 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.pop()
 	// 			.shift()
 	// 			.first() / .last()
+	// 		...would be nice if these could stop everything that's not
+	// 		needed to execute...
 	// XXX these can change the "resolved" state...
 	// 		...i.e. return a pending promise when called from a fulfilled 
 	// 		promise....
@@ -163,6 +173,36 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.push(..)
 	// 			.unshift(..)
 	// 			.first(..) / .last(..)
+	// XXX EXPEREMENTAL...
+	// 		....can we remove a level of indirection here???
+	// 		would be better to use the raw mode...
+	concat: function(other){
+		var lst = this.__list
+		return lst instanceof Promise ?
+				this.constructor([this, other])
+					.flat()
+			: other instanceof IterablePromise ?
+				this.constructor(
+					lst.concat(other.__list),
+					'raw')
+			: other instanceof Promise ?
+				this.constructor(
+					lst.concat(other
+						.then(function(res){ 
+							return res instanceof Array ?
+					   			res
+								: [res] })),
+					'raw')
+			: this.constructor(
+				// XXX this is cheating -- need a more direct way to form the array...
+				lst.concat(this.constructor(other).__list),
+				'raw') },
+	push: function(elem){
+		return this.concat([elem]) },
+	// XXX this can be written in the same style as .concat(..)
+	unshift: function(elem){
+		return this.constructor([elem])
+			.concat(this) },
 
 
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 

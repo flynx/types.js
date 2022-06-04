@@ -1613,7 +1613,10 @@ This is similar to [`<array>.flat(..)`](https://developer.mozilla.org/en-US/docs
     -> <promise-iter>
 ```
 
-This is similar to [`<array>.reverse(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse) see it for more info.
+This is deferent from `<array>.reverse()` in that it will _not_ reverse in-place, 
+but rather a _reversed copy_ will be created.
+
+This is similar to [`<array>.reverse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse) see it for more info.
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
