@@ -1698,10 +1698,13 @@ Example:
 var p = Promise.iter(
         [1, 2, 3, Promise.resolve(4), [5, 6]], 
         function(elem){
+            // duplicate even numbers...
             return elem % 2 == 0 ?
                     [elem, elem]
+                // return arrays as-is...
                 : elem instanceof Array ?
                     [elem]
+                // remove other elements...
                 : [] })
     .then(function(lst){
         console.log(lst) }) // -> [2, 2, 4, 4, [5, 6]]
