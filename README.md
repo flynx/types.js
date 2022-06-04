@@ -1485,8 +1485,6 @@ var p = Promise.iter([ .. ])
         // ...
     })
     // items reach here as soon as they are returned by the filter stage handler...
-    // NOTE: the filter handler may return promises, those will not be processed
-    //    until they are resolved...
     .map(function(e){
         // ...
     })
@@ -1503,6 +1501,12 @@ This approach has a number of advantages:
 
 And some disadvantages:
 - item indexes are unknowable until all the promises resolve.
+
+Calling each of the `<promise-iter>` methods will return a new and unresolved 
+promise, even if the original is resolved.
+
+If all values are resolved the `<promise-iter>` will resolve on the next 
+execution frame.
 
 <!-- 
 XXX should we support generators as input?
@@ -1582,19 +1586,21 @@ and [`.reduce(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 Note that these are different to `Array`'s equivalents in some details: 
 - `<handler>` is _not_ called in the order of element occurrence but rather 
-  in the order of elements are resolved/ready.
+    in the order of elements are resolved/ready.
 - `<handler>` does not get either the element _index_ or the _container_.  
-    this is because the index with _out-of-order_ and _depth-first_ execution the 
-    index is unknowable and the container is a promise/black-box.
+    this is because in _out-of-order_ and _depth-first_ execution the 
+    index is _unknowable_ and the container is a promise/black-box.
 
-This is especially critical for `.reduce(..)` as iteration in an order different 
-from the order of elements _can_ affect actual result if this is not expected.
+This is especially critical for `.reduce(..)` as the iteration in an order
+different from the order of elements _can_ affect actual result if this is 
+not expected.
 
 `.reduce(..)` is also a bit different here in that it will return a basic 
-`<promise>` object as we can't know what will it will reduce to.
+`<promise>` rather than an iterable promise object as we can't know what 
+will it will reduce to.
 
-Note that since `.reduce(..)` order can not be guaranteed there is no point 
-in implementing `.reduceRigth(..)`.
+Note that since `.reduce(..)` handler's execution order can not be known,
+there is no point in implementing `.reduceRigth(..)`.
 
 
 #### `<promise-iter>.flat(..)`
