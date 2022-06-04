@@ -1663,40 +1663,48 @@ can be useful to hide the extended promise API from further code.
 #### Advanced handler
 
 ```bnf
-Promise.iter(<block-array>, <handler>)
+Promise.iter(<block>, <handler>)
     -> <iterable-promise>
+```
 
-<handler>(<elem>)
-    -> [ <elems> ]
+The `<handler>` will get passed each resolved `<value>` of the input `<block>` 
+as soon as it's available/resolved.
+
+The `<handler>` return value is unwrapped into the resulting array, allowing
+each call to both remove elements (i.e. returning `[]`) from the resulting 
+`<block>` as well as insert multiple items (by returning an array of items).
+
+<!-- XXX returning promises from handler needs to be documented/tested... -->
+
+```bnf
+<handler>(<value>)
+    -> []
+    -> [ <elem>, .. ]
+    -> <non-array>
 ```
 
 ```bnf
-<block-array> ::= 
+<block> ::= 
     []
-    | [ <block-elem>, .. ]
+    | [ <elem>, .. ]
 
-<block-elem> ::=
-    []
-    | [ <value>, .. ]
-    | <promise>
-    | <non-array>
+<elem> ::= 
+    <value>
+    | <promise>(<value>)
 ```
 
 Example:
 ```javascript
 var p = Promise.iter(
-        // NOTE: if you want an element to explicitly be an array wrap it in 
-        //    an array -- like the last element here...
-        [[1, 2], 3, Promise.resolve(4), [[5, 6]]], 
+        [1, 2, 3, Promise.resolve(4), [5, 6]], 
         function(elem){
             return elem % 2 == 0 ?
                     [elem, elem]
                 : elem instanceof Array ?
-                  [elem]
+                    [elem]
                 : [] })
     .then(function(lst){
-        console.log(lst) // -> [2, 2, 4, 4, [5, 6]]
-    })
+        console.log(lst) }) // -> [2, 2, 4, 4, [5, 6]]
 ```
 
 
