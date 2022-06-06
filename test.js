@@ -192,6 +192,7 @@ var cases = test.Cases({
 				assert(res instanceof Array, 'result is array')
 
 				input instanceof Array ?
+					// XXX this does not catch some errors -- map_promise specifically...
 					assert.array(res, 
 						await Promise.all(input), 
 							'array -> array')
