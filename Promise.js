@@ -95,16 +95,31 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
 	//
+	// XXX sould these support returning a promise???
 	// XXX should these support STOP???
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
-				return [func(e)] }) },
+				//return [func(e)] }) },
+				var res = func(e)
+				return res instanceof Promise ?
+		   			res.then(function(e){ 
+						return [e] })
+					: [res] }) },
 	filter: function(func){
 		return this.constructor(this, 
 			function(e){
-				return func(e) ? 
-					[e] 
+				//return func(e) ? 
+				//	[e] 
+				//	: [] }) },
+				var res = func(e)
+				return res instanceof Promise ?
+						res.then(function(res){
+							return res ?
+								[e]
+								: [] })
+					: res ?
+						[e]
 					: [] }) },
 	// NOTE: this does not return an iterable promise as we can't know 
 	// 		what the user reduces to...
@@ -114,6 +129,7 @@ object.Constructor('IterablePromise', Promise, {
 	//		XXX write how to go around this...
 	// NOTE: since order of execution can not be guaranteed there is no
 	// 		point in implementing .reduceRight(..)
+	// XXX should func be able to return a promise???
 	reduce: function(func, res){
 		return this.constructor(this, 
 				function(e){
@@ -268,6 +284,14 @@ object.Constructor('IterablePromise', Promise, {
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
+	//
+	// XXX BUG:
+	// 			await Promise.iter([1,Promise.resolve(2),[3]])
+	// 		is not the same as:
+	// 			await Promise.iter([1,Promise.resolve(2),[3]])
+	// 				.map(e => Promise.resolve(e))
+	// 		...again the problem is in the normalized input...
+	// XXX BUG: .map(..) returning a promise broken again...
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -287,17 +311,43 @@ object.Constructor('IterablePromise', Promise, {
 
 			if(handler != 'raw'){
 				handler = handler
-					?? function(e){ 
-						return [e] }
+					?? function(e){ return [e] }
 
-				// NOTE: this is recursive to handle expanding nested promises...
 				var handle = function(elem){
-					// call the handler...
 					return (elem && elem.then) ?
-						//elem.then(function(elem){
-						//	return handler(elem) })
 						elem.then(handler)
 						: handler(elem) }
+				// NOTE: these are nor exactly the same, but it would be 
+				// 		nice to figure out a way to merge thess (XXX)
+				// XXX BUG: this seems to for some reason cack promises returned 
+				// 		by .map(..) / .. into arrays...
+				// 			await Promise.iter([1, Promise.resolve(2), [3]])
+				// 				.map(e => Promise.resolve(e))
+				// 		...will return a list with three promises...
+				// 		the odd thing is that printing the items shows
+				// 		that this gets the resolved results so it might 
+				// 		seem that the problem is a tad bigger...
+				// 		...also, the promises in the list are correct, 
+				// 		seems that we need to .flat(..) the list...
+				var handleNormList = function(list){
+					return list.map(function(sub){
+						// XXX this get's the already resolved values...
+						//console.log('---', sub)
+						return sub instanceof Promise ?
+							sub.then(function(sub){
+								return sub
+									.map(handle) 
+									.flat() })
+							: sub
+								.map(handle)
+								.flat() }) }
+				var handleList = function(list){
+					return list instanceof Promise ?
+						list.then(function(list){
+							return [list].flat()
+								.map(handle) })
+						: [list].flat()
+							.map(handle) }
 
 				// handle the list...
 				// NOTE: we can't .flat() the results here as we need to 
@@ -307,24 +357,8 @@ object.Constructor('IterablePromise', Promise, {
 							&& !(list.__list instanceof Promise)) ?
 						// NOTE: this is essentially the same as below but 
 						// 		with a normalized list as input...
-						// 		XXX can we merge the two???
-						list.__list
-							.map(function(elems){
-								return elems instanceof Promise ?
-									elems.then(function(elems){
-										return elems
-											.map(handle) 
-											.flat() })
-									: elems
-										.map(handle)
-										.flat() })
-					: list instanceof Promise ?
-						// special case: promised list...
-						list.then(function(list){
-							return [list].flat()
-								.map(handle) })	
-					: [list].flat()
-						.map(handle) }
+						handleNormList(list.__list)
+						: handleList(list) }
 
 			Object.defineProperty(obj, '__list', {
 				value: list,
@@ -337,9 +371,7 @@ object.Constructor('IterablePromise', Promise, {
 					list
 					: Promise.all([list].flat()))
 				.then(function(res){
-					promise.resolve(handler ?
-						res.flat()
-						: res) })
+					promise.resolve(res.flat()) })
 				.catch(promise.reject) }
 
 		return obj },

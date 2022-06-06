@@ -111,45 +111,142 @@ var cases = test.Cases({
 	RegExp: function(assert){
 	},
 
-	Promise: function(assert){
+	IterablePromise: test.TestSet(function(){
+		var create = function(assert, value){
+			return {
+				input: value, 
+				output: assert(Promise.iter(value), 'Promise.iter(', value, ')'),
+			} }
+
+		this.Setup({
+			empty: function(assert){
+				return create(assert, []) },
+			value: function(assert){
+				return create(assert, 123) },
+			array: function(assert){
+				return create(assert, [1, 2, 3]) },
+			nested_array: function(assert){
+				return create(assert, [1, 2, [3]]) },
+			promise_value: function(assert){
+				return create(assert, Promise.resolve(123)) },
+			promise_array: function(assert){
+				return create(assert, Promise.resolve([1, 2, 3])) },
+			promise_nested_array: function(assert){
+				return create(assert, Promise.resolve([1, 2, [3]])) },
+			array_mixed: function(assert){
+				return create(assert, [1, Promise.resolve(2), 3]) },
+			nested_array_mixed: function(assert){
+				return create(assert, [
+					1, 
+					Promise.resolve(2), 
+					[3], 
+					Promise.resolve([4]),
+				]) },
+			promise_array_mixed: function(assert){
+				return create(assert, Promise.resolve([1, Promise.resolve(2), 3])) },
+			promise_nested_array_mixed: function(assert){
+				return create(assert, Promise.resolve([
+					1, 
+					Promise.resolve(2), 
+					[3], 
+					Promise.resolve([4]),
+				])) },
+		})
+		this.Modifier({
+			nest: function(assert, setup){
+				setup.output = Promise.iter(setup.output)
+				return setup },
+			iter: function(assert, setup){
+				setup.output = setup.output.iter()
+				return setup },
+
+			map_asis: function(assert, setup){
+				setup.output = setup.output
+					.map(function(e){ 
+						return e }) 
+				return setup },
+			map_promise: function(assert, setup){
+				setup.output = setup.output
+					.map(function(e){ 
+						return Promise.resolve(e) }) 
+				return setup },
+
+			filter_all: function(assert, setup){
+				setup.output = setup.output
+					.filter(function(e){ return true }) 
+				return setup },
+			// XXX either the test is worng or something is broken...
+			filter_none: function(assert, setup){
+				return {
+					input: [],
+					output: setup.output
+						.filter(function(e){ return false }),
+				} },
+
+		})
+		this.Test({
+			value: async function(assert, {input, output}){
+
+				var res = await output
+
+				assert(res instanceof Array, 'result is array')
+
+				input instanceof Array ?
+					assert.array(res, 
+						await Promise.all(input), 
+							'array -> array')
+				: (input instanceof Promise && await input instanceof Array) ?
+					assert.array(res, 
+						await input, 
+							'promise array -> array')
+				: input instanceof Promise ?
+					assert.array(res, 
+						[await input], 
+							'promise value -> array')
+				: assert.array(res, 
+					[input], 
+					'value -> array') },
+		})
+	}),
+	Promise: async function(assert){
 		var p = assert(Promise.cooperative(), '.cooperative()')
-		//var p = assert(promise._CooperativePromise())
 		
-		assert(!p.isSet, '.isSet is false')
-
+		assert(!p.isSet, 'promise unset')
+		
 		var RESOLVE = 123
+		var then = false
+		var done = false
 
-		var then
 		p.then(function(v){
-			// XXX this does not get printed for some reason...
-			console.log('!!!!!!!!!!! then')
-			// XXX this seems not to work/print/count a fail...
-			assert(false, 'test fail')
+			then = assert(v == RESOLVE, '.then(..) handled') })
 
-			then = v })
-
-		assert(!p.isSet, '.isSet is false')
-
-		var fin
 		p.finally(function(){
-			fin = true })
+			done = assert(true, '.finally(..) handled') })
 
-		assert(!p.isSet, '.isSet is false')
+		assert(!p.isSet, 'promise unset')
 
 		p.set(RESOLVE)
 
-		assert(p.isSet, '.isSet')
+		assert(p.isSet, 'promise set')
 
-		// XXX without setTimeout(..) these are run before the 
-		// 		.then(..) / .finally(..) have a chance to run...
-		// 		...not yet sure how I feel about this...
-		// XXX with setTimeout(..) these appear not to have ANY effect, 
-		// 		as if setTimeout(..) did not run...
-		setTimeout(function(){
-			assert(false, 'test fail')
-			assert(then == RESOLVE, '.then(..)')
-			assert(fin, '.finally(..)')
-		}, 0)
+		// allow the promise to finalize...
+		await p
+
+		assert(then, '.then(..): confirmed')
+		assert(done, '.done(..): confirmed')
+
+		// XXX
+
+		assert(await Promise.iter([1, Promise.resolve(2), [3]]), '.iter(..)')
+
+		assert.array(
+			await Promise.iter([1, 2, 3]), 
+			[1, 2, 3], 
+				'basic array')
+		assert.array(
+			await Promise.iter([1, Promise.resolve(2), 3]), 
+			[1, 2, 3], 
+				'promises as elements')
 	},
 
 	// Date.js
