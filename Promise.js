@@ -65,6 +65,62 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	__list: null,
 
+	// low-level .__list handlers/helpers...
+	// NOTE: these can be useful for debugging and extending...
+	__normalize: function(list, handler){
+		// handle promise list...
+		if(list instanceof Promise){
+			var that = this
+			return list.then(function(list){
+				return that.__normalize(list, handler) }) }
+
+		var handle = !!handler
+		handler = handler 
+			?? function(elem){ 
+				return [elem] }
+		return [list].flat()
+			.map(function(elem){
+				return elem instanceof Array ?
+						handler(elem)
+					: elem && elem.then ?
+						elem.then(handler)
+					: !handle ?
+						elem
+					: handler(elem) }) },
+	__handle: function(list, handler){
+		var that = this
+		if(typeof(list) == 'function'){
+			handler = list
+			list = this.__list }
+		if(!handler){
+			return list }
+		// handle promise list...
+		if(list instanceof Promise){
+			return list.then(function(list){
+				return that.__handle(list, handler) }) }
+
+		return list.map(function(elem){
+			return elem instanceof Array ?
+					that.__normalize(elem, handler)
+				: elem instanceof Promise ?
+					that.__normalize([elem], handler).pop()
+						.then(function(elem){
+							return elem.flat() })
+				: handler(elem) })
+   			.flat() },
+	__denormalize: function(list){
+		list = list 
+			?? this.__list
+		// handle promise list...
+		if(list instanceof Promise){
+			var that = this
+			return list.then(function(list){
+				return that.__denormalize(list) }) }
+
+		return Promise.all(list)
+			.then(function(list){
+				return list.flat() }) },
+
 
 	// iterator methods...
 	//
@@ -95,7 +151,6 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
 	//
-	// XXX sould these support returning a promise???
 	// XXX should these support STOP???
 	map: function(func){
 		return this.constructor(this, 
@@ -126,7 +181,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 		XXX we could look at the initial state though...
 	// NOTE: the items can be handled out of order because the nested 
 	// 		promises can resolve in any order.
-	//		XXX write how to go around this...
+	//		XXX doc how to go around this...
 	// NOTE: since order of execution can not be guaranteed there is no
 	// 		point in implementing .reduceRight(..)
 	// XXX should func be able to return a promise???
@@ -178,29 +233,10 @@ object.Constructor('IterablePromise', Promise, {
 
 	// NOTE: these can create an unresolved promise from a resolved 
 	// 		promise...
-	// XXX EXPEREMENTAL...
-	// 		....can we remove a level of indirection here???
-	// 		would be better to use the raw mode...
 	concat: function(other){
-		var lst = this.__list
-		return lst instanceof Promise ?
-				this.constructor([this, other])
-					.flat()
-			: other instanceof IterablePromise ?
-				this.constructor(
-					lst.concat(other.__list),
-					'raw')
-			: other instanceof Promise ?
-				this.constructor(
-					lst.concat(other
-						.then(function(res){ 
-							return res instanceof Array ?
-					   			res
-								: [res] })),
-					'raw')
-			: this.constructor(
-				// XXX this is cheating -- need a more direct way to form the array...
-				lst.concat(this.constructor(other).__list),
+		return this.constructor(
+				this.__list
+					.concat(this.__normalize(other)),
 				'raw') },
 	push: function(elem){
 		return this.concat([elem]) },
@@ -284,17 +320,26 @@ object.Constructor('IterablePromise', Promise, {
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
-	//
-	// XXX BUG:
-	// 			await Promise.iter([1,Promise.resolve(2),[3]])
-	// 		is not the same as:
-	// 			await Promise.iter([1,Promise.resolve(2),[3]])
-	// 				.map(e => Promise.resolve(e))
-	// 		...again the problem is in the normalized input...
-	// XXX BUG:
-	// 			await Promise.iter(Promise.resolve([1, Promise.resolve(2), [3]]))
-	// 				-> [1, <promise>, 3]
-	// 		should produce: [1, 2, [3]]
+	// XXX DOC:
+	// 		inputs:
+	// 			- Chaining -- list instanceof IterablePromise
+	// 				After all the promises resolve .flat() should 
+	// 				turn this into the input list.
+	// 				For this to work we'll need to at least wrap all 
+	// 				arrays and promise results in arrays.
+	// 				(currently each value is wrapped)
+	// 				-> __list
+	// 					- promise (value | array)
+	// 					- array of:
+	// 						- array
+	// 							- value
+	// 						- promise (value | array)
+	// 			- New
+	// 				- promise (value | array)
+	// 				- value (non-array)
+	// 				- array of:
+	// 					- value
+	// 					- promise (value)
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -311,55 +356,10 @@ object.Constructor('IterablePromise', Promise, {
 			IterablePromise)
 
 		if(promise){
-
 			if(handler != 'raw'){
-				//
-				// inputs:
-				// 	- chaining -- list instanceof IterablePromise
-				// 		.__list
-				// 			- promise
-				// 			- array of:
-				// 				- array
-				// 					- value
-				// 				- promise (value | array)
-				// 	- new
-				// 		- promise (value | array)
-				// 		- value (non-array)
-				// 		- array of:
-				// 			- value
-				// 			- promise (value)
-				//
-
-
-
-				handler = handler
-					?? function(e){ return [e] }
-
-				var wrap = function(elem){
-					return (elem && elem.then) ?
-						elem.then(handler)
-						: handler(elem) }
-				var handle = function(list){
-					return list.map ?
-						list.map(wrap) 
-						: wrap(list) }
-				var handleList = function(list){
-					return list instanceof Promise ?
-						list.then(function(list){
-							return handle(list)
-								.flat() })
-						: handle(list) }
-
-				// handle the list...
-				// NOTE: we can't .flat() the results here as we need to 
-				// 		wait till all the promises resolve...
-				list =
-					(list instanceof IterablePromise 
-							&& !(list.__list instanceof Promise)) ?
-						list.__list
-							.map(handleList)
-							.flat()
-						: handleList(list) }
+				list = list instanceof IterablePromise ?
+					this.__handle(list.__list, handler)
+					: this.__normalize(list, handler) }
 
 			Object.defineProperty(obj, '__list', {
 				value: list,
@@ -367,12 +367,9 @@ object.Constructor('IterablePromise', Promise, {
 			})
 
 			// handle promise state...
-			;(list instanceof Promise ?
-					// special case: promised list...
-					list
-					: Promise.all([list].flat()))
-				.then(function(res){
-					promise.resolve(res.flat()) })
+			this.__denormalize(list)
+				.then(function(list){
+					promise.resolve(list) })
 				.catch(promise.reject) }
 
 		return obj },
