@@ -291,6 +291,10 @@ object.Constructor('IterablePromise', Promise, {
 	// 			await Promise.iter([1,Promise.resolve(2),[3]])
 	// 				.map(e => Promise.resolve(e))
 	// 		...again the problem is in the normalized input...
+	// XXX BUG:
+	// 			await Promise.iter(Promise.resolve([1, Promise.resolve(2), [3]]))
+	// 				-> [1, <promise>, 3]
+	// 		should produce: [1, 2, [3]]
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -309,44 +313,42 @@ object.Constructor('IterablePromise', Promise, {
 		if(promise){
 
 			if(handler != 'raw'){
+				//
+				// inputs:
+				// 	- chaining -- list instanceof IterablePromise
+				// 		.__list
+				// 			- promise
+				// 			- array of:
+				// 				- array
+				// 					- value
+				// 				- promise (value | array)
+				// 	- new
+				// 		- promise (value | array)
+				// 		- value (non-array)
+				// 		- array of:
+				// 			- value
+				// 			- promise (value)
+				//
+
+
+
 				handler = handler
 					?? function(e){ return [e] }
 
-				var handle = function(elem){
+				var wrap = function(elem){
 					return (elem && elem.then) ?
 						elem.then(handler)
 						: handler(elem) }
-				// NOTE: these are nor exactly the same, but it would be 
-				// 		nice to figure out a way to merge thess (XXX)
-				// XXX BUG: this seems to for some reason cack promises returned 
-				// 		by .map(..) / .. into arrays...
-				// 			await Promise.iter([1, Promise.resolve(2), [3]])
-				// 				.map(e => Promise.resolve(e))
-				// 		...will return a list with three promises...
-				// 		the odd thing is that printing the items shows
-				// 		that this gets the resolved results so it might 
-				// 		seem that the problem is a tad bigger...
-				// 		...also, the promises in the list are correct, 
-				// 		seems that we need to .flat(..) the list...
-				var handleNormList = function(list){
-					return list.map(function(sub){
-						// XXX this get's the already resolved values...
-						//console.log('---', sub)
-						return sub instanceof Promise ?
-							sub.then(function(sub){
-								return sub
-									.map(handle) 
-									.flat() })
-							: sub
-								.map(handle)
-								.flat() }) }
+				var handle = function(list){
+					return list.map ?
+						list.map(wrap) 
+						: wrap(list) }
 				var handleList = function(list){
 					return list instanceof Promise ?
 						list.then(function(list){
-							return [list].flat()
-								.map(handle) })
-						: [list].flat()
-							.map(handle) }
+							return handle(list)
+								.flat() })
+						: handle(list) }
 
 				// handle the list...
 				// NOTE: we can't .flat() the results here as we need to 
@@ -354,9 +356,9 @@ object.Constructor('IterablePromise', Promise, {
 				list =
 					(list instanceof IterablePromise 
 							&& !(list.__list instanceof Promise)) ?
-						// NOTE: this is essentially the same as below but 
-						// 		with a normalized list as input...
-						handleNormList(list.__list)
+						list.__list
+							.map(handleList)
+							.flat()
 						: handleList(list) }
 
 			Object.defineProperty(obj, '__list', {
