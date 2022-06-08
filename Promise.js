@@ -256,7 +256,7 @@ object.Constructor('IterablePromise', Promise, {
 				[cur, ...other]
 			: other instanceof Promise ?
 				[...cur, other]
-			: cur.concat(other),
+			: [...cur, ...other],
 			'raw') },
 	push: function(elem){
 		return this.concat([elem]) },
