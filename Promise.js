@@ -163,8 +163,6 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
-	//
-	// XXX should these support STOP???
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
@@ -198,14 +196,6 @@ object.Constructor('IterablePromise', Promise, {
 					return [] })
 			.then(function(){ 
 				return res }) },
-	/* // XXX since order of execution is not fixed there is no point in 
-	//		adding this.
-	reduceRight: function(func, res){
-		return this
-			.reverse()
-			.reduce(...arguments)
-			.reverse() },
-	//*/
 	flat: function(depth=1){
 		return this.constructor(this, 
 			function(e){ 
@@ -338,13 +328,14 @@ object.Constructor('IterablePromise', Promise, {
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
+	// XXX how do we handle errors???
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
 		var obj = Reflect.construct(
 			IterablePromise.__proto__, 
 			[function(resolve, reject){
-				// NOTE: this is here for Promise compatibilty...
+				// NOTE: this is here for Promise compatibility...
 				if(typeof(list) == 'function'){
 					return list.call(this, ...arguments) } 
 				// initial reject... 
@@ -568,13 +559,10 @@ object.Mixin('PromiseMixin', 'soft', {
 PromiseMixin(Promise)
 
 
-// XXX EXPEREMENTAL...
 var PromiseProtoMixin =
 module.PromiseProtoMixin =
 object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
-
-	// XXX
 	iter: function(handler){
 		return IterablePromise(this, handler) },
 })
