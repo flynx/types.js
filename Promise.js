@@ -188,11 +188,9 @@ object.Constructor('IterablePromise', Promise, {
 	// 		what the user reduces to...
 	// 		XXX we could look at the initial state though...
 	// NOTE: the items can be handled out of order because the nested 
-	// 		promises can resolve in any order.
-	//		XXX doc how to go around this...
+	// 		promises can resolve in any order...
 	// NOTE: since order of execution can not be guaranteed there is no
 	// 		point in implementing .reduceRight(..)
-	// XXX should func be able to return a promise???
 	reduce: function(func, res){
 		return this.constructor(this, 
 				function(e){
@@ -311,14 +309,14 @@ object.Constructor('IterablePromise', Promise, {
 	// 		-> []
 	//
 	//
-	// NOTE: element index is unknowable untill the full list is expanded
+	// NOTE: element index is unknowable until the full list is expanded
 	// 		as handler(..)'s return value can expand to any number of 
 	// 		items...
 	// 		XXX we can make the index a promise, then if the client needs
 	// 			the value they can wait for it...
 	//
 	//
-	// Spectial cases usefull for extending this constructor...
+	// Special cases useful for extending this constructor...
 	//
 	//	Set raw .__list without any pre-processing...
 	//	Promise.iter([ .. ], 'raw')
@@ -329,38 +327,17 @@ object.Constructor('IterablePromise', Promise, {
 	//		-> iterable-promise
 	//
 	//
-	// XXX if list is an iterator, can we fill this async???
 	// XXX iterator/generator as input:
 	// 		- do we unwind here or externally?
 	// 			...feels like with the generator external unwinding is 
 	// 			needed...
-	// XXX would be nice to support trowing STOP...
+	// XXX would be nice to support throwing STOP...
 	// 		- this is more complicated than simply suing .smap(..) instead 
 	// 			of .map(..) because the list can contain async promises...
 	// 			...would need to wrap each .then(..) call in try-catch and
 	// 			manually handle the stop...
 	// 		- another issue here is that the stop would happen in order of 
 	// 			execution and not order of elements...
-	// XXX DOC:
-	// 		inputs:
-	// 			- Chaining -- list instanceof IterablePromise
-	// 				After all the promises resolve .flat() should 
-	// 				turn this into the input list.
-	// 				For this to work we'll need to at least wrap all 
-	// 				arrays and promise results in arrays.
-	// 				(currently each value is wrapped)
-	// 				-> __list
-	// 					- promise (value | array)
-	// 					- array of:
-	// 						- array
-	// 							- value
-	// 						- promise (value | array)
-	// 			- New
-	// 				- promise (value | array)
-	// 				- value (non-array)
-	// 				- array of:
-	// 					- value
-	// 					- promise (value)
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -376,17 +353,17 @@ object.Constructor('IterablePromise', Promise, {
 				promise = {resolve, reject} }], 
 			IterablePromise)
 
+		// new instance...
 		if(promise){
+			// handle/pack input data...
 			if(handler != 'raw'){
 				list = list instanceof IterablePromise ?
 					this.__handle(list.__list, handler)
 					: this.__pack(list, handler) }
-
 			Object.defineProperty(obj, '__list', {
 				value: list,
 				enumerable: false,
 			})
-
 			// handle promise state...
 			this.__unpack(list)
 				.then(function(list){
