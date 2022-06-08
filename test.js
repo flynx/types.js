@@ -183,6 +183,21 @@ var cases = test.Cases({
 						.filter(function(e){ return false }),
 				} },
 
+			concat_basic: function(assert, {input, output}){
+				return {
+					input: [input].flat()
+						.concat(['a', 'b', 'c']),
+					output: output
+						.concat(['a', 'b', 'c']),
+				} },
+			concat_nested_array: function(assert, {input, output}){
+				return {
+					input: [input].flat()
+						.concat(['a', ['b'], 'c']),
+					output: output
+						.concat(['a', ['b'], 'c']),
+				} },
+
 		})
 		this.Test({
 			value: async function(assert, {input, output}){

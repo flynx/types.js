@@ -58,6 +58,7 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// Format:
 	// 	[
+	//		<non-array-value>,
 	//		[ <value> ],
 	//		<promise>,
 	//		...
@@ -66,24 +67,33 @@ object.Constructor('IterablePromise', Promise, {
 	__list: null,
 
 	// low-level .__list handlers/helpers...
+	//
 	// NOTE: these can be useful for debugging and extending...
-	__normalize: function(list, handler){
+	__pack: function(list, handler){
+		var that = this
+		// handle iterable promise list...
+		if(list instanceof IterablePromise){
+			return this.__handle(list.__list, handler) }
 		// handle promise list...
 		if(list instanceof Promise){
-			var that = this
 			return list.then(function(list){
-				return that.__normalize(list, handler) }) }
-
+				return that.__pack(list, handler) }) }
+		// do the work...
+		// NOTE: packing and handling are mixed here because it's faster
+		// 		to do them both on a single list traverse...
 		var handle = !!handler
 		handler = handler 
 			?? function(elem){ 
 				return [elem] }
 		return [list].flat()
 			.map(function(elem){
-				return elem instanceof Array ?
-						handler(elem)
-					: elem && elem.then ?
+				return elem && elem.then ?
+						//that.__pack(elem, handler)
 						elem.then(handler)
+					: elem instanceof Array ?
+						handler(elem)
+					// NOTE: we keep things that do not need protecting 
+					// 		from .flat() as-is...
 					: !handle ?
 						elem
 					: handler(elem) }) },
@@ -98,25 +108,28 @@ object.Constructor('IterablePromise', Promise, {
 		if(list instanceof Promise){
 			return list.then(function(list){
 				return that.__handle(list, handler) }) }
-
+		// do the work...
+		// NOTE: since each section of the packed .__array is the same 
+		// 		structure as the input we'll use .__pack(..) to handle 
+		// 		them, this also keeps all the handling code in one place.
 		return list.map(function(elem){
 			return elem instanceof Array ?
-					that.__normalize(elem, handler)
+					that.__pack(elem, handler)
 				: elem instanceof Promise ?
-					that.__normalize([elem], handler).pop()
+					that.__pack(elem, handler)
 						.then(function(elem){
 							return elem.flat() })
-				: handler(elem) })
+				: [handler(elem)] })
    			.flat() },
-	__denormalize: function(list){
+	__unpack: function(list){
 		list = list 
 			?? this.__list
 		// handle promise list...
 		if(list instanceof Promise){
 			var that = this
 			return list.then(function(list){
-				return that.__denormalize(list) }) }
-
+				return that.__unpack(list) }) }
+		// do the work...
 		return Promise.all(list)
 			.then(function(list){
 				return list.flat() }) },
@@ -155,7 +168,6 @@ object.Constructor('IterablePromise', Promise, {
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
-				//return [func(e)] }) },
 				var res = func(e)
 				return res instanceof Promise ?
 		   			res.then(function(e){ 
@@ -164,18 +176,14 @@ object.Constructor('IterablePromise', Promise, {
 	filter: function(func){
 		return this.constructor(this, 
 			function(e){
-				//return func(e) ? 
-				//	[e] 
-				//	: [] }) },
 				var res = func(e)
+				var _filter = function(elem){
+					return res ?
+						[elem]
+						: [] }
 				return res instanceof Promise ?
-						res.then(function(res){
-							return res ?
-								[e]
-								: [] })
-					: res ?
-						[e]
-					: [] }) },
+					res.then(_filter)
+					: _filter(e) }) },
 	// NOTE: this does not return an iterable promise as we can't know 
 	// 		what the user reduces to...
 	// 		XXX we could look at the initial state though...
@@ -231,13 +239,29 @@ object.Constructor('IterablePromise', Promise, {
 				.reverse(),
 			'raw') },
 
-	// NOTE: these can create an unresolved promise from a resolved 
-	// 		promise...
+	// NOTE: the following methods can create an unresolved promise from 
+	// 		a resolved promise...
 	concat: function(other){
+		var that = this
+		var cur = this.__pack(this)
+		var other = this.__pack(other)
 		return this.constructor(
-				this.__list
-					.concat(this.__normalize(other)),
-				'raw') },
+			// NOTE: we are not using only the first branch to keep the 
+			// 		lists as exposed as possible thus avoiding blocking 
+			// 		until the whole ting is resolved...
+			(cur instanceof Promise 
+					&& other instanceof Promise) ?
+				Promise.all([cur, other])
+					.then(function(list){
+						return list[0].concat(list[1]) })
+			: cur instanceof Promise ?
+				cur.then(function(list){
+					return list.concat(other) })
+			: other instanceof Promise ?
+				other.then(function(list){
+					return cur.concat(list) })
+			: cur.concat(other),
+			'raw') },
 	push: function(elem){
 		return this.concat([elem]) },
 	unshift: function(elem){
@@ -248,6 +272,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.pop()
 	// 			.shift()
 	// 			.first() / .last()
+	// 			.at(..)
 	// 		...would be nice if these could stop everything that's not
 	// 		needed to execute...
 	
@@ -359,7 +384,7 @@ object.Constructor('IterablePromise', Promise, {
 			if(handler != 'raw'){
 				list = list instanceof IterablePromise ?
 					this.__handle(list.__list, handler)
-					: this.__normalize(list, handler) }
+					: this.__pack(list, handler) }
 
 			Object.defineProperty(obj, '__list', {
 				value: list,
@@ -367,7 +392,7 @@ object.Constructor('IterablePromise', Promise, {
 			})
 
 			// handle promise state...
-			this.__denormalize(list)
+			this.__unpack(list)
 				.then(function(list){
 					promise.resolve(list) })
 				.catch(promise.reject) }
@@ -577,8 +602,8 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 
 	// XXX
-	iter: function(){
-		return IterablePromise(this) },
+	iter: function(handler){
+		return IterablePromise(this, handler) },
 })
 
 PromiseProtoMixin(Promise.prototype)
