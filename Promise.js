@@ -246,20 +246,16 @@ object.Constructor('IterablePromise', Promise, {
 		var cur = this.__pack(this)
 		var other = this.__pack(other)
 		return this.constructor(
-			// NOTE: we are not using only the first branch to keep the 
-			// 		lists as exposed as possible thus avoiding blocking 
-			// 		until the whole ting is resolved...
+			// NOTE: we need to keep things as exposed as possible, this 
+			// 		is why we're not blanketing all the cases with 
+			// 		Promise.all(..)...
 			(cur instanceof Promise 
 					&& other instanceof Promise) ?
-				Promise.all([cur, other])
-					.then(function(list){
-						return list[0].concat(list[1]) })
+				[cur, other]
 			: cur instanceof Promise ?
-				cur.then(function(list){
-					return list.concat(other) })
+				[cur, ...other]
 			: other instanceof Promise ?
-				other.then(function(list){
-					return cur.concat(list) })
+				[...cur, other]
 			: cur.concat(other),
 			'raw') },
 	push: function(elem){
