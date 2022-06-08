@@ -1,7 +1,4 @@
 /**********************************************************************
-* 
-*
-*
 *
 * This defines the following extensions to Promise:
 *
@@ -28,18 +25,6 @@
 
 var object = require('ig-object')
 
-// XXX required for STOP...
-//var generator = require('./generator')
-
-
-/*********************************************************************/
-
-/* XXX not used yet...
-// NOTE: this is used in a similar fashion to Python's StopIteration...
-var STOP =
-module.STOP =
-	object.STOP
-//*/
 
 
 //---------------------------------------------------------------------
@@ -48,13 +33,20 @@ module.STOP =
 // Like Promise.all(..) but adds ability to iterate through results
 // via generators .map(..)/.reduce(..) and friends...
 // 
+// NOTE: it would be nice to support throwing STOP from the iterable 
+// 		promise but...
+// 		- this is more complicated than simply using .smap(..) instead 
+// 			of .map(..) because the list can contain async promises...
+// 			...would need to wrap each .then(..) call in try-catch and
+// 			manually handle the stop...
+// 			...then there's a question of derivative iterators etc.
+// 		- another issue here is that the stop would happen in order of 
+// 			execution and not order of elements...
+//
 
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
-	// XXX
-	//STOP: object.STOP,
-
 	//
 	// Format:
 	// 	[
@@ -63,6 +55,11 @@ object.Constructor('IterablePromise', Promise, {
 	//		<promise>,
 	//		...
 	// 	]
+	//
+	// This format has several useful features:
+	// 	- concatenating packed list results in a packed list
+	// 	- adding an iterable promise (as-is) into a packed list results 
+	// 		in a packed list
 	//
 	__list: null,
 
@@ -321,14 +318,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 		- do we unwind here or externally?
 	// 			...feels like with the generator external unwinding is 
 	// 			needed...
-	// XXX would be nice to support throwing STOP...
-	// 		- this is more complicated than simply suing .smap(..) instead 
-	// 			of .map(..) because the list can contain async promises...
-	// 			...would need to wrap each .then(..) call in try-catch and
-	// 			manually handle the stop...
-	// 		- another issue here is that the stop would happen in order of 
-	// 			execution and not order of elements...
-	// XXX how do we handle errors???
+	// XXX how do we handle errors/rejections???
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
@@ -344,7 +334,7 @@ object.Constructor('IterablePromise', Promise, {
 				promise = {resolve, reject} }], 
 			IterablePromise)
 
-		// new instance...
+		// populate new instance...
 		if(promise){
 			// handle/pack input data...
 			if(handler != 'raw'){
