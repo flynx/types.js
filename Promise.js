@@ -61,6 +61,8 @@ object.Constructor('IterablePromise', Promise, {
 	// 	- adding an iterable promise (as-is) into a packed list results 
 	// 		in a packed list
 	//
+	// NOTE: in general iterable promises are implicitly immutable, so
+	// 		it is not recomended to ever edit this inplace...
 	__list: null,
 
 	// low-level .__list handlers/helpers...
@@ -193,6 +195,7 @@ object.Constructor('IterablePromise', Promise, {
 					return [] })
 			.then(function(){ 
 				return res }) },
+
 	flat: function(depth=1){
 		return this.constructor(this, 
 			function(e){ 
@@ -249,14 +252,47 @@ object.Constructor('IterablePromise', Promise, {
 		return this.constructor([elem])
 			.concat(this) },
 
-	// XXX do we need these?
+	// XXX can we do these?
 	// 			.pop()
 	// 			.shift()
-	// 			.first() / .last()
-	// 			.at(..)
+	// 			.splice(..)
 	// 		...would be nice if these could stop everything that's not
-	// 		needed to execute...
+	// 		needed to execute -- likely not possible (XXX)
+	// 		...these need to somehow both return an element and affect 
+	// 		the iterator (or return a new one) -- we can trivialy do either
+	// 		one action within the spec but not both...
+
+	// NOTE: this can avoid waiting for the whole promise to resolve only
+	// 		for indexes 0 and -1, everything else is nondeterministic and
+	// 		we'll have to wait for the whole thing to resolve.
+	at: async function(i){
+		var list = this.__list
+		return ((i != 0 && i != -1)
+					|| list instanceof Promise
+					|| list.at(i) instanceof Promise) ?
+				(await this).at(i)
+			// NOTE: we can only reason about first/last explicit elements, 
+			// 		anything elss is nondeterministic...
+			: list.at(i) instanceof Promise ?
+				[await list.at(i)].flat().at(i)
+			: list.at(i) instanceof Array ?
+				list.at(i).at(i)
+			: list.at(i) },
+	first: function(){
+		return this.at(0) },
+	last: function(){
+		return this.at(-1) },
 	
+	slice: async function(from, to){
+		return (await this).slice(...arguments) },
+
+	entries: async function(){
+		return (await this).entries() },
+	keys: async function(){
+		return (await this).keys() },
+	values: async function(){
+		return (await this).values() },
+
 
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 
 	// Promise instnace...
