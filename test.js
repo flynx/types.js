@@ -183,6 +183,7 @@ var cases = test.Cases({
 						.filter(function(e){ return false }),
 				} },
 
+			/* XXX need tuning...
 			concat_basic: function(assert, {input, output}){
 				return {
 					input: [input].flat()
@@ -197,6 +198,7 @@ var cases = test.Cases({
 					output: output
 						.concat(['a', ['b'], 'c']),
 				} },
+			//*/
 
 		})
 		this.Test({
