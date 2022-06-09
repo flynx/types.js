@@ -186,6 +186,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
+	// 		XXX update this note...
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
@@ -359,8 +360,9 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	//
 	// 	handler(e)
-	// 		-> [value]
+	// 		-> [value, ..]
 	// 		-> []
+	// 		-> <promise>
 	//
 	//
 	// NOTE: element index is unknowable until the full list is expanded
