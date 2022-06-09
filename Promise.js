@@ -42,8 +42,12 @@ var object = require('ig-object')
 // 			...then there's a question of derivative iterators etc.
 // 		- another issue here is that the stop would happen in order of 
 // 			execution and not order of elements...
+// 		XXX though stopping within a single level might be useful...
 //
 
+// NOTE: we are not using async/await here as we need to control the 
+// 		type of promise returned in cases where we know we are returning 
+// 		an array...
 // XXX should these be exported???
 var iterPromiseProxy = 
 //module.iterPromiseProxy = 
@@ -58,7 +62,6 @@ function(name){
 	return async function(...args){
 		return (await this)[name](...args) } }
 
-// XXX see what can be simplified by using async/await...
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
@@ -301,9 +304,6 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: there is no way we can do a sync generator returning 
 	// 		promises for values because any promise in .__list makes the 
 	// 		value count/index non-deterministic...
-	// NOTE: we are not using async/await here as we need to control the 
-	// 		type of promise returned in cases where we know we are 
-	// 		returning an array...
 	sort: iterPromiseProxy('sort'),
 	slice: iterPromiseProxy('slice'),
 	entries: iterPromiseProxy('entries'),
@@ -588,10 +588,6 @@ object.Constructor('ProxyPromise', Promise, {
 						return }
 					// proxy...
 					obj[key] = promiseProxy(key) })
-					//obj[key] = function(...args){
-					//	// XXX should we also .catch(..) here???
-					//	return context.then(function(res){
-					//		return res[key](...args) }) } })
 			proto = proto.__proto__ } 
 		return obj },
 })
