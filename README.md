@@ -1508,6 +1508,17 @@ promise, even if the original is resolved.
 If all values are resolved the `<promise-iter>` will resolve on the next 
 execution frame.
 
+There are two types of iterator methods here, both are transparent but different
+in how they process values:
+- *Parallel methods*  
+  These handle elements as soon as they are available even if the parent promise
+  is not yet resolved.
+  <!-- XXX list -->
+- *Proxies*
+  These methods simply wait for the main promise to resolve and then call the
+  appropriate method on the result.
+  <!-- XXX list -->
+
 <!-- 
 XXX should we support generators as input?
     ...not sure about the control flow direction here, on one hand the generator

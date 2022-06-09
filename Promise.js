@@ -44,6 +44,21 @@ var object = require('ig-object')
 // 			execution and not order of elements...
 //
 
+// XXX should these be exported???
+var iterPromiseProxy = 
+//module.iterPromiseProxy = 
+function(name){
+	return function(...args){
+		return this.constructor(
+			this.then(function(lst){
+				return lst[name](...args) })) } }
+var promiseProxy =
+//module.promiseProxy =
+function(name){
+	return async function(...args){
+		return (await this)[name](...args) } }
+
+// XXX see what can be simplified by using async/await...
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
@@ -259,11 +274,11 @@ object.Constructor('IterablePromise', Promise, {
 	// 		...would be nice if these could stop everything that's not
 	// 		needed to execute -- likely not possible (XXX)
 	// 		...these need to somehow both return an element and affect 
-	// 		the iterator (or return a new one) -- we can trivialy do either
+	// 		the iterator (or return a new one) -- we can trivially do either
 	// 		one action within the spec but not both...
 
 	// NOTE: this can avoid waiting for the whole promise to resolve only
-	// 		for indexes 0 and -1, everything else is nondeterministic and
+	// 		for indexes 0 and -1, everything else is non-deterministic and
 	// 		we'll have to wait for the whole thing to resolve.
 	at: async function(i){
 		var list = this.__list
@@ -272,7 +287,7 @@ object.Constructor('IterablePromise', Promise, {
 					|| list.at(i) instanceof Promise) ?
 				(await this).at(i)
 			// NOTE: we can only reason about first/last explicit elements, 
-			// 		anything elss is nondeterministic...
+			// 		anything else is non-deterministic...
 			: list.at(i) instanceof Promise ?
 				[await list.at(i)].flat().at(i)
 			: list.at(i) instanceof Array ?
@@ -283,15 +298,25 @@ object.Constructor('IterablePromise', Promise, {
 	last: function(){
 		return this.at(-1) },
 	
-	slice: async function(from, to){
-		return (await this).slice(...arguments) },
+	// NOTE: there is no way we can do a sync generator returning 
+	// 		promises for values because any promise in .__list makes the 
+	// 		value count/index non-deterministic...
+	// NOTE: we are not using async/await here as we need to control the 
+	// 		type of promise returned in cases where we know we are 
+	// 		returning an array...
+	sort: iterPromiseProxy('sort'),
+	slice: iterPromiseProxy('slice'),
+	entries: iterPromiseProxy('entries'),
+	keys: iterPromiseProxy('keys'),
+	// XXX we could possibly make this better via .map(..)
+	values: iterPromiseProxy('values'),
 
-	entries: async function(){
-		return (await this).entries() },
-	keys: async function(){
-		return (await this).keys() },
-	values: async function(){
-		return (await this).values() },
+	indexOf: promiseProxy('indexOf'),
+	includes: promiseProxy('includes'),
+
+	every: promiseProxy('every'),
+	// XXX this can be lazy...
+	some: promiseProxy('some'),
 
 
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 
@@ -562,10 +587,11 @@ object.Constructor('ProxyPromise', Promise, {
 							&& !value.enumerable){
 						return }
 					// proxy...
-					obj[key] = function(...args){
-						// XXX should we also .catch(..) here???
-						return context.then(function(res){
-							return res[key](...args) }) } })
+					obj[key] = promiseProxy(key) })
+					//obj[key] = function(...args){
+					//	// XXX should we also .catch(..) here???
+					//	return context.then(function(res){
+					//		return res[key](...args) }) } })
 			proto = proto.__proto__ } 
 		return obj },
 })
