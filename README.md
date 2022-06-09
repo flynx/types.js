@@ -1517,7 +1517,7 @@ in how they process values:
 - *Proxies*
   These methods simply wait for the main promise to resolve and then call the
   appropriate method on the result.
-  <!-- XXX list -->
+  <!-- XXX list + mark definitions as "(proxy)" -->
 
 <!-- 
 XXX should we support generators as input?
