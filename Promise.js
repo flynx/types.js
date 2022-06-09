@@ -3,6 +3,7 @@
 * This defines the following extensions to Promise:
 *
 * 	Promise.iter(seq)
+* 	<promise>.iter()
 * 		Iterable promise object.
 * 		Similar to Promise.all(..) but adds basic iterator/generator
 * 		API and will resolve the items as they are ready (resolved).
@@ -15,6 +16,11 @@
 * 		Cooperative promise object.
 * 		Exposes the API to resolve/reject the promise object 
 * 		externally.
+*
+* 	<promise>.as(obj)
+* 		Promise proxy.
+* 		Proxies the methods available from obj to promise value.
+*
 *
 *
 *
@@ -180,6 +186,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
+	// 		XXX update this note...
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
@@ -353,8 +360,9 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	//
 	// 	handler(e)
-	// 		-> [value]
+	// 		-> [value, ..]
 	// 		-> []
+	// 		-> <promise>
 	//
 	//
 	// NOTE: element index is unknowable until the full list is expanded
