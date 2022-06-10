@@ -175,18 +175,22 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: index of items is unknowable because items can expand and
 	// 		contract depending on handlrs (e.g. .filter(..) can remove 
 	// 		items)...
-	// 		This the following can not be implemented here:
-	// 			.slice(..)
-	// 			.splice(..)
-	// 			.values() / .keys()
-	// 			.at(..)
+	// 		Thus the following can not be implemented here:
+	// 			.splice(..)				- can't both modify and return
+	// 									  a result...
 	// 			[Symbol.iterator]()		- needs to be sync...
-	// 		The followng methods are questionable:
+	// 		These are direct poxies requiring the whole promuse to 
+	// 		resolve:
+	// 			.at(..) / .first() / .last()
+	// 									- special case: elements 
+	// 									  0 and -1 can in sime cases 
+	// 									  resolve early...
+	// 			.slice(..)
+	// 			.entries() / .values() / .keys()
 	// 			.indexOf(..)
 	// 			.includes(..)
 	// 			.some(..) / .every(..)
 	// 			.sort(..)
-	// 		XXX update this note...
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
