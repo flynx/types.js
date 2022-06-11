@@ -77,6 +77,8 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.reverse()`](#promise-iterreverse)
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
       - [`<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`](#promise-iterpush--promise-iterunshift)
+      - [`<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`](#promise-iterat--promise-iterfirst--promise-iterlast)
+      - [Array proxy methods](#array-proxy-methods)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
       - [Advanced handler](#advanced-handler)
     - [Promise proxies](#promise-proxies)
@@ -1661,6 +1663,16 @@ This is similar to [`<array>.concat(..)`](https://developer.mozilla.org/en-US/do
 These are similar to [`<array>.push(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push) 
 and [`<array>.unshift(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift) 
 see them for more info.
+
+
+#### `<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`
+
+XXX
+
+
+#### Array proxy methods
+
+XXX
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`

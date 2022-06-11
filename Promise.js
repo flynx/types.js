@@ -173,12 +173,17 @@ object.Constructor('IterablePromise', Promise, {
 	// 		is called not in the order of the elements but rather in order 
 	// 		of promise resolution...
 	// NOTE: index of items is unknowable because items can expand and
-	// 		contract depending on handlrs (e.g. .filter(..) can remove 
+	// 		contract depending on handlers (e.g. .filter(..) can remove 
 	// 		items)...
 	// 		Thus the following can not be implemented here:
 	// 			.splice(..)				- can't both modify and return
 	// 									  a result...
-	// 			[Symbol.iterator]()		- needs to be sync...
+	// 			.pop() / .shift()		- can't modify the promise, use 
+	// 									  .first() / .last() instead.
+	// 			[Symbol.iterator]()		- needs to be sync and we can't
+	// 									  know the number of elements to
+	// 									  return promises before the whole
+	// 									  iterable promise is resolved.
 	// 		These are direct poxies requiring the whole promuse to 
 	// 		resolve:
 	// 			.at(..) / .first() / .last()
