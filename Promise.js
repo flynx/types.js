@@ -314,6 +314,8 @@ object.Constructor('IterablePromise', Promise, {
 	// 		promises for values because any promise in .__list makes the 
 	// 		value count/index non-deterministic...
 	sort: iterPromiseProxy('sort'),
+	// XXX we could have a special-case here for .slice()/slice(0, -1)
+	// 		and possibly othets, should we???
 	slice: iterPromiseProxy('slice'),
 	entries: iterPromiseProxy('entries'),
 	keys: iterPromiseProxy('keys'),
