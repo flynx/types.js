@@ -78,7 +78,8 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
       - [`<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`](#promise-iterpush--promise-iterunshift)
       - [`<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`](#promise-iterat--promise-iterfirst--promise-iterlast)
-      - [Array proxy methods](#array-proxy-methods)
+      - [Array proxy methods returning `<promise-iter>`](#array-proxy-methods-returning-promise-iter)
+      - [Array proxy methods returning a `<promise>`](#array-proxy-methods-returning-a-promise)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
       - [Advanced handler](#advanced-handler)
     - [Promise proxies](#promise-proxies)
@@ -1670,9 +1671,43 @@ see them for more info.
 XXX
 
 
-#### Array proxy methods
+#### Array proxy methods returning `<promise-iter>`
 
-XXX
+- `<promise-iter>.sort(..)`
+- `<promise-iter>.slice(..)`
+- `<promise-iter>.entries()` / `<promise-iter>.keys()` / `<promise-iter>.values()` 
+
+These methods are proxies to the appropriate array methods.
+
+```bnf
+<promise-iter>.<method>(..)
+    -> <promise-iter>
+```
+
+These methods need the parent `<promise-iter>` to resolve before resolving themselves.
+
+XXX links...
+
+
+#### Array proxy methods returning a `<promise>`
+
+- `<promise-iter>.indexOf(..)` 
+- `<promise-iter>.includes(..)` 
+- `<promise-iter>.every(..)` / `<promise-iter>.some(..)`
+
+These methods are proxies to the appropriate array methods.
+
+```bnf
+<promise-iter>.<method>(..)
+    -> <promise>
+```
+
+These methods need the parent `<promise-iter>` to resolve before resolving themselves.
+
+Since the equivalent array methods do not return iterables these will return a basic
+(non-iterable) `<promise>`.
+
+XXX links...
 
 
 #### `<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`
