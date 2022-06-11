@@ -39,7 +39,7 @@ var object = require('ig-object')
 // Like Promise.all(..) but adds ability to iterate through results
 // via generators .map(..)/.reduce(..) and friends...
 // 
-// NOTE: it would be nice to support throwing STOP from the iterable 
+// NOTE: it would be nice to support throwing STOP (XXX) from the iterable 
 // 		promise but...
 // 		- this is more complicated than simply using .smap(..) instead 
 // 			of .map(..) because the list can contain async promises...
@@ -49,11 +49,21 @@ var object = require('ig-object')
 // 		- another issue here is that the stop would happen in order of 
 // 			execution and not order of elements...
 // 		XXX though stopping within a single level might be useful...
-//
-
+// NOTE: the following can not be implemented here:
+// 			.splice(..)				- can't both modify and return
+// 									  a result...
+// 			.pop() / .shift()		- can't modify the promise, use 
+// 									  .first() / .last() instead.
+// 			[Symbol.iterator]()		- needs to be sync and we can't
+// 									  know the number of elements to
+// 									  return promises before the whole
+// 									  iterable promise is resolved.
 // NOTE: we are not using async/await here as we need to control the 
 // 		type of promise returned in cases where we know we are returning 
 // 		an array...
+// 		
+
+// XXX how do we handle errors/rejections???
 // XXX should these be exported???
 var iterPromiseProxy = 
 //module.iterPromiseProxy = 
@@ -71,6 +81,9 @@ function(name){
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
+	// packed array...
+	//
+	// Holds promise state.
 	//
 	// Format:
 	// 	[
@@ -87,12 +100,16 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// NOTE: in general iterable promises are implicitly immutable, so
 	// 		it is not recomended to ever edit this inplace...
+	// NOTE: we are not isolation any internals to enable users to 
+	// 		responsibly extend the code.
 	__list: null,
 
 	// low-level .__list handlers/helpers...
 	//
 	// NOTE: these can be useful for debugging and extending...
-	__pack: function(list, handler){
+	//
+	// pack and oprionally transform/handle an array (sync)...
+	__pack: function(list, handler=undefined){
 		var that = this
 		// handle iterable promise list...
 		if(list instanceof IterablePromise){
@@ -120,7 +137,8 @@ object.Constructor('IterablePromise', Promise, {
 					: !handle ?
 						elem
 					: handler(elem) }) },
-	__handle: function(list, handler){
+	// transform/handle packed array (sync)...
+	__handle: function(list, handler=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
 			handler = list
@@ -144,18 +162,16 @@ object.Constructor('IterablePromise', Promise, {
 							return elem.flat() })
 				: [handler(elem)] })
    			.flat() },
-	__unpack: function(list){
+	// unpack array (async)...
+	__unpack: async function(list){
 		list = list 
 			?? this.__list
 		// handle promise list...
-		if(list instanceof Promise){
-			var that = this
-			return list.then(function(list){
-				return that.__unpack(list) }) }
-		// do the work...
-		return Promise.all(list)
-			.then(function(list){
-				return list.flat() }) },
+		return list instanceof Promise ?
+			this.__unpack(await list)
+			// do the work...
+			: (await Promise.all(list))
+				.flat() },
 
 
 	// iterator methods...
@@ -163,10 +179,10 @@ object.Constructor('IterablePromise', Promise, {
 	// These will return a new IterablePromise instance...
 	//
 	// When called from a resolved promise these will return a new 
-	// resolved promise with updated values...
+	// resolved promise with updated values... (XXX test)
 	//
 	// When called from a rejected promise these will return a rejected 
-	// with the same reason promise...
+	// with the same reason promise... (XXX test)
 	//
 	//
 	// NOTE: these are different to Array's equivalents in that the handler
@@ -175,27 +191,6 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: index of items is unknowable because items can expand and
 	// 		contract depending on handlers (e.g. .filter(..) can remove 
 	// 		items)...
-	// 		Thus the following can not be implemented here:
-	// 			.splice(..)				- can't both modify and return
-	// 									  a result...
-	// 			.pop() / .shift()		- can't modify the promise, use 
-	// 									  .first() / .last() instead.
-	// 			[Symbol.iterator]()		- needs to be sync and we can't
-	// 									  know the number of elements to
-	// 									  return promises before the whole
-	// 									  iterable promise is resolved.
-	// 		These are direct poxies requiring the whole promuse to 
-	// 		resolve:
-	// 			.at(..) / .first() / .last()
-	// 									- special case: elements 
-	// 									  0 and -1 can in sime cases 
-	// 									  resolve early...
-	// 			.slice(..)
-	// 			.entries() / .values() / .keys()
-	// 			.indexOf(..)
-	// 			.includes(..)
-	// 			.some(..) / .every(..)
-	// 			.sort(..)
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
@@ -286,19 +281,17 @@ object.Constructor('IterablePromise', Promise, {
 		return this.constructor([elem])
 			.concat(this) },
 
-	// XXX can we do these?
-	// 			.pop()
-	// 			.shift()
-	// 			.splice(..)
-	// 		...would be nice if these could stop everything that's not
-	// 		needed to execute -- likely not possible (XXX)
-	// 		...these need to somehow both return an element and affect 
-	// 		the iterator (or return a new one) -- we can trivially do either
-	// 		one action within the spec but not both...
 
-	// NOTE: this can avoid waiting for the whole promise to resolve only
-	// 		for indexes 0 and -1, everything else is non-deterministic and
-	// 		we'll have to wait for the whole thing to resolve.
+	// proxy methods...
+	//
+	// These require the whole promise to resolve to trigger.
+	//
+	// An exception to this would be .at(0)/.first() and .at(-1)/.last()
+	// that can get the target element if it's accessible.
+	//
+	// NOTE: methods that are guaranteed to return an array will return
+	// 		an iterable promise (created with iterPromiseProxy(..))...
+	//
 	at: async function(i){
 		var list = this.__list
 		return ((i != 0 && i != -1)
@@ -331,10 +324,12 @@ object.Constructor('IterablePromise', Promise, {
 	includes: promiseProxy('includes'),
 
 	every: promiseProxy('every'),
-	// XXX this can be lazy...
+	// XXX this can be lazy... (???)
 	some: promiseProxy('some'),
 
 
+	// promise api...
+	//
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 
 	// Promise instnace...
 	//
@@ -360,6 +355,7 @@ object.Constructor('IterablePromise', Promise, {
 			: p },
 
 
+	// constructor...
 	//
 	//	Promise.iter([ .. ])
 	//		-> iterable-promise
@@ -392,11 +388,6 @@ object.Constructor('IterablePromise', Promise, {
 	//		-> iterable-promise
 	//
 	//
-	// XXX iterator/generator as input:
-	// 		- do we unwind here or externally?
-	// 			...feels like with the generator external unwinding is 
-	// 			needed...
-	// XXX how do we handle errors/rejections???
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
