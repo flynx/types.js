@@ -350,6 +350,12 @@ object.Constructor('IterablePromise', Promise, {
 			: p },
 
 
+	// this is defined globally as Promise.prototype.iter(.,)
+	//
+	// for details see: PromiseMixin(..) below...
+	//iter: function(handler=undefined){ ... },
+
+
 	// constructor...
 	//
 	//	Promise.iter([ .. ])
@@ -468,13 +474,14 @@ object.Constructor('InteractivePromise', Promise, {
 			// register a handler...
 			} else {
 				var h = obj == null ?
-					// NOTE: we need to get the handlers from .__message_handlers
-					// 		unless we are not fully defined yet, then use the 
-					// 		bootstrap container (handlers)...
-					// 		...since we can call onmessage(..) while the promise 
-					// 		is still defined there is no way to .send(..) until it
-					// 		returns a promise object, this races here are highly 
-					// 		unlikely...
+					// NOTE: we need to get the handlers from 
+					// 		.__message_handlers unless we are not 
+					// 		fully defined yet, then use the bootstrap 
+					// 		container (handlers)...
+					// 		...since we can call onmessage(..) while 
+					// 		the promise is still defined there is no 
+					// 		way to .send(..) until it returns a promise 
+					// 		object, this races here are highly unlikely...
 					handlers
 					: (obj.__message_handlers = 
 						obj.__message_handlers ?? [])
@@ -561,6 +568,9 @@ object.Constructor('CooperativePromise', Promise, {
 var ProxyPromise =
 module.ProxyPromise =
 object.Constructor('ProxyPromise', Promise, {
+
+	then: IterablePromise.prototype.then,
+
 	__new__: function(context, constructor){
 		var proto = 'prototype' in constructor ?
 			constructor.prototype
@@ -614,7 +624,7 @@ var PromiseProtoMixin =
 module.PromiseProtoMixin =
 object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
-	iter: function(handler){
+	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
 })
 
