@@ -388,7 +388,6 @@ object.Constructor('IterablePromise', Promise, {
 	//	Promise.iter(false)
 	//		-> iterable-promise
 	//
-	//
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
