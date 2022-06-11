@@ -62,8 +62,8 @@ var object = require('ig-object')
 // 		type of promise returned in cases where we know we are returning 
 // 		an array...
 // 		
-
 // XXX how do we handle errors/rejections???
+
 // XXX should these be exported???
 var iterPromiseProxy = 
 //module.iterPromiseProxy = 
@@ -102,9 +102,9 @@ object.Constructor('IterablePromise', Promise, {
 	// 		it is not recomended to ever edit this inplace...
 	// NOTE: we are not isolation any internals to enable users to 
 	// 		responsibly extend the code.
-	__list: null,
+	__packed: null,
 
-	// low-level .__list handlers/helpers...
+	// low-level .__packed handlers/helpers...
 	//
 	// NOTE: these can be useful for debugging and extending...
 	//
@@ -113,7 +113,7 @@ object.Constructor('IterablePromise', Promise, {
 		var that = this
 		// handle iterable promise list...
 		if(list instanceof IterablePromise){
-			return this.__handle(list.__list, handler) }
+			return this.__handle(list.__packed, handler) }
 		// handle promise list...
 		if(list instanceof Promise){
 			return list.then(function(list){
@@ -142,7 +142,7 @@ object.Constructor('IterablePromise', Promise, {
 		var that = this
 		if(typeof(list) == 'function'){
 			handler = list
-			list = this.__list }
+			list = this.__packed }
 		if(!handler){
 			return list }
 		// handle promise list...
@@ -165,7 +165,7 @@ object.Constructor('IterablePromise', Promise, {
 	// unpack array (async)...
 	__unpack: async function(list){
 		list = list 
-			?? this.__list
+			?? this.__packed
 		// handle promise list...
 		return list instanceof Promise ?
 			this.__unpack(await list)
@@ -177,13 +177,6 @@ object.Constructor('IterablePromise', Promise, {
 	// iterator methods...
 	//
 	// These will return a new IterablePromise instance...
-	//
-	// When called from a resolved promise these will return a new 
-	// resolved promise with updated values... (XXX test)
-	//
-	// When called from a rejected promise these will return a rejected 
-	// with the same reason promise... (XXX test)
-	//
 	//
 	// NOTE: these are different to Array's equivalents in that the handler
 	// 		is called not in the order of the elements but rather in order 
@@ -236,7 +229,7 @@ object.Constructor('IterablePromise', Promise, {
 						e
 					: [e] }) },
 	reverse: function(){
-		var lst = this.__list
+		var lst = this.__packed
 		return this.constructor(
 			lst instanceof Promise ?
 				lst.then(function(elems){
@@ -293,7 +286,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 		an iterable promise (created with iterPromiseProxy(..))...
 	//
 	at: async function(i){
-		var list = this.__list
+		var list = this.__packed
 		return ((i != 0 && i != -1)
 					|| list instanceof Promise
 					|| list.at(i) instanceof Promise) ?
@@ -311,7 +304,7 @@ object.Constructor('IterablePromise', Promise, {
 		return this.at(-1) },
 	
 	// NOTE: there is no way we can do a sync generator returning 
-	// 		promises for values because any promise in .__list makes the 
+	// 		promises for values because any promise in .__packed makes the 
 	// 		value count/index non-deterministic...
 	sort: iterPromiseProxy('sort'),
 	// XXX we could have a special-case here for .slice()/slice(0, -1)
@@ -381,7 +374,7 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// Special cases useful for extending this constructor...
 	//
-	//	Set raw .__list without any pre-processing...
+	//	Set raw .__packed without any pre-processing...
 	//	Promise.iter([ .. ], 'raw')
 	//		-> iterable-promise
 	//
@@ -410,9 +403,9 @@ object.Constructor('IterablePromise', Promise, {
 			// handle/pack input data...
 			if(handler != 'raw'){
 				list = list instanceof IterablePromise ?
-					this.__handle(list.__list, handler)
+					this.__handle(list.__packed, handler)
 					: this.__pack(list, handler) }
-			Object.defineProperty(obj, '__list', {
+			Object.defineProperty(obj, '__packed', {
 				value: list,
 				enumerable: false,
 			})
