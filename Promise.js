@@ -63,6 +63,10 @@ var object = require('ig-object')
 // 		an array...
 // 		
 // XXX how do we handle errors/rejections???
+// XXX do we need to isolate proxies and "smart" methods???
+// XXX do we need a 1:1 simple version of this??
+// 		...i.e a version without element spans...
+// 		
 
 // XXX should these be exported???
 var iterPromiseProxy = 
@@ -209,7 +213,7 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: the items can be handled out of order because the nested 
 	// 		promises can resolve in any order...
 	// NOTE: since order of execution can not be guaranteed there is no
-	// 		point in implementing .reduceRight(..)
+	// 		point in implementing .reduceRight(..) (XXX ???)
 	reduce: function(func, res){
 		return this.constructor(this, 
 				function(e){
@@ -275,6 +279,11 @@ object.Constructor('IterablePromise', Promise, {
 			.concat(this) },
 
 
+	// XXX thses need to stop once an element is found so we cant simply 
+	// 		use .map(..) or .reduce(..)...
+	// XXX .find(func) / .findIndex(func)
+
+
 	// proxy methods...
 	//
 	// These require the whole promise to resolve to trigger.
@@ -303,6 +312,11 @@ object.Constructor('IterablePromise', Promise, {
 	last: function(){
 		return this.at(-1) },
 	
+	// NOTE: unlike .reduce(..) this needs the parent fully resolved 
+	// 		to be able to iterate from the end.
+	// XXX ???
+	reduceRight: promiseProxy('reduceRight'),
+
 	// NOTE: there is no way we can do a sync generator returning 
 	// 		promises for values because any promise in .__packed makes the 
 	// 		value count/index non-deterministic...
@@ -316,6 +330,7 @@ object.Constructor('IterablePromise', Promise, {
 	values: iterPromiseProxy('values'),
 
 	indexOf: promiseProxy('indexOf'),
+	lastIndexOf: promiseProxy('lastIndexOf'),
 	includes: promiseProxy('includes'),
 
 	every: promiseProxy('every'),
