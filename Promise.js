@@ -638,4 +638,4 @@ PromiseProtoMixin(Promise.prototype)
 
 
 /**********************************************************************
-* vim:set ts=4 sw=4 :                               */ return module })
+* vim:set ts=4 sw=4 nowrap :                        */ return module })
