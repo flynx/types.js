@@ -319,9 +319,12 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// NOTE: order is preserved... 
 	unique: function(normalize){
 		return normalize ? 
-			[...new Map(this.map(function(e){ return [normalize(e), e] })).values()]
-			// NOTE: we are calling .compact() here to avoid creating undefined 
-			// 		items from empty slots in sparse arrays...
+			[...new Map(this
+					.map(function(e){ 
+						return [normalize(e), e] }))
+				.values()]
+			// NOTE: we are calling .compact() here to avoid creating 
+			// 		undefined items from empty slots in sparse arrays...
 			: [...new Set(this.compact())] },
 	tailUnique: function(normalize){
 		return this
@@ -336,8 +339,8 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// 		self to other (internal) while match compares two entities 
 	// 		externally.
 	// 		XXX not sure if we need the destinction in name, will have to 
-	// 			come back to this when refactoring diff.js -- all three have
-	// 			to be similar...
+	// 			come back to this when refactoring diff.js -- all three 
+	// 			have to be similar...
 	cmp: function(other){
 		if(this === other){
 			return true }
@@ -353,7 +356,8 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// NOTE: this will ignore order and repeating elments...
 	setCmp: function(other){
 		return this === other 
-			|| (new Set([...this, ...other])).length == (new Set(this)).length },
+			|| (new Set([...this, ...other])).length 
+				== (new Set(this)).length },
 
 	// Sort as the other array...
 	//
@@ -369,12 +373,13 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// This will sort the intersecting items in the head keeping the rest 
 	// of the items in the same relative order...
 	//
-	// NOTE: if an item is in the array multiple times only the first index 
-	// 		is used...
+	// NOTE: if an item is in the array multiple times only the first 
+	// 		index is used...
 	//
 	// XXX should this extend/patch .sort(..)???
-	// 		...currently do not see a clean way to do this without extending 
-	// 		and replacing Array or directly re-wrapping .sort(..)...
+	// 		...currently do not see a clean way to do this without 
+	// 		extending and replacing Array or directly re-wrapping 
+	// 		.sort(..)...
 	sortAs: function(other, place='head'){
 		place = place == 'tail' ? -1 : 1 
 		// NOTE: the memory overhead here is better than the time overhead 
@@ -441,8 +446,8 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 
 	// Convert an array to a map...
 	//
-	// This is similar to Array.prototype.toKeys(..) but does not restrict 
-	// value type to string.
+	// This is similar to Array.prototype.toKeys(..) but does not 
+	// restrict value type to string.
 	//
 	// Format:
 	// 	Map([
