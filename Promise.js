@@ -100,14 +100,14 @@ object.Constructor('IterablePromise', Promise, {
 	// 	]
 	//
 	// This format has several useful features:
-	// 	- concatenating packed list results in a packed list
+	// 	- concatenating packed lists results in a packed list
 	// 	- adding an iterable promise (as-is) into a packed list results 
 	// 		in a packed list
 	//
 	// NOTE: in general iterable promises are implicitly immutable, so
-	// 		it is not recomended to ever edit this inplace...
-	// NOTE: we are not isolation any internals to enable users to 
-	// 		responsibly extend the code.
+	// 		it is not recomended to ever edit this in-place...
+	// NOTE: we are not isolating or "protecting" any internals to 
+	// 		enable users to responsibly extend the code.
 	__packed: null,
 
 	// low-level .__packed handlers/helpers...
