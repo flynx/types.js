@@ -61,11 +61,13 @@ var object = require('ig-object')
 // NOTE: we are not using async/await here as we need to control the 
 // 		type of promise returned in cases where we know we are returning 
 // 		an array...
+// NOTE: there is no point in implementing a 1:1 version of this that 
+// 		would not support element expansion/contraction as it would only 
+// 		simplify a couple of methods that are 1:1 (like .map(..) and 
+// 		.some(..)) while methods like .filter(..) will throw everything
+// 		back to the complex IterablePromise...
 // 		
 // XXX how do we handle errors/rejections???
-// XXX do we need to isolate proxies and "smart" methods???
-// XXX do we need a 1:1 simple version of this??
-// 		...i.e a version without element spans...
 // 		
 
 // XXX should these be exported???
@@ -209,11 +211,11 @@ object.Constructor('IterablePromise', Promise, {
 					: _filter(e) }) },
 	// NOTE: this does not return an iterable promise as we can't know 
 	// 		what the user reduces to...
-	// 		XXX we could look at the initial state though...
 	// NOTE: the items can be handled out of order because the nested 
 	// 		promises can resolve in any order...
 	// NOTE: since order of execution can not be guaranteed there is no
-	// 		point in implementing .reduceRight(..) (XXX ???)
+	// 		point in implementing .reduceRight(..) in the same way 
+	// 		(see below)...
 	reduce: function(func, res){
 		return this.constructor(this, 
 				function(e){
@@ -324,6 +326,7 @@ object.Constructor('IterablePromise', Promise, {
 	// XXX we could have a special-case here for .slice()/slice(0, -1)
 	// 		and possibly othets, should we???
 	slice: iterPromiseProxy('slice'),
+
 	entries: iterPromiseProxy('entries'),
 	keys: iterPromiseProxy('keys'),
 	// XXX we could possibly make this better via .map(..)
@@ -585,10 +588,10 @@ object.Constructor('ProxyPromise', Promise, {
 
 	then: IterablePromise.prototype.then,
 
-	__new__: function(context, constructor){
-		var proto = 'prototype' in constructor ?
-			constructor.prototype
-			: constructor
+	__new__: function(context, other, nooverride=false){
+		var proto = 'prototype' in other ?
+			other.prototype
+			: other
 		var obj = Reflect.construct(
 			ProxyPromise.__proto__, 
 			[function(resolve, reject){
@@ -599,6 +602,9 @@ object.Constructor('ProxyPromise', Promise, {
 		// NOTE: we are not using object.deepKeys(..) here as we need 
 		// 		the key origin not to trigger property getters...
 		var seen = new Set()
+		nooverride = nooverride instanceof Array ?
+			new Set(nooverride)
+			: nooverride
 		while(proto != null){
 			Object.entries(Object.getOwnPropertyDescriptors(proto))
 				.forEach(function([key, value]){
@@ -612,6 +618,13 @@ object.Constructor('ProxyPromise', Promise, {
 					if(!(key == 'run' 
 								&& Object.prototype.run === value.value) 
 							&& !value.enumerable){
+						return }
+					// do not override existing methods...
+					if(nooverride === true ? 
+								key in obj
+							: nooverride instanceof Set ?
+								nooverride.has(key)
+							: nooverride){
 						return }
 					// proxy...
 					obj[key] = promiseProxy(key) })

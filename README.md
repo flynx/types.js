@@ -1668,6 +1668,10 @@ see them for more info.
 
 #### `<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`
 
+Proxies to the appropriate array methods with a special-case: when getting elements 
+at positions `0` or `-1` (i.e. `.first()` / `.last()`) these _can_ resolve before the
+parent `<promise-iter>`.
+
 XXX
 
 
