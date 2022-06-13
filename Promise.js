@@ -39,7 +39,7 @@ var object = require('ig-object')
 // Like Promise.all(..) but adds ability to iterate through results
 // via generators .map(..)/.reduce(..) and friends...
 // 
-// NOTE: it would be nice to support throwing STOP (XXX) from the iterable 
+// NOTE: it would be nice to support throwing STOP from the iterable 
 // 		promise but...
 // 		- this is more complicated than simply using .smap(..) instead 
 // 			of .map(..) because the list can contain async promises...
@@ -48,7 +48,7 @@ var object = require('ig-object')
 // 			...then there's a question of derivative iterators etc.
 // 		- another issue here is that the stop would happen in order of 
 // 			execution and not order of elements...
-// 		XXX though stopping within a single level might be useful...
+// 		XXX EXPEREMENTAL: STOP...
 // NOTE: the following can not be implemented here:
 // 			.splice(..)				- can't both modify and return
 // 									  a result...
@@ -87,6 +87,11 @@ function(name){
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
+	// XXX EXPEREMENTAL: STOP...
+	get STOP(){
+		return Array.STOP },
+
+}, {
 	// packed array...
 	//
 	// Holds promise state.
@@ -172,13 +177,13 @@ object.Constructor('IterablePromise', Promise, {
 						: handler(elem) }) }
 
 		// pack (stoppable)...
-		if(!!Array.STOP){
+		if(!!this.constructor.STOP){
 			stoppable = true
 			map = 'smap'
 			var handleSTOP = function(err){
 				stop = err
-				if(err === Array.STOP
-						|| err instanceof Array.STOP){
+				if(err === that.constructor.STOP
+						|| err instanceof that.constructor.STOP){
 					return 'value' in err ?
 						err.value
 						: [] }
@@ -221,7 +226,7 @@ object.Constructor('IterablePromise', Promise, {
 		// 		structure as the input we'll use .__pack(..) to handle 
 		// 		them, this also keeps all the handling code in one place.
 		//* XXX EXPEREMENTAL: STOP...
-		var map = !!Array.STOP ?
+		var map = !!this.constructor.STOP ?
 			'smap'
 			: 'map'
 		return list[map](function(elem){
@@ -384,6 +389,7 @@ object.Constructor('IterablePromise', Promise, {
 	
 	// NOTE: unlike .reduce(..) this needs the parent fully resolved 
 	// 		to be able to iterate from the end.
+	// XXX is it faster to do .reverse().reduce(..) ???
 	// XXX ???
 	reduceRight: promiseProxy('reduceRight'),
 
@@ -397,7 +403,6 @@ object.Constructor('IterablePromise', Promise, {
 
 	entries: iterPromiseProxy('entries'),
 	keys: iterPromiseProxy('keys'),
-	// XXX we could possibly make this better via .map(..)
 	values: iterPromiseProxy('values'),
 
 	indexOf: promiseProxy('indexOf'),
@@ -405,8 +410,36 @@ object.Constructor('IterablePromise', Promise, {
 	includes: promiseProxy('includes'),
 
 	every: promiseProxy('every'),
-	// XXX this can be lazy... (???)
+	//* XXX EXPEREMENTAL: STOP...
+	// NOTE: this will return the result as soon as it's available but 
+	// 		it will not stop the unresolved at the time promises from 
+	// 		executing, this is both good and bad:
+	// 			+ it will not break other clients waiting for promises 
+	// 				to resolve...
+	// 			- if no clients are available this can lead to wasted 
+	// 				CPU time...
+	some: async function(func){
+		var that = this
+		return this.constructor.STOP ?
+			// stoppable -- get the result as soon as it's available...
+			// NOTE: not using pure await here as this is simpler to 
+			// 		actually control the moment the resulting promise 
+			// 		resolves without the need for juggling state...
+			new Promise(function(resolve, reject){
+				var resolved = false
+				that.map(function(elem){
+						if(func(elem)){
+							resolved = true
+							resolve(true)
+							throw that.constructor.STOP(true) } })
+					.then(function(){
+						resolved 
+							|| resolve(false) }) })
+			// non-stoppable -- simple delayed proxy...
+			: (await this).some(func) },
+	/*/
 	some: promiseProxy('some'),
+	//*/
 
 
 	// promise api...
