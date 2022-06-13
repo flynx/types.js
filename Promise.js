@@ -115,6 +115,15 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: these can be useful for debugging and extending...
 	//
 	// pack and oprionally transform/handle an array (sync)...
+	//
+	// NOTE: if 'types/Array' is imported this will support throwing STOP
+	// 		from the handler.
+	// 		Due to the async nature of promises though the way stops are 
+	// 		handled may be unpredictable -- the handlers can be run out 
+	// 		of order, as the nested promises resolve and thus throwing 
+	// 		stop will stop the handlers not yet run and not the next 
+	// 		handlers in sequence.
+	// 		XXX EXPEREMENTAL: STOP...
 	__pack: function(list, handler=undefined){
 		var that = this
 		// handle iterable promise list...
@@ -133,62 +142,61 @@ object.Constructor('IterablePromise', Promise, {
 				return [elem] }
 
 		//* XXX EXPEREMENTAL: STOP...
-		var stoppable = !!Array.STOP
+		var stoppable = false
 		var stop = false
-		var map = stoppable ?
-			'smap'
-			: 'map'
-		var _handler = handler
-		handler = !handler.stoppable ?
-			Object.assign(
-				function(){
-					try{
-						return !stop ?
-							_handler(...arguments)
-							: []
-					}catch(err){
-						stop = err
-						if(err === Array.STOP
-								|| err instanceof Array.STOP){
-							return 'value' in err ?
-								err.value
-								: [] }
-						throw err } },
-				// prevent double+ wrapping...
-				// XXX revise nameing...
-				// XXX do we need this???
-				{ stoppable: true })
-			: handler
+		var map = 'map'
+		var pack = function(){
+			return [list].flat()
+				[map](function(elem){
+					return elem && elem.then ?
+							(stoppable ?
+								// stoppable -- need to handle stop...
+								elem
+									.then(function(res){
+										return !stop ?
+											handler(res)
+											: [] }) 
+									// NOTE: we are using .catch(..) here
+									// 		instead of directly passing the
+									// 		error handler to be able to catch
+									// 		the STOP from the handler...
+									.catch(handleSTOP)
+								// non-stoppable...
+								: elem.then(handler))
+						: elem instanceof Array ?
+							handler(elem)
+						// NOTE: we keep things that do not need protecting 
+						// 		from .flat() as-is...
+						: !handle ?
+							elem
+						: handler(elem) }) }
 
-		return [list].flat()
-			// XXX supporting STOP here would require both using .smap(..)
-			// 		and tracking STOPs thrown in promises -- this could
-			// 		throw things out of sync for us not to be able to
-			// 		guarantee a full stop if a throw happened in a delayed
-			// 		handler effectively making the handlers race for the
-			// 		throw...
-			// 		...not sure if this is good or not...
-			[map](function(elem){
+		// pack (stoppable)...
+		if(!!Array.STOP){
+			stoppable = true
+			map = 'smap'
+			var handleSTOP = function(err){
+				stop = err
+				if(err === Array.STOP
+						|| err instanceof Array.STOP){
+					return 'value' in err ?
+						err.value
+						: [] }
+				throw err }
+			try{
+				return pack()
+			}catch(err){
+				return handleSTOP(err) }
+
+		// pack (non-stoppable)...
+		} else {
+			return pack() } },
 		/*/
 		return [list].flat()
 			.map(function(elem){
-		//*/
 				return elem && elem.then ?
 						//that.__pack(elem, handler)
-						//elem.then(handler)
-						elem
-							.then(handler)
-							//* XXX EXPEREMENTAL: STOP...
-							.catch(function(err){
-								stop = err
-								if(Array.STOP 
-										&& (err === Array.STOP
-											|| err instanceof Array.STOP)){
-									return 'value' in err ?
-										err.value
-										: [] }
-								throw err })
-							//*/
+						elem.then(handler)
 					: elem instanceof Array ?
 						handler(elem)
 					// NOTE: we keep things that do not need protecting 
@@ -196,6 +204,7 @@ object.Constructor('IterablePromise', Promise, {
 					: !handle ?
 						elem
 					: handler(elem) }) },
+		//*/
 	// transform/handle packed array (sync)...
 	__handle: function(list, handler=undefined){
 		var that = this
@@ -466,6 +475,10 @@ object.Constructor('IterablePromise', Promise, {
 	//	Promise.iter(false)
 	//		-> iterable-promise
 	//
+	//
+	// NOTE: if 'types/Array' is imported this will support throwing STOP,
+	// 		for more info see notes for .__pack(..)
+	// 		XXX EXPEREMENTAL: STOP...
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
