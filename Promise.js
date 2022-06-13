@@ -353,12 +353,6 @@ object.Constructor('IterablePromise', Promise, {
 		return this.constructor([elem])
 			.concat(this) },
 
-
-	// XXX thses need to stop once an element is found so we cant simply 
-	// 		use .map(..) or .reduce(..)...
-	// XXX .find(func) / .findIndex(func)
-
-
 	// proxy methods...
 	//
 	// These require the whole promise to resolve to trigger.
@@ -394,11 +388,9 @@ object.Constructor('IterablePromise', Promise, {
 	reduceRight: promiseProxy('reduceRight'),
 
 	// NOTE: there is no way we can do a sync generator returning 
-	// 		promises for values because any promise in .__packed makes the 
-	// 		value count/index non-deterministic...
+	// 		promises for values because any promise in .__packed makes 
+	// 		the value count/index non-deterministic...
 	sort: iterPromiseProxy('sort'),
-	// XXX we could have a special-case here for .slice()/slice(0, -1)
-	// 		and possibly othets, should we???
 	slice: iterPromiseProxy('slice'),
 
 	entries: iterPromiseProxy('entries'),
@@ -409,37 +401,39 @@ object.Constructor('IterablePromise', Promise, {
 	lastIndexOf: promiseProxy('lastIndexOf'),
 	includes: promiseProxy('includes'),
 
-	every: promiseProxy('every'),
-	//* XXX EXPEREMENTAL: STOP...
+	// NOTE: I do not get how essentially identical methods .some(..) 
+	// 		and .find(..) got added to the Array...
 	// NOTE: this will return the result as soon as it's available but 
-	// 		it will not stop the unresolved at the time promises from 
-	// 		executing, this is both good and bad:
-	// 			+ it will not break other clients waiting for promises 
-	// 				to resolve...
-	// 			- if no clients are available this can lead to wasted 
-	// 				CPU time...
-	some: async function(func){
+	// 		it will not stop the created but unresolved at the time 
+	// 		promises from executing, this is both good and bad:
+	// 		+ it will not break other clients waiting for promises 
+	// 			to resolve...
+	// 		- if no clients are available this can lead to wasted 
+	// 			CPU time...
+	find: async function(func){
 		var that = this
-		return this.constructor.STOP ?
-			// stoppable -- get the result as soon as it's available...
-			// NOTE: not using pure await here as this is simpler to 
-			// 		actually control the moment the resulting promise 
-			// 		resolves without the need for juggling state...
-			new Promise(function(resolve, reject){
-				var resolved = false
-				that.map(function(elem){
-						if(func(elem)){
-							resolved = true
-							resolve(true)
-							throw that.constructor.STOP(true) } })
-					.then(function(){
-						resolved 
-							|| resolve(false) }) })
-			// non-stoppable -- simple delayed proxy...
-			: (await this).some(func) },
-	/*/
-	some: promiseProxy('some'),
-	//*/
+		// NOTE: not using pure await here as this is simpler to actually 
+		// 		control the moment the resulting promise resolves without 
+		// 		the need for juggling state...
+		return new Promise(function(resolve, reject){
+			var resolved = false
+			that.map(function(elem){
+					if(func(elem)){
+						resolved = true
+						resolve(elem)
+						// XXX EXPEREMENTAL: STOP...
+						// NOTE: we do not need to throw STOP here 
+						// 		but it can prevent some overhead...
+						if(that.constructor.STOP){
+							throw that.constructor.STOP } } })
+				.then(function(){
+					resolved
+						|| resolve(undefined) }) }) },
+	findIndex: promiseProxy('findIndex'),
+
+	some: async function(func){
+		return !!(await this.find(func)) },
+	every: promiseProxy('every'),
 
 
 	// promise api...
