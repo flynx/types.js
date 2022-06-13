@@ -132,7 +132,7 @@ object.Constructor('IterablePromise', Promise, {
 			?? function(elem){ 
 				return [elem] }
 
-		// XXX EXPEREMENTAL...
+		//* XXX EXPEREMENTAL: STOP...
 		var stoppable = !!Array.STOP
 		var stop = false
 		var map = stoppable ?
@@ -143,7 +143,6 @@ object.Constructor('IterablePromise', Promise, {
 			Object.assign(
 				function(){
 					try{
-						console.log('####', stop)
 						return !stop ?
 							_handler(...arguments)
 							: []
@@ -157,6 +156,7 @@ object.Constructor('IterablePromise', Promise, {
 						throw err } },
 				// prevent double+ wrapping...
 				// XXX revise nameing...
+				// XXX do we need this???
 				{ stoppable: true })
 			: handler
 
@@ -168,8 +168,11 @@ object.Constructor('IterablePromise', Promise, {
 			// 		handler effectively making the handlers race for the
 			// 		throw...
 			// 		...not sure if this is good or not...
-			//.map(function(elem){
 			[map](function(elem){
+		/*/
+		return [list].flat()
+			.map(function(elem){
+		//*/
 				return elem && elem.then ?
 						//that.__pack(elem, handler)
 						//elem.then(handler)
@@ -206,12 +209,14 @@ object.Constructor('IterablePromise', Promise, {
 		// NOTE: since each section of the packed .__array is the same 
 		// 		structure as the input we'll use .__pack(..) to handle 
 		// 		them, this also keeps all the handling code in one place.
-		// XXX EXPEREMENTAL...
+		//* XXX EXPEREMENTAL: STOP...
 		var map = !!Array.STOP ?
 			'smap'
 			: 'map'
-		//return list.map(function(elem){
 		return list[map](function(elem){
+		/*/
+		return list.map(function(elem){
+		//*/
 			return elem instanceof Array ?
 					that.__pack(elem, handler)
 				: elem instanceof Promise ?
