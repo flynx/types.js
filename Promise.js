@@ -150,7 +150,7 @@ object.Constructor('IterablePromise', Promise, {
 				[map](function(elem){
 					return elem && elem.then ?
 							(stoppable ?
-								// stoppable -- need to handle stop...
+								// stoppable -- need to handle stop async...
 								elem
 									.then(function(res){
 										return !stop ?
@@ -186,11 +186,10 @@ object.Constructor('IterablePromise', Promise, {
 			try{
 				return pack()
 			}catch(err){
-				return handleSTOP(err) }
+				return handleSTOP(err) } }
 
 		// pack (non-stoppable)...
-		} else {
-			return pack() } },
+		return pack() },
 		/*/
 		return [list].flat()
 			.map(function(elem){
