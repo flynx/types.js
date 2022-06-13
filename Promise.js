@@ -131,11 +131,58 @@ object.Constructor('IterablePromise', Promise, {
 		handler = handler 
 			?? function(elem){ 
 				return [elem] }
+
+		// XXX EXPEREMENTAL...
+		var stoppable = !!Array.STOP
+		var stop = false
+		var map = stoppable ?
+			'smap'
+			: 'map'
+		var _handler = handler
+		handler = !handler.stoppable ?
+			Object.assign(
+				function(){
+					try{
+						console.log('####', stop)
+						return !stop ?
+							_handler(...arguments)
+							: []
+					}catch(err){
+						stop = err
+						if(err === Array.STOP
+								|| err instanceof Array.STOP){
+							return 'value' in err ?
+								err.value
+								: [] }
+						throw err } },
+				// prevent double+ wrapping...
+				// XXX revise nameing...
+				{ stoppable: true })
+			: handler
+
 		return [list].flat()
-			.map(function(elem){
+			// XXX supporting STOP here would require both using .smap(..)
+			// 		and tracking STOPs thrown in promises -- this could
+			// 		throw things out of sync for us not to be able to
+			// 		guarantee a full stop if a throw happened in a delayed
+			// 		handler effectively making the handlers race for the
+			// 		throw...
+			// 		...not sure if this is good or not...
+			//.map(function(elem){
+			[map](function(elem){
 				return elem && elem.then ?
 						//that.__pack(elem, handler)
-						elem.then(handler)
+						//elem.then(handler)
+						elem
+							.then(handler)
+							.catch(function(err){
+								stop = err
+								if(err === Array.STOP
+										|| err instanceof Array.STOP){
+									return 'value' in err ?
+										err.value
+										: [] }
+								throw err })
 					: elem instanceof Array ?
 						handler(elem)
 					// NOTE: we keep things that do not need protecting 
@@ -159,7 +206,12 @@ object.Constructor('IterablePromise', Promise, {
 		// NOTE: since each section of the packed .__array is the same 
 		// 		structure as the input we'll use .__pack(..) to handle 
 		// 		them, this also keeps all the handling code in one place.
-		return list.map(function(elem){
+		// XXX EXPEREMENTAL...
+		var map = !!Array.STOP ?
+			'smap'
+			: 'map'
+		//return list.map(function(elem){
+		return list[map](function(elem){
 			return elem instanceof Array ?
 					that.__pack(elem, handler)
 				: elem instanceof Promise ?

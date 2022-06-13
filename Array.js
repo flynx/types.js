@@ -139,7 +139,8 @@ var makeChunkIter = function(iter, wrapper){
 						try {
 							// handle iteration...
 							res.push(
-								val = (chunk = chunks.shift())[iter](_wrapper, ...rest))
+								val = (chunk = chunks.shift())
+									[iter](_wrapper, ...rest))
 							// handle chunk...
 							postChunk
 								&& postChunk.call(that, 
