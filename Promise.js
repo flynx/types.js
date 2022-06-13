@@ -401,8 +401,27 @@ object.Constructor('IterablePromise', Promise, {
 	lastIndexOf: promiseProxy('lastIndexOf'),
 	includes: promiseProxy('includes'),
 
+	//
+	// 	.find(<func>)
+	// 	.find(<func>, 'value')
+	// 		-> <promise>(<value>)
+	//
+	// 	.find(<func>, 'result')
+	// 		-> <promise>(<result>)
+	//
+	// 	.find(<func>, 'bool')
+	// 		-> <promise>(<bool>)
+	//
+	// NOTE: this is slightly different to Array's .find(..) in that it 
+	// 		accepts the result value enabling returning both the value 
+	// 		itself ('value', default), the test function's result 
+	// 		('result') or true/false ('bool') -- this is added to be 
+	// 		able to distinguish between the undefined as a stored value 
+	// 		and undefined as a "nothing found" result.
 	// NOTE: I do not get how essentially identical methods .some(..) 
-	// 		and .find(..) got added to the Array...
+	// 		and .find(..) got added to JS's Array...
+	// 		the only benefit is that .some(..) handles undefined values 
+	// 		stored in the array better...
 	// NOTE: this will return the result as soon as it's available but 
 	// 		it will not stop the created but unresolved at the time 
 	// 		promises from executing, this is both good and bad:
@@ -410,7 +429,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 			to resolve...
 	// 		- if no clients are available this can lead to wasted 
 	// 			CPU time...
-	find: async function(func){
+	find: async function(func, result='value'){
 		var that = this
 		// NOTE: not using pure await here as this is simpler to actually 
 		// 		control the moment the resulting promise resolves without 
@@ -418,9 +437,15 @@ object.Constructor('IterablePromise', Promise, {
 		return new Promise(function(resolve, reject){
 			var resolved = false
 			that.map(function(elem){
-					if(func(elem)){
+					var res = func(elem)
+					if(res){
 						resolved = true
-						resolve(elem)
+						resolve(
+							result == 'bool' ?
+								true
+							: result == 'result' ?
+								res
+							: elem)
 						// XXX EXPEREMENTAL: STOP...
 						// NOTE: we do not need to throw STOP here 
 						// 		but it can prevent some overhead...
@@ -428,11 +453,15 @@ object.Constructor('IterablePromise', Promise, {
 							throw that.constructor.STOP } } })
 				.then(function(){
 					resolved
-						|| resolve(undefined) }) }) },
+						|| resolve(
+							result == 'bool' ?
+								false
+								: undefined) }) }) },
 	findIndex: promiseProxy('findIndex'),
 
+	// NOTE: this is just a special-case of .find(..)
 	some: async function(func){
-		return !!(await this.find(func)) },
+		return this.find(func, 'bool') },
 	every: promiseProxy('every'),
 
 

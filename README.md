@@ -78,10 +78,13 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
       - [`<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`](#promise-iterpush--promise-iterunshift)
       - [`<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`](#promise-iterat--promise-iterfirst--promise-iterlast)
+      - [`<promise-iter>.some(..)` / `<promise-iter>.find(..)`](#promise-itersome--promise-iterfind)
       - [Array proxy methods returning `<promise-iter>`](#array-proxy-methods-returning-promise-iter)
       - [Array proxy methods returning a `<promise>`](#array-proxy-methods-returning-a-promise)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
+      - [`promise.IterablePromise.STOP` / `promise.IterablePromise.STOP(..)`](#promiseiterablepromisestop--promiseiterablepromisestop)
       - [Advanced handler](#advanced-handler)
+      - [Stopping the iteration](#stopping-the-iteration)
     - [Promise proxies](#promise-proxies)
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
@@ -1674,6 +1677,46 @@ parent `<promise-iter>`.
 
 XXX
 
+#### `<promise-iter>.some(..)` / `<promise-iter>.find(..)`
+
+```bnf
+<promise-iter>.some(<func>)
+    -> <promise>
+
+<promise-iter>.find(<func>)
+    -> <promise>
+```
+
+The main difference between `.some(..)` and `.find(..)` is in that the `<promise>`
+returned from the former will resolve to either `true` or `false`, and in the later
+to the found value or `undefined`.
+
+`.find(..)` supports an additional argument that controls what returned `<promise>`
+is resolved to...
+
+```bnf
+<promise-iter>.find(<func>)
+<promise-iter>.find(<func>, 'value')
+    -> <promise>
+
+<promise-iter>.find(<func>, 'bool')
+    -> <promise>
+
+<promise-iter>.find(<func>, 'result')
+    -> <promise>
+```
+
+- `value` (default)  
+  resolve to the stored value if found and `undefined` otherwise.
+- `bool`  
+  resolve to `true` if the value is found and `false` otherwise, this is how 
+  `.some(..)` is impelemnted.
+- `result`  
+  resolve to the return value of the test `<func>`.
+
+These are similar to [`<array>.some(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some) 
+and [`<array>.find(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find) 
+see them for more info.
 
 #### Array proxy methods returning `<promise-iter>`
 
@@ -1697,7 +1740,8 @@ XXX links...
 
 - `<promise-iter>.indexOf(..)` 
 - `<promise-iter>.includes(..)` 
-- `<promise-iter>.every(..)` / `<promise-iter>.some(..)`
+- `<promise-iter>.every(..)`
+- `<promise-iter>.findIndex(..)`
 
 These methods are proxies to the appropriate array methods.
 
@@ -1726,6 +1770,16 @@ this adds the ability to pass no arguments
 
 This will return a generic promise wrapper passing through the results as-is. This 
 can be useful to hide the extended promise API from further code.
+
+#### `promise.IterablePromise.STOP` / `promise.IterablePromise.STOP(..)`
+
+A special object that when thrown from a function/promise handler will stop 
+further iteration.
+
+This is `undefined` until the `ig-types/Array` module is loaded.
+
+For more info see: [Stopping the iteration](#stopping-the-iteration) below, and
+[the 'Array' STOP section](#arraystop--arraystop)
 
 
 #### Advanced handler
@@ -1777,6 +1831,24 @@ var p = Promise.iter(
     .then(function(lst){
         console.log(lst) }) // -> [2, 2, 4, 4, [5, 6]]
 ```
+
+#### Stopping the iteration
+
+Like the [`Array`](#arraystop--arraystop) module, this support throwing `STOP` to 
+stop iteration. As we uses [`.smap(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach) 
+stopping support is supported if `ig-types/Array` module is loaded.
+
+```javascript
+require('ig-types/Array')
+```
+
+This is also different semantically, as promise iteration can happen out of order,
+stopping affects the order of processing and not order of the input array with one exception: promises already created can not be stopped in `JavaScript`.
+
+Any handler function passed to a `<promise-iter>` method can `throw` a STOP.
+
+For more details see: [the 'Array' STOP section](#arraystop--arraystop)
+
 
 
 ### Promise proxies
