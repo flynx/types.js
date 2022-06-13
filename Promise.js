@@ -178,14 +178,17 @@ object.Constructor('IterablePromise', Promise, {
 						//elem.then(handler)
 						elem
 							.then(handler)
+							//* XXX EXPEREMENTAL: STOP...
 							.catch(function(err){
 								stop = err
-								if(err === Array.STOP
-										|| err instanceof Array.STOP){
+								if(Array.STOP 
+										&& (err === Array.STOP
+											|| err instanceof Array.STOP)){
 									return 'value' in err ?
 										err.value
 										: [] }
 								throw err })
+							//*/
 					: elem instanceof Array ?
 						handler(elem)
 					// NOTE: we keep things that do not need protecting 
