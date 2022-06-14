@@ -5,8 +5,7 @@
 * 	Promise.iter(seq)
 * 	<promise>.iter()
 * 		Iterable promise object.
-* 		Similar to Promise.all(..) but adds basic iterator/generator
-* 		API and will resolve the items as they are ready (resolved).
+* 		Similar to Promise.all(..) but adds basic iterator API.
 *
 * 	Promise.interactive(handler)
 * 		Interactive promise object.
@@ -68,6 +67,7 @@ var object = require('ig-object')
 // 		back to the complex IterablePromise...
 // 		
 // XXX how do we handle errors/rejections???
+// 		...mostly the current state is OK, but need more testing...
 // 		
 
 // XXX should these be exported???
