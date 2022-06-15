@@ -38,16 +38,6 @@ var object = require('ig-object')
 // Like Promise.all(..) but adds ability to iterate through results
 // via generators .map(..)/.reduce(..) and friends...
 // 
-// NOTE: it would be nice to support throwing STOP from the iterable 
-// 		promise but...
-// 		- this is more complicated than simply using .smap(..) instead 
-// 			of .map(..) because the list can contain async promises...
-// 			...would need to wrap each .then(..) call in try-catch and
-// 			manually handle the stop...
-// 			...then there's a question of derivative iterators etc.
-// 		- another issue here is that the stop would happen in order of 
-// 			execution and not order of elements...
-// 		XXX EXPEREMENTAL: STOP...
 // NOTE: the following can not be implemented here:
 // 			.splice(..)				- can't both modify and return
 // 									  a result...
@@ -70,16 +60,15 @@ var object = require('ig-object')
 // 		...mostly the current state is OK, but need more testing...
 // 		
 
-// XXX should these be exported???
 var iterPromiseProxy = 
-//module.iterPromiseProxy = 
+module.iterPromiseProxy = 
 function(name){
 	return function(...args){
 		return this.constructor(
 			this.then(function(lst){
 				return lst[name](...args) })) } }
 var promiseProxy =
-//module.promiseProxy =
+module.promiseProxy =
 function(name){
 	return async function(...args){
 		return (await this)[name](...args) } }
@@ -384,7 +373,6 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: unlike .reduce(..) this needs the parent fully resolved 
 	// 		to be able to iterate from the end.
 	// XXX is it faster to do .reverse().reduce(..) ???
-	// XXX ???
 	reduceRight: promiseProxy('reduceRight'),
 
 	// NOTE: there is no way we can do a sync generator returning 
@@ -518,6 +506,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 		items...
 	// 		XXX we can make the index a promise, then if the client needs
 	// 			the value they can wait for it...
+	// 			...this may be quite an overhead...
 	//
 	//
 	// Special cases useful for extending this constructor...
@@ -654,6 +643,7 @@ object.Constructor('InteractivePromise', Promise, {
 // Cooperative promise...
 // 
 // A promise that can be resolved/rejected externally.
+//
 // NOTE: normally this has no internal resolver logic...
 // 
 
