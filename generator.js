@@ -66,6 +66,14 @@ module.Generator =
 	(function*(){}).constructor
 
 
+var AsyncGeneratorPrototype =
+	(async function*(){}).constructor.prototype
+
+var AsyncGenerator =
+module.AsyncGenerator =
+	(async function*(){}).constructor
+
+
 // base iterator prototypes...
 var ITERATOR_PROTOTYPES = [
 	Array,
@@ -426,6 +434,41 @@ GeneratorProtoMixin(GeneratorPrototype.prototype)
 ITERATOR_PROTOTYPES
 	.forEach(function(proto){
 		GeneratorProtoMixin(proto) })
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// XXX EXPERIMENTAL...
+
+var makeAsyncGenerator = function(name, pre){
+	return function(...args){
+		var that = this
+		return Object.assign(
+			async function*(){
+				var a = pre ? 
+					pre.call(this, args, ...arguments)
+					: args
+				for await (var e of that(...arguments)[name](...a)){
+					yield e } }, 
+			{ toString: function(){
+				return [
+					that.toString(), 
+					// XXX need to normalize args better...
+					`.${ name }(${ args.join(', ') })`,
+				].join('\n    ') }, }) } }
+
+var AsyncGeneratorMixin =
+module.AsyncGeneratorMixin =
+object.Mixin('AsyncGeneratorMixin', 'soft', {
+	map: makeAsyncGenerator('map'),
+})
+
+var AsyncGeneratorProtoMixin =
+module.AsyncGeneratorProtoMixin =
+object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
+})
+
+//AsyncGeneratorMixin(AsyncGeneratorPrototype)
+//AsyncGeneratorProtoMixin(AsyncGeneratorPrototype.prototype)
 
 
 
