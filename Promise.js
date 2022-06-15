@@ -76,7 +76,6 @@ function(name){
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
-	// XXX EXPEREMENTAL: STOP...
 	get STOP(){
 		return Array.STOP },
 
@@ -356,6 +355,7 @@ object.Constructor('IterablePromise', Promise, {
 		var list = this.__packed
 		return ((i != 0 && i != -1)
 					|| list instanceof Promise
+					// XXX not sure if this is correct...
 					|| list.at(i) instanceof Promise) ?
 				(await this).at(i)
 			// NOTE: we can only reason about first/last explicit elements, 
@@ -453,6 +453,12 @@ object.Constructor('IterablePromise', Promise, {
 	every: promiseProxy('every'),
 
 
+	// this is defined globally as Promise.prototype.iter(..)
+	//
+	// for details see: PromiseMixin(..) below...
+	//iter: function(handler=undefined){ ... },
+
+
 	// promise api...
 	//
 	// Overload .then(..), .catch(..) and .finally(..) to return a plain 
@@ -478,12 +484,6 @@ object.Constructor('IterablePromise', Promise, {
 		return arguments.length > 0 ?
 			p.then(...arguments) 
 			: p },
-
-
-	// this is defined globally as Promise.prototype.iter(.,)
-	//
-	// for details see: PromiseMixin(..) below...
-	//iter: function(handler=undefined){ ... },
 
 
 	// constructor...
