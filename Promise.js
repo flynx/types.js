@@ -198,6 +198,20 @@ object.Constructor('IterablePromise', Promise, {
 					: handler(elem) }) },
 		//*/
 	// transform/handle packed array (sync)...
+	//
+	// XXX BUG:
+	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
+	// 					.map(async e => e)
+	// 				-> ['a', <promise>, ['c']]
+	// 		is not the same as:
+	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
+	// 					.map(e => e)
+	// 				-> ['a', 222, ['c']]
+	// 		...and these works as expected:
+	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], async e => [e])
+	// 				-> ['a', 222, ['c']]
+	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], e => [e])
+	// 				-> ['a', 222, ['c']]
 	__handle: function(list, handler=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -225,8 +239,9 @@ object.Constructor('IterablePromise', Promise, {
 					that.__pack(elem, handler)
 				: elem instanceof Promise ?
 					that.__pack(elem, handler)
-						.then(function(elem){
-							return elem.flat() })
+						//.then(function(elem){
+						.then(function([elem]){
+							return elem })
 				: [handler(elem)] })
    			.flat() },
 	// unpack array (async)...
@@ -523,20 +538,6 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: if 'types/Array' is imported this will support throwing STOP,
 	// 		for more info see notes for .__pack(..)
 	// 		XXX EXPEREMENTAL: STOP...
-	//
-	// XXX BUG:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
-	// 					.map(async e => e)
-	// 				-> ['a', <promise>, ['c']]
-	// 		is not the same as:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
-	// 					.map(e => e)
-	// 				-> ['a', 222, ['c']]
-	// 		...and these works as expected:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], async e => [e])
-	// 				-> ['a', 222, ['c']]
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], e => [e])
-	// 				-> ['a', 222, ['c']]
 	__new__: function(_, list, handler){
 		// instance...
 		var promise
