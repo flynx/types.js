@@ -439,36 +439,43 @@ ITERATOR_PROTOTYPES
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // XXX EXPERIMENTAL...
 
-var makeAsyncGenerator = function(name, pre){
-	return function(...args){
-		var that = this
-		return Object.assign(
-			async function*(){
-				var a = pre ? 
-					pre.call(this, args, ...arguments)
-					: args
-				for await (var e of that(...arguments)[name](...a)){
-					yield e } }, 
-			{ toString: function(){
-				return [
-					that.toString(), 
-					// XXX need to normalize args better...
-					`.${ name }(${ args.join(', ') })`,
-				].join('\n    ') }, }) } }
-
 var AsyncGeneratorMixin =
 module.AsyncGeneratorMixin =
 object.Mixin('AsyncGeneratorMixin', 'soft', {
-	map: makeAsyncGenerator('map'),
 })
 
 var AsyncGeneratorProtoMixin =
 module.AsyncGeneratorProtoMixin =
 object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
+	//
+	//	.then()	
+	//		-> promise
+	//
+	//	.then(resolve[, reject])
+	//		-> promise
+	//
+	// NOTE: this will unwind the generator...
+	then: function(resolve, reject){
+		var that = this
+		var p = new Promise(async function(_resolve, _reject){
+			var res = []
+			for await(var elem of that){
+				res.push(elem) }
+			_resolve(res) }) 
+		resolve
+			&& p.then(resolve)
+		reject
+			&& p.catch(reject)
+		return p },
+
+	// create an iterator promise...
+	iter: function(handler=undefined){
+		// XXX
+	},
 })
 
-//AsyncGeneratorMixin(AsyncGeneratorPrototype)
-//AsyncGeneratorProtoMixin(AsyncGeneratorPrototype.prototype)
+AsyncGeneratorMixin(AsyncGeneratorPrototype)
+AsyncGeneratorProtoMixin(AsyncGeneratorPrototype.prototype)
 
 
 

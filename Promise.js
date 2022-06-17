@@ -30,6 +30,8 @@
 
 var object = require('ig-object')
 
+//var generator = require('./generator')
+
 
 
 //---------------------------------------------------------------------
@@ -58,6 +60,7 @@ var object = require('ig-object')
 // 		
 // XXX how do we handle errors/rejections???
 // 		...mostly the current state is OK, but need more testing...
+// XXX add support for async generators...
 // 		
 
 var iterPromiseProxy = 
@@ -117,6 +120,10 @@ object.Constructor('IterablePromise', Promise, {
 	// 		stop will stop the handlers not yet run and not the next 
 	// 		handlers in sequence.
 	// 		XXX EXPEREMENTAL: STOP...
+	// XXX add support for async generators...
+	// 		... an async generator is not "parallel", i.e. intil one 
+	// 		returned promise is resolved the generator blocks (will not 
+	// 		advance)...
 	__pack: function(list, handler=undefined){
 		var that = this
 		// handle iterable promise list...
@@ -198,20 +205,6 @@ object.Constructor('IterablePromise', Promise, {
 					: handler(elem) }) },
 		//*/
 	// transform/handle packed array (sync)...
-	//
-	// XXX BUG:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
-	// 					.map(async e => e)
-	// 				-> ['a', <promise>, ['c']]
-	// 		is not the same as:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']])
-	// 					.map(e => e)
-	// 				-> ['a', 222, ['c']]
-	// 		...and these works as expected:
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], async e => [e])
-	// 				-> ['a', 222, ['c']]
-	// 			await Promise.iter(['a', Promise.resolve(222), ['c']], e => [e])
-	// 				-> ['a', 222, ['c']]
 	__handle: function(list, handler=undefined){
 		var that = this
 		if(typeof(list) == 'function'){

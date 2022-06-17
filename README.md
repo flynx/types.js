@@ -124,6 +124,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`generator.produce(..)`](#generatorproduce)
     - [Generator helpers](#generator-helpers)
       - [`generator.stoppable(..)`](#generatorstoppable)
+  - [Async generator extensions](#async-generator-extensions)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -2482,6 +2483,10 @@ stoppable(<generator>)
 ```
 
 <!-- XXX example? -->
+
+## Async generator extensions
+
+XXX EXPERIMENTAL
 
 
 
