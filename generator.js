@@ -455,6 +455,7 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 	//		-> promise
 	//
 	// NOTE: this will unwind the generator...
+	// XXX should we unwind???
 	then: function(resolve, reject){
 		var that = this
 		var p = new Promise(async function(_resolve, _reject){
@@ -468,10 +469,17 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			&& p.catch(reject)
 		return p },
 
-	// create an iterator promise...
+	// XXX create an iterator promise...
 	iter: function(handler=undefined){
 		// XXX
 	},
+	// XXX not sure if this is the right way to go...
+	// XXX should we unwind???
+	iter2: async function*(handler=undefined){
+		for async(var e of this){
+			yield* handler ?
+				handler.call(this, e)
+				: [e] } },
 })
 
 AsyncGeneratorMixin(AsyncGeneratorPrototype)
