@@ -168,6 +168,9 @@ module.stoppable =
 function(func){
 	return Object.assign(
 		func instanceof Generator ?
+			// NOTE: the only difference between Generator/AsyncGenerator 
+			// 		versions of this is the async keyword -- keep them 
+			// 		in sync...
 			function*(){
 				try{
 					yield* func.call(this, ...arguments)
@@ -178,15 +181,29 @@ function(func){
 						yield err.value
 						return }
 					throw err } }
-			: function(){
+		: func instanceof AsyncGenerator ?
+			// NOTE: the only difference between Generator/AsyncGenerator 
+			// 		versions of this is the async keyword -- keep them 
+			// 		in sync...
+			async function*(){
 				try{
-					return func.call(this, ...arguments)
+					yield* func.call(this, ...arguments)
 				} catch(err){
 					if(err === STOP){
 						return
 					} else if(err instanceof STOP){
-						return err.value }
-					throw err } },
+						yield err.value
+						return }
+					throw err } }
+		: function(){
+			try{
+				return func.call(this, ...arguments)
+			} catch(err){
+				if(err === STOP){
+					return
+				} else if(err instanceof STOP){
+					return err.value }
+				throw err } },
 		{ toString: function(){
 			return func.toString() }, }) }
 
@@ -454,7 +471,9 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 	//	.then(resolve[, reject])
 	//		-> promise
 	//
+	// NOTE: this makes this await compatible...
 	// NOTE: this will unwind the generator...
+	// XXX create an iterator promise???
 	// XXX should we unwind???
 	then: function(resolve, reject){
 		var that = this
@@ -469,17 +488,42 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			&& p.catch(reject)
 		return p },
 
-	// XXX create an iterator promise...
-	iter: function(handler=undefined){
-		// XXX
-	},
-	// XXX not sure if this is the right way to go...
-	// XXX should we unwind???
-	iter2: async function*(handler=undefined){
-		for async(var e of this){
+	// XXX might be a good idea to use this approach above...
+	iter: stoppable(async function*(handler=undefined){
+		var i = 0
+		for await(var e of this){
 			yield* handler ?
-				handler.call(this, e)
-				: [e] } },
+				handler.call(this, e, i++)
+				: [e] } }),
+
+	map: async function*(func){
+		yield* this.iter(function(elem, i){
+			return [func.call(this, elem, i)] }) },
+	filter: async function*(func){
+		yield* this.iter(function(elem, i){
+			return func.call(this, elem, i) ?
+	   			[elem]
+				: [] }) },
+	reduce: async function(func, state){
+		this.iter(function(elem, i){
+			state = func.call(this, state, elem, i) 
+			return [] })
+		return state },
+
+	concat: async function*(other){
+		yield* this
+		yield* other },
+	push: async function*(elem){
+		yield* this
+		yield elem },
+	unsift: async function*(elem){
+		yield elem 
+		yield* this },
+
+	// XXX
+	// 	slice
+	// 	flat
+	// 	...
 })
 
 AsyncGeneratorMixin(AsyncGeneratorPrototype)
