@@ -124,6 +124,13 @@ Library of JavaScript type extensions, types and utilities.
     - [Generator helpers](#generator-helpers)
       - [`generator.stoppable(..)`](#generatorstoppable)
   - [Async generator extensions](#async-generator-extensions)
+      - [`<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`](#async-generatorthen--async-generatorcatch--async-generatorfinally)
+      - [`<async-generator>.iter(..)`](#async-generatoriter)
+      - [`<async-generator>.map(..)` / `<async-generator>.filter(..)` / `<async-generator>.reduce(..)`](#async-generatormap--async-generatorfilter--async-generatorreduce)
+      - [`<async-generator>.chain(..)`](#async-generatorchain)
+      - [`<async-generator>.flat(..)`](#async-generatorflat)
+      - [`<async-generator>.concat(..)`](#async-generatorconcat)
+      - [`<async-generator>.push(..)` / `<async-generator>.unshift(..)`](#async-generatorpush--async-generatorunshift)
   - [Containers](#containers)
     - [`containers.UniqueKeyMap()` (`Map`)](#containersuniquekeymap-map)
       - [`<unique-key-map>.set(..)`](#unique-key-mapset)
@@ -2485,6 +2492,20 @@ stoppable(<generator>)
 ## Async generator extensions
 
 XXX EXPERIMENTAL
+
+#### `<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`
+
+#### `<async-generator>.iter(..)`
+
+#### `<async-generator>.map(..)` / `<async-generator>.filter(..)` / `<async-generator>.reduce(..)`
+
+#### `<async-generator>.chain(..)`
+
+#### `<async-generator>.flat(..)`
+
+#### `<async-generator>.concat(..)`
+
+#### `<async-generator>.push(..)` / `<async-generator>.unshift(..)`
 
 
 

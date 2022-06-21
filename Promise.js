@@ -294,6 +294,8 @@ object.Constructor('IterablePromise', Promise, {
 			.then(function(){ 
 				return res }) },
 
+	// XXX .chain(..) -- see generator.chain(..)
+
 	flat: function(depth=1){
 		return this.constructor(this, 
 			function(e){ 

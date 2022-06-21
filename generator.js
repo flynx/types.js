@@ -484,11 +484,14 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			for await(var elem of that){
 				res.push(elem) }
 			_resolve(res) }) 
-		resolve
-			&& p.then(resolve)
-		reject
-			&& p.catch(reject)
+		p = (resolve || reject) ?
+			p.then(...arguments)
+			: p
 		return p },
+	catch: function(func){
+		return this.then().catch(func) },
+	finally: function(){
+		return this.then().finally(func) },
 
 	// XXX might be a good idea to use this approach above...
 	iter: stoppable(async function*(handler=undefined){
@@ -537,7 +540,6 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 
 	// XXX
 	// 	slice
-	// 	chain
 	// 	...
 })
 
