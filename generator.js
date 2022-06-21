@@ -510,6 +510,13 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			return [] })
 		return state },
 
+	flat: async function*(){
+		for await(var e of this){
+			if(e instanceof Array){
+				yield* e
+			} else {
+				yield e }}},
+
 	concat: async function*(other){
 		yield* this
 		yield* other },
