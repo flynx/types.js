@@ -102,7 +102,6 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.flat(..)`](#generatorflat)
       - [`<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
       - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush)
-      - [`<generator>.promise()`](#generatorpromise)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Treating iterators the same as generators](#treating-iterators-the-same-as-generators)
@@ -2157,30 +2156,29 @@ Value added by `.unshift(..)` will be yielded by `<generator>` "first", i.e. on
 _next_ call to `.next()`, regardless of the current generator state.
 
 
-#### `<generator>.promise()`
+#### `<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`
 
-```bnf
-<generator>.promise()
-    -> <promise>
-```
 Return a promise and resolve it with the generator value.
 
-Note that this will deplete the generator.
+```bnf
+<generator>.then()
+    -> <promise>
+```
 
-
-#### `<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`
+Adding handlers to the promise
 
 ```bnf
 <generator>.then(<resolve>, <reject>)
     -> <promise>
 
-<generator>.then(<reject>)
+<generator>.then(<resolve>)
     -> <promise>
 
 <generator>.finally(<handler>)
     -> <promise>
 ```
-Shorthands to `<generator>.promise().then(..)` / `<generator>.promise().catch(..)` / `<generator>.promise().finally(..)`
+
+Note that this will deplete the generator.
 
 These are the same as equivalent `Promise` methods, for more info see:  
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise

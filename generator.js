@@ -407,17 +407,19 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 
 	// promises...
 	//
-	// XXX how do we handle reject(..) / .catch(..)???
-	promise: function(){
+	then: function(onresolve, onreject){
 		var that = this
-		return new Promise(function(resolve){
-				resolve([...that]) }) },
-	then: function(func){
-		return this.promise().then(func) },
+		var p = new Promise(
+			function(resolve){
+				resolve([...that]) }) 
+		p = (onresolve || onreject) ?
+			p.then(...arguments)
+			: p
+		return p },
 	catch: function(func){
-		return this.promise().catch(func) },
+		return this.then().catch(func) },
 	finally: function(func){
-		return this.promise().finally(func) },
+		return this.then().finally(func) },
 
 	// combinators...
 	//
@@ -510,6 +512,12 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			return [] })
 		return state },
 
+	// XXX TEST...
+	chain: async function*(...next){
+		yield* next
+			.reduce(function(cur, next){
+				return next(cur) }, this) },
+
 	flat: async function*(){
 		for await(var e of this){
 			if(e instanceof Array){
@@ -529,7 +537,7 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 
 	// XXX
 	// 	slice
-	// 	flat
+	// 	chain
 	// 	...
 })
 
