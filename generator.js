@@ -121,9 +121,11 @@ Generator.iter =
 
 //
 // 	makeGenerator(<name>)
+// 	makeGenerator(<name>, <handler>)
 // 		-> <func>
 //
-// 	makeGenerator(<name>, <handler>)
+// 	makeGenerator('async', <name>)
+// 	makeGenerator('async', <name>, <handler>)
 // 		-> <func>
 //
 //
@@ -140,14 +142,26 @@ Generator.iter =
 // XXX this needs to be of the correct type... (???)
 // XXX need to accept generators as handlers...
 var makeGenerator = function(name, pre){
+	var sync = true
+	if(name == 'async'){
+		sync = false
+		var [name, pre] = [...arguments].slice(1) }
 	return function(...args){
 		var that = this
 		return Object.assign(
-			function*(){
-				var a = pre ? 
-					pre.call(this, args, ...arguments)
-					: args
-				yield* that(...arguments)[name](...a) }, 
+			// NOTE: the two branches here are identical, the only 
+			// 		difference is the async keyword...
+			sync ?
+				function*(){
+					var a = pre ? 
+						pre.call(this, args, ...arguments)
+						: args
+					yield* that(...arguments)[name](...a) }
+				: async function*(){
+					var a = pre ? 
+						pre.call(this, args, ...arguments)
+						: args
+					yield* that(...arguments)[name](...a) }, 
 			{ toString: function(){
 				return [
 					that.toString(), 
@@ -461,19 +475,18 @@ ITERATOR_PROTOTYPES
 var AsyncGeneratorMixin =
 module.AsyncGeneratorMixin =
 object.Mixin('AsyncGeneratorMixin', 'soft', {
+	// XXX TEST...
+	iter: makeGenerator('async', 'iter'),
+	map: makeGenerator('async', 'map'),
+	filter: makeGenerator('async', 'filter'),
+	reduce: makeGenerator('async', 'reduce'),
 })
 
 var AsyncGeneratorProtoMixin =
 module.AsyncGeneratorProtoMixin =
 object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
+	// promise...
 	//
-	//	.then()	
-	//		-> promise
-	//
-	//	.then(resolve[, reject])
-	//		-> promise
-	//
-	// NOTE: this makes this await compatible...
 	// NOTE: this will unwind the generator...
 	// XXX create an iterator promise???
 	// XXX should we unwind???
@@ -539,7 +552,7 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 		yield* this },
 
 	// XXX
-	// 	slice
+	// 	slice -- not sure if we need this...
 	// 	...
 })
 

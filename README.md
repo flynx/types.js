@@ -124,6 +124,7 @@ Library of JavaScript type extensions, types and utilities.
     - [Generator helpers](#generator-helpers)
       - [`generator.stoppable(..)`](#generatorstoppable)
   - [Async generator extensions](#async-generator-extensions)
+      - [`generator.AsyncGenerator`](#generatorasyncgenerator)
       - [`<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`](#async-generatorthen--async-generatorcatch--async-generatorfinally)
       - [`<async-generator>.iter(..)`](#async-generatoriter)
       - [`<async-generator>.map(..)` / `<async-generator>.filter(..)` / `<async-generator>.reduce(..)`](#async-generatormap--async-generatorfilter--async-generatorreduce)
@@ -2492,6 +2493,8 @@ stoppable(<generator>)
 ## Async generator extensions
 
 XXX EXPERIMENTAL
+
+#### `generator.AsyncGenerator`
 
 #### `<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`
 
