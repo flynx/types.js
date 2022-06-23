@@ -85,14 +85,38 @@ var ITERATOR_PROTOTYPES = [
 
 
 //---------------------------------------------------------------------
-
 // generic generator wrapper...
+
+// helper...
+var __iter = 
+module.__iter =
+function*(lst=[]){
+	if(typeof(lst) == 'object' && Symbol.iterator in lst){
+		yield* lst 
+	} else {
+		yield lst } }
+
+// XXX updatae Array.js' version for compatibility...
+// XXX DOCS!!!
 var iter = 
 module.iter = 
 Generator.iter =
-	function*(lst=[]){
-		for(var e of lst){
-			yield e } }
+	function(lst=[]){
+		// handler -> generator-constructor...
+		if(typeof(lst) == 'function'){
+			// we need to be callable...
+			var that = this instanceof Function ?
+				this
+				// generic root generator...
+				: module.__iter
+			return function*(){
+				yield* that(...arguments).iter(lst) } }
+		// no handler -> generator instance...
+		return module.__iter(lst) }
+
+// NOTE: we need .iter(..) to both return generators if passed an iterable
+// 		and genereator constructos if passed a function...
+iter.__proto__ = GeneratorPrototype
 
 
 
@@ -229,9 +253,7 @@ module.GeneratorMixin =
 object.Mixin('GeneratorMixin', 'soft', {
 	STOP: object.STOP,
 
-	// NOTE: this is here for compatibility with Array.iter(..)
-	iter: function*(lst=[]){
-		yield* module.iter(lst) },
+	iter: module.iter,
 
 	gat: makeGenerator('gat'),
 	at: function(i){
@@ -309,9 +331,23 @@ object.Mixin('GeneratorMixin', 'soft', {
 var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
-	// NOTE: this is here for compatibility with [..].iter()
-	iter: function*(){ 
-		yield* this },
+	// XXX use module.iter(..) ???
+	iter: function*(handler){ 
+		if(handler){
+			var i = 0
+			for(var elem of this){
+				var res = handler.call(this, elem, i) 
+				// expand iterables...
+				if(typeof(res) == 'object' 
+						&& Symbol.iterator in res){
+					yield* res
+				// as-is...
+				} else {
+					yield res }}
+		// no handler...
+		} else {
+			yield* this } },
+	//*/
 
 	at: function(i){
 		return this.gat(i).next().value },
@@ -477,6 +513,7 @@ module.AsyncGeneratorMixin =
 object.Mixin('AsyncGeneratorMixin', 'soft', {
 	// XXX TEST...
 	iter: makeGenerator('async', 'iter'),
+
 	map: makeGenerator('async', 'map'),
 	filter: makeGenerator('async', 'filter'),
 	reduce: makeGenerator('async', 'reduce'),
@@ -522,6 +559,9 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			return func.call(this, elem, i) ?
 	   			[elem]
 				: [] }) },
+	// NOTE: there is not much point in .reduceRight(..) in an async 
+	// 		generator as we'll need to fully unwind it then go from the 
+	// 		end...
 	reduce: async function(func, state){
 		this.iter(function(elem, i){
 			state = func.call(this, state, elem, i) 

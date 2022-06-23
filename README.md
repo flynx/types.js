@@ -94,7 +94,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`generator.iter(..)`](#generatoriter)
       - [`generator.STOP`](#generatorstop)
     - [Generator instance iteration](#generator-instance-iteration)
-      - [`<generator>.iter()`](#generatoriter-1)
+      - [`<generator>.iter(..)`](#generatoriter-1)
       - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
       - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
       - [`<generator>.slice(..)`](#generatorslice)
@@ -2031,7 +2031,7 @@ Chained generators handle items depth-first, i.e. the items are passed as they
 are yielded down the generator chain.
 
 
-#### `<generator>.iter()`
+#### `<generator>.iter(..)`
 
 Iterate over the generator.
 ```bnf
@@ -2039,7 +2039,24 @@ Iterate over the generator.
     -> <generator>
 ```
 
-This is here mainly for compatibility with [`<array>`'s `.iter()`](#arrayiter--arrayiter).
+XXX move this to `generator.iter(..)`
+
+Compatible with [`<array>`'s `.iter()`](#arrayiter--arrayiter).
+
+`.iter(..)` also supports a handler function
+```bnf
+<generator>.iter(<handler>)
+    -> <generator>
+
+
+<handler>(<elem>, <index>)
+    -> <elem>
+    -> [<elem>, ..]
+    -> []
+```
+
+Note that the iterables returned by `<handler>(..)` will be expanded, to prevent 
+this wrap them in an array.
 
 
 #### `<generator>.map(..)` / `<generator>.filter(..)` 
