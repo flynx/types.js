@@ -85,13 +85,61 @@ var ITERATOR_PROTOTYPES = [
 
 
 //---------------------------------------------------------------------
+
+var stoppable = 
+module.stoppable =
+function(func){
+	return Object.assign(
+		func instanceof Generator ?
+			// NOTE: the only difference between Generator/AsyncGenerator 
+			// 		versions of this is the async keyword -- keep them 
+			// 		in sync...
+			function*(){
+				try{
+					yield* func.call(this, ...arguments)
+				} catch(err){
+					if(err === STOP){
+						return
+					} else if(err instanceof STOP){
+						yield err.value
+						return }
+					throw err } }
+		: func instanceof AsyncGenerator ?
+			// NOTE: the only difference between Generator/AsyncGenerator 
+			// 		versions of this is the async keyword -- keep them 
+			// 		in sync...
+			async function*(){
+				try{
+					yield* func.call(this, ...arguments)
+				} catch(err){
+					if(err === STOP){
+						return
+					} else if(err instanceof STOP){
+						yield err.value
+						return }
+					throw err } }
+		: function(){
+			try{
+				return func.call(this, ...arguments)
+			} catch(err){
+				if(err === STOP){
+					return
+				} else if(err instanceof STOP){
+					return err.value }
+				throw err } },
+		{ toString: function(){
+			return func.toString() }, }) }
+
+
+//---------------------------------------------------------------------
 // generic generator wrapper...
 
 // helper...
 var __iter = 
 module.__iter =
 function*(lst=[]){
-	if(typeof(lst) == 'object' && Symbol.iterator in lst){
+	if(typeof(lst) == 'object' 
+			&& Symbol.iterator in lst){
 		yield* lst 
 	} else {
 		yield lst } }
@@ -101,7 +149,7 @@ function*(lst=[]){
 var iter = 
 module.iter = 
 Generator.iter =
-	function(lst=[]){
+	stoppable(function(lst=[]){
 		// handler -> generator-constructor...
 		if(typeof(lst) == 'function'){
 			// we need to be callable...
@@ -112,7 +160,7 @@ Generator.iter =
 			return function*(){
 				yield* that(...arguments).iter(lst) } }
 		// no handler -> generator instance...
-		return module.__iter(lst) }
+		return module.__iter(lst) })
 
 // NOTE: we need .iter(..) to both return generators if passed an iterable
 // 		and genereator constructos if passed a function...
@@ -201,51 +249,6 @@ var makePromise = function(name){
 			return that(...arguments)[name](func) } } }
 
 
-var stoppable = 
-module.stoppable =
-function(func){
-	return Object.assign(
-		func instanceof Generator ?
-			// NOTE: the only difference between Generator/AsyncGenerator 
-			// 		versions of this is the async keyword -- keep them 
-			// 		in sync...
-			function*(){
-				try{
-					yield* func.call(this, ...arguments)
-				} catch(err){
-					if(err === STOP){
-						return
-					} else if(err instanceof STOP){
-						yield err.value
-						return }
-					throw err } }
-		: func instanceof AsyncGenerator ?
-			// NOTE: the only difference between Generator/AsyncGenerator 
-			// 		versions of this is the async keyword -- keep them 
-			// 		in sync...
-			async function*(){
-				try{
-					yield* func.call(this, ...arguments)
-				} catch(err){
-					if(err === STOP){
-						return
-					} else if(err instanceof STOP){
-						yield err.value
-						return }
-					throw err } }
-		: function(){
-			try{
-				return func.call(this, ...arguments)
-			} catch(err){
-				if(err === STOP){
-					return
-				} else if(err instanceof STOP){
-					return err.value }
-				throw err } },
-		{ toString: function(){
-			return func.toString() }, }) }
-
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 var GeneratorMixin =
@@ -332,7 +335,7 @@ var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
 	// XXX use module.iter(..) ???
-	iter: function*(handler){ 
+	iter: stoppable(function*(handler){ 
 		if(handler){
 			var i = 0
 			for(var elem of this){
@@ -346,7 +349,7 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 					yield res }}
 		// no handler...
 		} else {
-			yield* this } },
+			yield* this } }),
 	//*/
 
 	at: function(i){
@@ -546,10 +549,16 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 	// XXX might be a good idea to use this approach above...
 	iter: stoppable(async function*(handler=undefined){
 		var i = 0
-		for await(var e of this){
-			yield* handler ?
-				handler.call(this, e, i++)
-				: [e] } }),
+		if(handler){
+			for await(var e of this){
+				var res = handler.call(this, e, i++)
+				if(typeof(res) == 'object' 
+						&& Symbol.iterator in res){
+					yield* res
+				} else {
+					yield res } }
+		} else {
+			yield* this } }),
 
 	map: async function*(func){
 		yield* this.iter(function(elem, i){

@@ -489,8 +489,18 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	//		-> iterator
 	//
 	// XXX should this take an argument and be like map??
-	iter: function*(){
-		yield* this },
+	iter: function*(handler=undefined){
+		if(handler){
+			var i = 0
+			for(var e of this){
+				var res = handler.call(this, e, i++) 
+				if(typeof(res) == 'object' 
+						&& Symbol.iterator in res){
+					yield* res
+				} else {
+					yield res } } 
+		} else {
+			yield* this }},
 
 
 	// Stoppable iteration...
