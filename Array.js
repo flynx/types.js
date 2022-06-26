@@ -490,6 +490,8 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	//
 	// XXX should this take an argument and be like map??
 	// XXX this should handle throwing STOP!!!
+	// 		...might also ne a good idea to isolate the STOP mechanics 
+	// 		into a spearate module/package...
 	iter: function*(handler=undefined){
 		if(handler){
 			var i = 0
