@@ -86,6 +86,7 @@ var ITERATOR_PROTOTYPES = [
 
 //---------------------------------------------------------------------
 
+// XXX should this be part of object???
 var stoppable = 
 module.stoppable =
 function(func){

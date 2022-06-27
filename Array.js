@@ -24,6 +24,9 @@ var STOP =
 module.STOP =
 	object.STOP
 
+var stoppable =
+module.stoppable =
+	generator.stoppable
 
 
 //---------------------------------------------------------------------
@@ -492,7 +495,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// XXX this should handle throwing STOP!!!
 	// 		...might also ne a good idea to isolate the STOP mechanics 
 	// 		into a spearate module/package...
-	iter: function*(handler=undefined){
+	iter: stoppable(function*(handler=undefined){
 		if(handler){
 			var i = 0
 			for(var e of this){
@@ -504,7 +507,7 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 				} else {
 					yield res } } 
 		} else {
-			yield* this }},
+			yield* this }}),
 
 
 	// Stoppable iteration...
