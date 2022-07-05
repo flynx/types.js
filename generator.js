@@ -38,11 +38,11 @@ module.STOP =
 // of each of them.
 // So, below we will define:
 //
-// 	GeneratorPrototype 
+// 	Generator.prototype 
 // 		prototype of the generator constructors (i.e. Iter(..) from the 
 // 		above example)
 //
-// 	GeneratorPrototype.prototype
+// 	Generator.prototype.prototype
 // 		generator instance prototype (i.e. iter for the above code)
 //
 //
@@ -58,16 +58,9 @@ module.STOP =
 //
 //---------------------------------------------------------------------
 
-var GeneratorPrototype =
-	(function*(){}).constructor.prototype
-
 var Generator = 
 module.Generator =
 	(function*(){}).constructor
-
-
-var AsyncGeneratorPrototype =
-	(async function*(){}).constructor.prototype
 
 var AsyncGenerator =
 module.AsyncGenerator =
@@ -165,12 +158,12 @@ Generator.iter =
 
 // NOTE: we need .iter(..) to both return generators if passed an iterable
 // 		and genereator constructos if passed a function...
-iter.__proto__ = GeneratorPrototype
+iter.__proto__ = Generator.prototype
 
 
 
 //---------------------------------------------------------------------
-// GeneratorPrototype "class" methods...
+// Generator.prototype "class" methods...
 //
 // the following are effectively the same:
 // 	1) Wrapper
@@ -506,8 +499,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 })
 
 
-GeneratorMixin(GeneratorPrototype)
-GeneratorProtoMixin(GeneratorPrototype.prototype)
+GeneratorMixin(Generator.prototype)
+GeneratorProtoMixin(Generator.prototype.prototype)
 
 
 // Extend base iterators...
@@ -613,8 +606,8 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 	// 	...
 })
 
-AsyncGeneratorMixin(AsyncGeneratorPrototype)
-AsyncGeneratorProtoMixin(AsyncGeneratorPrototype.prototype)
+AsyncGeneratorMixin(AsyncGenerator.prototype)
+AsyncGeneratorProtoMixin(AsyncGenerator.prototype.prototype)
 
 
 
