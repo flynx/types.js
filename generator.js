@@ -329,6 +329,8 @@ object.Mixin('GeneratorMixin', 'soft', {
 						e(...args)
 						: e }) }),
 	//zip: makeGenerator('zip'),
+	
+	enumerate: makeGenerator('enumerate'),
 })
 
 
@@ -496,6 +498,11 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		// XXX
 	},
 	//*/
+
+	enumerate: function*(){
+		var i = 0
+		for(var e of this){
+			yield [i++, e] } },
 })
 
 
