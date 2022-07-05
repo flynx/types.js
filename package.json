@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/flynx/types.js#readme",
   "dependencies": {
-    "ig-object": "^5.4.16",
+    "ig-object": "^6.0.0",
+    "ig-stoppable": "^2.0.0",
     "object-run": "^1.0.1"
   },
   "devDependencies": {

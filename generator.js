@@ -8,6 +8,7 @@
 /*********************************************************************/
 
 var object = require('ig-object')
+var stoppable = require('ig-stoppable')
 
 
 
@@ -16,7 +17,7 @@ var object = require('ig-object')
 // NOTE: this is used in a similar fashion to Python's StopIteration...
 var STOP =
 module.STOP =
-	object.STOP
+	stoppable.STOP
 
 
 //---------------------------------------------------------------------
@@ -75,54 +76,6 @@ var ITERATOR_PROTOTYPES = [
 ].map(function(e){ 
 	return (new e()).values().__proto__ })
 
-
-
-//---------------------------------------------------------------------
-
-// XXX should this be part of object???
-var stoppable = 
-module.stoppable =
-function(func){
-	return Object.assign(
-		func instanceof Generator ?
-			// NOTE: the only difference between Generator/AsyncGenerator 
-			// 		versions of this is the async keyword -- keep them 
-			// 		in sync...
-			function*(){
-				try{
-					yield* func.call(this, ...arguments)
-				} catch(err){
-					if(err === STOP){
-						return
-					} else if(err instanceof STOP){
-						yield err.value
-						return }
-					throw err } }
-		: func instanceof AsyncGenerator ?
-			// NOTE: the only difference between Generator/AsyncGenerator 
-			// 		versions of this is the async keyword -- keep them 
-			// 		in sync...
-			async function*(){
-				try{
-					yield* func.call(this, ...arguments)
-				} catch(err){
-					if(err === STOP){
-						return
-					} else if(err instanceof STOP){
-						yield err.value
-						return }
-					throw err } }
-		: function(){
-			try{
-				return func.call(this, ...arguments)
-			} catch(err){
-				if(err === STOP){
-					return
-				} else if(err instanceof STOP){
-					return err.value }
-				throw err } },
-		{ toString: function(){
-			return func.toString() }, }) }
 
 
 //---------------------------------------------------------------------

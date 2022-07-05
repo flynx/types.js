@@ -343,14 +343,14 @@ module.EventDocMixin = object.Mixin('EventDocMixin', {
 		return object.deepKeys(this)
 			.filter(function(n){ 
 				// avoid triggering props...
-				return !object.values(this, n, function(){ return object.STOP }, true)[0].get
+				return !object.values(this, n, true).next().value.get
 					// XXX this is too strict...
 					&& (this[n] || {}).constructor === Eventful}.bind(this)) },
 	get events(){
 		return object.deepKeys(this)
 			.filter(function(n){ 
 				// avoid triggering props...
-				return !object.values(this, n, function(){ return object.STOP }, true)[0].get
+				return !object.values(this, n, true).next().value.get
 					// XXX this is too strict...
 					&& (this[n] || {}).constructor === Event }.bind(this)) },
 })

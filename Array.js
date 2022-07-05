@@ -12,6 +12,7 @@
 /*********************************************************************/
 
 var object = require('ig-object')
+var stoppable = require('ig-stoppable')
 
 var generator = require('./generator')
 
@@ -22,11 +23,7 @@ var generator = require('./generator')
 // NOTE: this is used in a similar fashion to Python's StopIteration...
 var STOP =
 module.STOP =
-	object.STOP
-
-var stoppable =
-module.stoppable =
-	generator.stoppable
+	stoppable.STOP
 
 
 //---------------------------------------------------------------------
