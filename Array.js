@@ -212,9 +212,12 @@ object.Mixin('ArrayMixin', 'soft', {
 			// done...
 			: [] },
 
-	// XXX add handler function support -- a-la generator.js'
-	iter: function*(lst=[]){
-		yield* lst.iter() },
+	// XXX not sure about the handler API here yet... 
+	iter: function*(lst=[], handler=undefined){
+		yield* lst.iter(
+			...(handler ? 
+				[handler] 
+				: [])) },
 })
 
 

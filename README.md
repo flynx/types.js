@@ -13,6 +13,8 @@ Library of JavaScript type extensions, types and utilities.
     - [`Object.matchPartial(..)`](#objectmatchpartial)
     - [`<object>.run(..)`](#objectrun)
     - [`Object.sort(..)`](#objectsort)
+  - [`Function`](#function)
+    - [`func.AsyncFunction`](#funcasyncfunction)
   - [`Array`](#array)
     - [`<array>.first(..)` / `<array>.last(..)`](#arrayfirst--arraylast)
     - [`<array>.rol(..)`](#arrayrol)
@@ -452,6 +454,30 @@ Object.keys(Object.sort(o, ['x', 'a', '100']))
 ```
 
 This is similar to [`<map>.sort(..)`](#mapsort) and [`<ser>.sort(..)`](#setsort).
+
+
+## `Function`
+
+```javascript
+var func = require('ig-types/Function')
+```
+
+### `func.AsyncFunction`
+
+The async function constructor.
+
+This enables us to test if an object is an instance of an async function. 
+
+```javascript
+var a = async function(){
+    // ...
+}
+
+a instanceof func.AsyncFunction // -> true
+```
+
+This is hidden by JavaScript by default.
+
 
 
 ## `Array`

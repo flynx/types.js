@@ -22,6 +22,7 @@ module.patchDate = require('./Date').patchDate
 
 // Additional types...
 module.containers = require('./containers')
+module.func = require('./Function')
 module.generator = require('./generator')
 module.event = require('./event')
 module.runner = require('./runner')
@@ -31,7 +32,9 @@ module.runner = require('./runner')
 module.STOP = object.STOP
 
 // frequently used stuff...
+module.AsyncFunction = module.func.AsyncFunction
 module.Generator = module.generator.Generator
+module.AsyncGenerator = module.generator.AsyncGenerator
 // XXX doc...
 module.iter = module.generator.iter
 
