@@ -80,6 +80,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
       - [`<promise-iter>.push(..)` / `<promise-iter>.unshift(..)`](#promise-iterpush--promise-iterunshift)
       - [`<promise-iter>.at(..)` / `<promise-iter>.first()` / `<promise-iter>.last()`](#promise-iterat--promise-iterfirst--promise-iterlast)
+      - [`<promise-iter>.join(..)`](#promise-iterjoin)
       - [`<promise-iter>.some(..)` / `<promise-iter>.find(..)`](#promise-itersome--promise-iterfind)
       - [Array proxy methods returning `<promise-iter>`](#array-proxy-methods-returning-promise-iter)
       - [Array proxy methods returning a `<promise>`](#array-proxy-methods-returning-a-promise)
@@ -104,6 +105,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.flat(..)`](#generatorflat)
       - [`<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
       - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush)
+      - [`<generator>.join(..)`](#generatorjoin)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Treating iterators the same as generators](#treating-iterators-the-same-as-generators)
@@ -115,6 +117,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<Generator>.slice(..)`](#generatorslice-1)
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
       - [`<Generator>.toArray()`](#generatortoarray-1)
+      - [`<Generator>.join(..)`](#generatorjoin-1)
       - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
     - [Generator combinators](#generator-combinators)
       - [`<Generator>.chain(..)` / `<generator>.chain(..)`](#generatorchain--generatorchain)
@@ -1711,6 +1714,12 @@ parent `<promise-iter>`.
 
 XXX
 
+
+#### `<promise-iter>.join(..)`
+
+XXX
+
+
 #### `<promise-iter>.some(..)` / `<promise-iter>.find(..)`
 
 ```bnf
@@ -2207,6 +2216,11 @@ Value added by `.unshift(..)` will be yielded by `<generator>` "first", i.e. on
 _next_ call to `.next()`, regardless of the current generator state.
 
 
+#### `<generator>.join(..)`
+
+XXX
+
+
 #### `<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`
 
 Return a promise and resolve it with the generator value.
@@ -2409,6 +2423,10 @@ Return a function that will return a `<generator>` output as an `Array`.
 <Generator>.toArray()
     -> <function>
 ```
+
+#### `<Generator>.join(..)`
+
+XXX
 
 
 #### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
