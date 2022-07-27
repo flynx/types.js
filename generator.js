@@ -232,7 +232,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 				return that(...arguments).toArray() },
 			{ toString: function(){
 				return that.toString() 
-					+ '\n    .toString()'}, }) },
+					+ '\n    .toArray()'}, }) },
 	gpop: makeGenerator('gpop'),
 	pop: function(){
 		var that = this
@@ -242,7 +242,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 				return that(...arguments).pop() },
 			{ toString: function(){
 				return that.toString() 
-					+ '\n    .gpop()'}, }) },
+					+ '\n    .pop()'}, }) },
 	push: makeGenerator('push'),
 	gshift: makeGenerator('gshift'),
 	shift: function(){
@@ -253,7 +253,7 @@ object.Mixin('GeneratorMixin', 'soft', {
 				return that(...arguments).shift() }, 
 			{ toString: function(){
 				return that.toString() 
-					+ '\n    .gshift()'}, }) },
+					+ '\n    .shift()'}, }) },
 	unshift: makeGenerator('unshift'),
 
 	// promises...
@@ -277,6 +277,18 @@ object.Mixin('GeneratorMixin', 'soft', {
 	//zip: makeGenerator('zip'),
 	
 	enumerate: makeGenerator('enumerate'),
+
+	// XXX should this have a .gjoin(..) companion...
+	join: function(){
+		var args = [...arguments]
+		var that = this
+		return Object.assign(
+			function(){
+				//return that(...arguments).toArray().shift() }, 
+				return that(...arguments).join(...args) }, 
+			{ toString: function(){
+				return that.toString() 
+					+ '\n    .join()'}, }) },
 })
 
 
@@ -449,6 +461,10 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		var i = 0
 		for(var e of this){
 			yield [i++, e] } },
+
+	join: function(){
+		return [...this]
+			.join(...arguments) },
 })
 
 
@@ -553,6 +569,10 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 	unsift: async function*(elem){
 		yield elem 
 		yield* this },
+
+	join: async function(){
+		return [...(await this)]
+			.join(...arguments) },
 
 	// XXX
 	// 	slice -- not sure if we need this...

@@ -464,6 +464,11 @@ object.Constructor('IterablePromise', Promise, {
 	every: promiseProxy('every'),
 
 
+	join: async function(){
+		return [...(await this)]
+			.join(...arguments) },
+
+
 	// this is defined globally as Promise.prototype.iter(..)
 	//
 	// for details see: PromiseMixin(..) below...
