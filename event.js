@@ -120,6 +120,8 @@ object.Constructor('Eventful', {
 				Object.defineProperty(context, '__event_handlers__', {
 						value: {[this.name]: (handlers = [])},
 						enumerable: false,
+						configurable: true,
+						writable: true,
 					}) 
 					&& handlers
 				: (context.__event_handlers__[this.name] = 
@@ -293,6 +295,8 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 				&& Object.defineProperty(this, '__event_handlers__', {
 					value: {},
 					enumerable: false,
+					configurable: true,
+					writable: true,
 				})
 			;(this.__event_handlers__[evt] = 
 					this.__event_handlers__[evt] || [])
