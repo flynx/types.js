@@ -116,7 +116,8 @@ object.Constructor('Eventful', {
 			this.handlerLocation == 'method' ?
 				(this.__event_handlers__ = this.__event_handlers__ || [])
 			// context (default)...
-			: (context.__event_handlers__ == null ?
+			//: (context.__event_handlers__ == null ?
+			: !context.hasOwnProperty('__event_handlers__') ?
 				Object.defineProperty(context, '__event_handlers__', {
 						value: {[this.name]: (handlers = [])},
 						enumerable: false,
@@ -124,8 +125,8 @@ object.Constructor('Eventful', {
 						writable: true,
 					}) 
 					&& handlers
-				: (context.__event_handlers__[this.name] = 
-					context.__event_handlers__[this.name] || []))
+			: (context.__event_handlers__[this.name] = 
+				context.__event_handlers__[this.name] || [])
 		// add handler...
 		handlers.push(handler)
 		return this },
@@ -291,7 +292,8 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 			this[evt].bind(this, func)
 		// non-event...
 		} else {
-			this.__event_handlers__ == null
+			//this.__event_handlers__ == null
+			!this.hasOwnProperty('__event_handlers__')
 				&& Object.defineProperty(this, '__event_handlers__', {
 					value: {},
 					enumerable: false,
