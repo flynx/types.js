@@ -132,9 +132,12 @@ object.Constructor('Eventful', {
 		return this },
 	unbind: function(context, handler){
 		var handlers = 
-			(this.handlerLocation == 'method' ?
+			this.handlerLocation == 'method' ?
 				method.__event_handlers__
-			: (context.__event_handlers__ || {})[this.name]) || []
+			//: (context.__event_handlers__ || {})[this.name]) || []
+			: context.hasOwnProperty('__event_handlers__') ?
+				(context.__event_handlers__ || {})[this.name] || []
+			: []
 		handlers.splice(0, handlers.length,
 			...handlers.filter(function(h){
 				return h !== handler
@@ -150,7 +153,10 @@ object.Constructor('Eventful', {
 		// context (default)...
 		// NOTE: these are allways called...
 		handlers = handlers
-			.concat((context.__event_handlers__ || {})[this.name] || [])
+			//.concat((context.__event_handlers__ || {})[this.name] || [])
+			.concat(context.hasOwnProperty('__event_handlers__') ?
+				(context.__event_handlers__ || {})[this.name] || []
+				: [])
 
 		// NOTE: this will stop event handling if one of the handlers 
 		// 		explicitly returns false...
@@ -334,7 +340,8 @@ module.EventHandlerMixin = object.Mixin('EventHandlerMixin', {
 		evt in this ?
 			// XXX add a better check...
 			this[evt](module.TRIGGER, ...args)
-			: this.__event_handlers__
+			//: this.__event_handlers__
+			: this.hasOwnProperty('__event_handlers__')
 				&& (this.__event_handlers__[evt] || [])
 					.forEach(function(h){ h(evt, ...args) }) 
 		return this },
