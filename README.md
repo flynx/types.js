@@ -100,6 +100,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.iter(..)`](#generatoriter-1)
       - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
       - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
+      - [`<generator>.forEach(..)`](#generatorforeach)
       - [`<generator>.slice(..)`](#generatorslice)
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
@@ -2134,6 +2135,17 @@ var L = [1,2,3,4,5]
 XXX .reduce(..) can return a non-iterable -- test and document this case...
     ...compare with Array.prototype.reduce(..)
 -->
+
+#### `<generator>.forEach(..)`
+
+```bnf
+<generator>.forEach(<func>)
+    -> <array>
+```
+
+This is different from the above in that this will unwind the `<generator>`.
+
+Note that this differs from `<array>.forEach(..)` in that his will return the resulting array, essentially behaving like `.map(..)`.
 
 
 #### `<generator>.slice(..)`

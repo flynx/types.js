@@ -223,6 +223,12 @@ object.Mixin('GeneratorMixin', 'soft', {
 	reduce: makeGenerator('reduce'),
 	reduceRight: makeGenerator('reduceRight'),
 
+	// XXX add .toString(..) ???
+	forEach: function(func){
+		var that = this
+		return function(){
+			return that(...arguments).forEach(func) } },
+
 	// non-generators...
 	//
 	toArray: function(){
@@ -396,6 +402,12 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		return res }),
 	greduce: function*(func, res){
 		yield this.reduce(...arguments) },
+
+	// NOTE: this is a special case in that it will unwind the generator...
+	// NOTE: this is different from <array>.forEach(..) in that this will
+	// 		return the resulting array.
+	forEach: function(func){
+		return [...this].map(func) },
 
 	pop: function(){
 		return [...this].pop() },
