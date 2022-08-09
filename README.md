@@ -100,7 +100,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.iter(..)`](#generatoriter-1)
       - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
       - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
-      - [`<generator>.forEach(..)`](#generatorforeach)
+      - [`<generator>.forEach(..) (EXPERIMENTAL)`](#generatorforeach-experimental)
       - [`<generator>.slice(..)`](#generatorslice)
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
@@ -2136,7 +2136,7 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
     ...compare with Array.prototype.reduce(..)
 -->
 
-#### `<generator>.forEach(..)`
+#### `<generator>.forEach(..)` (EXPERIMENTAL)
 
 ```bnf
 <generator>.forEach(<func>)
