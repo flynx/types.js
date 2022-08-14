@@ -588,7 +588,7 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			return i++ > 0 ?
 				[
 					typeof(func) == 'function' ?
-						func.call(this, [prev, e], i, i + j++, this))
+						func.call(this, [prev, e], i, i + j++, this)
 						: func,	
 					e,
 				]
