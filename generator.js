@@ -225,7 +225,8 @@ object.Mixin('GeneratorMixin', 'soft', {
 
 	between: makeGenerator('between'),
 
-	// XXX add .toString(..) ???
+	// XXX EXPERIMENTAL
+	// XXX add .toString(..) to this???
 	forEach: function(func){
 		var that = this
 		return function(){
@@ -421,6 +422,7 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// NOTE: this is a special case in that it will unwind the generator...
 	// NOTE: this is different from <array>.forEach(..) in that this will
 	// 		return the resulting array.
+	// XXX EXPERIMENTAL
 	forEach: function(func){
 		return [...this].map(func) },
 
