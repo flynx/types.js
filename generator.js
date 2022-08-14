@@ -223,6 +223,8 @@ object.Mixin('GeneratorMixin', 'soft', {
 	reduce: makeGenerator('reduce'),
 	reduceRight: makeGenerator('reduceRight'),
 
+	between: makeGenerator('between'),
+
 	// XXX add .toString(..) ???
 	forEach: function(func){
 		var that = this
@@ -403,6 +405,19 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	greduce: function*(func, res){
 		yield this.reduce(...arguments) },
 
+	between: stoppable(function*(func){
+		var i = 0
+		var j = 0
+		var prev
+		for(var e of this){
+			if(i > 0){
+				yield typeof(func) == 'function' ?
+					func.call(this, [prev, e], i-1, i + j++, this)
+					: func }
+			prev = e
+			yield e
+			i++ } }),
+
 	// NOTE: this is a special case in that it will unwind the generator...
 	// NOTE: this is different from <array>.forEach(..) in that this will
 	// 		return the resulting array.
@@ -502,6 +517,9 @@ object.Mixin('AsyncGeneratorMixin', 'soft', {
 	map: makeGenerator('async', 'map'),
 	filter: makeGenerator('async', 'filter'),
 	reduce: makeGenerator('async', 'reduce'),
+
+	// XXX TEST...
+	between: makeGenerator('async', 'between'),
 })
 
 var AsyncGeneratorProtoMixin =
@@ -558,6 +576,11 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			state = func.call(this, state, elem, i) 
 			return [] })
 		return state },
+
+	// XXX BETWEEN...
+	between: async function(func){
+		// XXX
+	},
 
 	// XXX TEST...
 	chain: async function*(...next){

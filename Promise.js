@@ -294,6 +294,11 @@ object.Constructor('IterablePromise', Promise, {
 			.then(function(){ 
 				return res }) },
 
+	// XXX BETWEEN...
+	between: function(func){
+		// XXX
+	},
+
 	// XXX .chain(..) -- see generator.chain(..)
 
 	flat: function(depth=1){
