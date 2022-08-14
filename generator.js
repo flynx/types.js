@@ -581,8 +581,18 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 
 	// XXX BETWEEN...
 	between: async function*(func){
-		// XXX
-	},
+		var i = 0
+		var j = 0
+		var prev
+		yield* this.iter(function(e){
+			return i++ > 0 ?
+				[
+					typeof(func) == 'function' ?
+						func.call(this, [prev, e], i, i + j++, this))
+						: func,	
+					e,
+				]
+				: [e] }) },
 
 	// XXX TEST...
 	chain: async function*(...next){

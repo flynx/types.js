@@ -304,7 +304,7 @@ object.Constructor('IterablePromise', Promise, {
 				return i++ > 0 ?
 					[
 						typeof(func) == 'function' ?
-							func.call([prev, e], i, i + j++)
+							func.call(this, [prev, e], i, i + j++)
 							: func,
 						e,
 					]
