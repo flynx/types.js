@@ -580,7 +580,7 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 		return state },
 
 	// XXX BETWEEN...
-	between: async function(func){
+	between: async function*(func){
 		// XXX
 	},
 

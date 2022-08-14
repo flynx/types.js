@@ -296,8 +296,19 @@ object.Constructor('IterablePromise', Promise, {
 
 	// XXX BETWEEN...
 	between: function(func){
-		// XXX
-	},
+		var i = 0
+		var j = 0
+		var prev
+		return this.constructor(this,
+			function(e){
+				return i++ > 0 ?
+					[
+						typeof(func) == 'function' ?
+							func.call([prev, e], i, i + j++)
+							: func,
+						e,
+					]
+					: [e] }) },
 
 	// XXX .chain(..) -- see generator.chain(..)
 
