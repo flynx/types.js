@@ -30,6 +30,7 @@ Library of JavaScript type extensions, types and utilities.
     - [`<array>.toMap(..)`](#arraytomap)
     - [`Array.zip(..)` / `<array>.zip(..)`](#arrayzip--arrayzip)
     - [`Array.iter(..)` / `<array>.iter()`](#arrayiter--arrayiter)
+    - [`<array>.between(..)`](#arraybetween)
     - [Abortable `Array` iteration](#abortable-array-iteration)
       - [`array.STOP` / `array.STOP(..)`](#arraystop--arraystop)
       - [`<array>.smap(..)` / `<array>.sfilter(..)` / `<array>.sreduce(..)` / `<array>.sforEach(..)`](#arraysmap--arraysfilter--arraysreduce--arraysforeach)
@@ -75,6 +76,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise>.iter()`](#promiseiter)
       - [`<promise-iter>.iter()`](#promise-iteriter)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
+    - [`<promise-iter>.between(..)`](#promise-iterbetween)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
       - [`<promise-iter>.reverse()`](#promise-iterreverse)
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
@@ -100,7 +102,8 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.iter(..)`](#generatoriter-1)
       - [`<generator>.map(..)` / `<generator>.filter(..)`](#generatormap--generatorfilter)
       - [`<generator>.reduce(..)` / `<generator>.greduce(..)`](#generatorreduce--generatorgreduce)
-      - [`<generator>.forEach(..) (EXPERIMENTAL)`](#generatorforeach-experimental)
+      - [`<generator>.forEach(..)` (EXPERIMENTAL)](#generatorforeach-experimental)
+      - [`<generator>.between(..)`](#generatorbetween)
       - [`<generator>.slice(..)`](#generatorslice)
       - [`<generator>.at(..)` / `<generator>.gat(..)`](#generatorat--generatorgat)
       - [`<generator>.flat(..)`](#generatorflat)
@@ -117,6 +120,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush-1)
       - [`<Generator>.slice(..)`](#generatorslice-1)
       - [`<Generator>.map(..)` / `<Generator>.filter(..)` / `<Generator>.reduce(..)` / `<Generator>.flat()`](#generatormap--generatorfilter--generatorreduce--generatorflat)
+      - [`<Generator>.between(..)`](#generatorbetween-1)
       - [`<Generator>.toArray()`](#generatortoarray-1)
       - [`<Generator>.join(..)`](#generatorjoin-1)
       - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
@@ -735,6 +739,19 @@ Resulting array length is strictly equal to the longest input array length.
 Return an iterator/generator from the current array.
 
 This is mostly useful in combination with the [Generator extensions and utilities](#generator-extensions-and-utilities)
+
+
+### `<array>.between(..)`
+
+```bnf
+<array>.between(<value>)
+    -> <array>
+<array>.between(<func>)
+    -> <array>
+
+<func>([<pre>, <post>], <index-in>, <index-out>, <array>)
+    -> <value>
+```
 
 
 ### Abortable `Array` iteration
@@ -1658,6 +1675,19 @@ Note that since `.reduce(..)` handler's execution order can not be known,
 there is no point in implementing `.reduceRigth(..)`.
 
 
+### `<promise-iter>.between(..)`
+
+```bnf
+<promise-iter>.between(<value>)
+    -> <promise-iter>
+<promise-iter>.between(<func>)
+    -> <promise-iter>
+
+<func>([<pre>, <post>], <index-in>, <index-out>, <promise-iter>)
+    -> <value>
+```
+
+
 #### `<promise-iter>.flat(..)`
 
 ```bnf
@@ -2145,7 +2175,21 @@ XXX .reduce(..) can return a non-iterable -- test and document this case...
 
 This is different from the above in that this will unwind the `<generator>`.
 
-Note that this differs from `<array>.forEach(..)` in that his will return the resulting array, essentially behaving like `.map(..)`.
+Note that this differs from `<array>.forEach(..)` in that his will return the 
+resulting array, essentially behaving like `.map(..)`.
+
+
+#### `<generator>.between(..)`
+
+```bnf
+<generator>.between(<value>)
+    -> <generator>
+<generator>.between(<func>)
+    -> <generator>
+
+<func>([<pre>, <post>], <index-in>, <index-out>, <generator>)
+    -> <value>
+```
 
 
 #### `<generator>.slice(..)`
@@ -2426,6 +2470,19 @@ Counterparts to `<generator>`'s
 but return a `<Generator>`.
 
 <!-- XXX -->
+
+
+#### `<Generator>.between(..)`
+
+```bnf
+<Generator>.between(<value>)
+    -> <Generator>
+<Generator>.between(<func>)
+    -> <Generator>
+
+<func>([<pre>, <post>], <index-in>, <index-out>, <Generator>)
+    -> <value>
+```
 
 
 #### `<Generator>.toArray()`
