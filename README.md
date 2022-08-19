@@ -1580,6 +1580,14 @@ in how they process values:
   appropriate method on the result.
   <!-- XXX list + mark definitions as "(proxy)" -->
 
+Promise iterators directly support _for-await-of_ iteration:
+
+```javascript
+for await (var elem of Promise.iter(/* ... */)){
+    // ...
+}
+```
+
 <!-- 
 XXX should we support generators as input?
     ...not sure about the control flow direction here, on one hand the generator
