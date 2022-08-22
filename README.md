@@ -49,6 +49,7 @@ Library of JavaScript type extensions, types and utilities.
     - [`<set>.replace(..)`](#setreplace)
     - [`<set>.replaceAt(..)`](#setreplaceat)
     - [`<set>.sort(..)`](#setsort)
+    - [`<set>.filter(..)` / `<set>.map(..)` / `<set>.forEach(..)` / `<set>.reduce(..)` / `<set>.reduceRight(..)`](#setfilter--setmap--setforeach--setreduce--setreduceright)
   - [`Date`](#date)
     - [`Date.timeStamp(..)`](#datetimestamp)
     - [`Date.fromTimeStamp(..)`](#datefromtimestamp)
@@ -1092,6 +1093,12 @@ as a list
 
 This is similar to [`<map>.sort(..)`](#mapsort) and [`Object.sort(..)`](#objectsort),
 see the later for more info.
+
+
+### `<set>.filter(..)` / `<set>.map(..)` / `<set>.forEach(..)` / `<set>.reduce(..)` / `<set>.reduceRight(..)`
+
+For more info see corresponding stoppable methods in 
+[`Array`'s section](#arraysmap--arraysfilter--arraysreduce--arraysforeach).
 
 
 
