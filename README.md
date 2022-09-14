@@ -111,6 +111,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<generator>.shift()` / `<generator>.pop()` / `<generator>.gshift()` / `<generator>.gpop()`](#generatorshift--generatorpop--generatorgshift--generatorgpop)
       - [`<generator>.unshift(..)` / `<generator>.push(..)`](#generatorunshift--generatorpush)
       - [`<generator>.join(..)`](#generatorjoin)
+      - [`<generator>.unwind(..)`](#generatorunwind)
       - [`<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally)
       - [`<generator>.toArray()`](#generatortoarray)
     - [Treating iterators the same as generators](#treating-iterators-the-same-as-generators)
@@ -124,7 +125,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<Generator>.between(..)`](#generatorbetween-1)
       - [`<Generator>.toArray()`](#generatortoarray-1)
       - [`<Generator>.join(..)`](#generatorjoin-1)
-      - [`<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`](#generatorthen--generatorcatch--generatorfinally-1)
+      - [`<Generator>.unwind(..)`](#generatorunwind-1)
     - [Generator combinators](#generator-combinators)
       - [`<Generator>.chain(..)` / `<generator>.chain(..)`](#generatorchain--generatorchain)
       - [`<Generator>.concat(..)` / `<generator>.concat(..)`](#generatorconcat--generatorconcat)
@@ -136,6 +137,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`generator.stoppable(..)`](#generatorstoppable)
   - [Async generator extensions](#async-generator-extensions)
       - [`generator.AsyncGenerator`](#generatorasyncgenerator)
+      - [`<async-generator>.unwind(..)`](#async-generatorunwind)
       - [`<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`](#async-generatorthen--async-generatorcatch--async-generatorfinally)
       - [`<async-generator>.iter(..)`](#async-generatoriter)
       - [`<async-generator>.map(..)` / `<async-generator>.filter(..)` / `<async-generator>.reduce(..)`](#async-generatormap--async-generatorfilter--async-generatorreduce)
@@ -2292,6 +2294,11 @@ _next_ call to `.next()`, regardless of the current generator state.
 XXX
 
 
+#### `<generator>.unwind(..)`
+
+XXX
+
+
 #### `<generator>.then(..)` / `<generator>.catch(..)` / `<generator>.finally(..)`
 
 Return a promise and resolve it with the generator value.
@@ -2513,7 +2520,7 @@ Return a function that will return a `<generator>` output as an `Array`.
 XXX
 
 
-#### `<Generator>.then(..)` / `<Generator>.catch(..)` / `<Generator>.finally(..)`
+#### `<Generator>.unwind(..)`
 
 <!-- XXX -->
 
@@ -2640,6 +2647,8 @@ stoppable(<generator>)
 XXX EXPERIMENTAL
 
 #### `generator.AsyncGenerator`
+
+#### `<async-generator>.unwind(..)`
 
 #### `<async-generator>.then(..)` / `<async-generator>.catch(..)` / `<async-generator>.finally(..)`
 
