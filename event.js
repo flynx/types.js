@@ -253,14 +253,14 @@ object.Constructor('Event', Eventful, {
 	__call__: function(context, ...args){
 		// NOTE: when the first arg is an event command this will
 		// 		fall through to calling the action...
-		typeof(args[0]) == 'function' ?
+		var res = typeof(args[0]) == 'function' ?
 			// add handler...
 			this.bind(context, args[0])
 			// call the action...
 			: object.parentCall(Event.prototype.__call__, this, context, ...args)
 			// XXX workaround for above line -- remove when fully tested...
 			//: Eventful.prototype.__call__.call(this, context, ...args)
-		return context }, 
+		return res }, 
 })
 
 
