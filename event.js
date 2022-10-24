@@ -51,6 +51,8 @@ module.TRIGGER = module.EventCommand('TRIGGER')
 //	Trigger the event...
 //	method(...args)
 //		-> ..
+//		NOTE: if func(..) returns undefined this will return undefined 
+//			when called without a context and the call context otherwise
 //
 //
 // 	func(handle, ...args)
@@ -98,6 +100,14 @@ module.Eventful =
 object.Constructor('Eventful', {
 
 	handlerLocation: 'context',
+
+	// Sets the default return mode for .__call__(..) if either .func(..)
+	// is not set or returns undefined...
+	//
+	// Can be:
+	// 		'context'
+	// 		undefined
+	defaultReturn: 'context',
 
 	name: null,
 	func: null,
@@ -190,7 +200,11 @@ object.Constructor('Eventful', {
 		// or explicitly called handle(false)...
 		!did_handle
 			&& handle()
-		return res },
+
+		return res 
+			?? (this.defaultReturn == 'context' ?
+   				context
+				: res ) },
 
 	__init__: function(name, func, options={}){
 		options = func && typeof(func) != 'function' ?
@@ -251,16 +265,15 @@ object.Constructor('Event', Eventful, {
 					.replace(/^(function[^(]*\()[^,)]*, ?/, '$1')
 			: `Event function ${this.name}(){}`},
 	__call__: function(context, ...args){
+		// add handler...
 		// NOTE: when the first arg is an event command this will
 		// 		fall through to calling the action...
-		var res = typeof(args[0]) == 'function' ?
-			// add handler...
-			this.bind(context, args[0])
-			// call the action...
-			: object.parentCall(Event.prototype.__call__, this, context, ...args)
-			// XXX workaround for above line -- remove when fully tested...
-			//: Eventful.prototype.__call__.call(this, context, ...args)
-		return res }, 
+		if(typeof(args[0]) == 'function'){
+			this.bind(context, args[0]) 
+			return context
+		// call the action...
+		} else {
+			return object.parentCall(Event.prototype.__call__, this, context, ...args) } }, 
 })
 
 
