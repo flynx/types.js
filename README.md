@@ -2949,8 +2949,9 @@ via .trigger(name, ...), calling this is a no-op.
 
 ### `event.TRIGGER`
 
-Special value when passed to an event method as first argument will force it 
-to trigger event if the first argument was a function.
+Special value (`<event-command>`) that when passed to an event method as 
+first argument will force it to trigger event if the first argument was 
+a function.
 
 
 
