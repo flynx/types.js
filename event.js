@@ -284,12 +284,16 @@ module.PureEvent =
 object.Constructor('PureEvent', Event, {
 	toString: function(){
 		return `PureEvent ${this.name}(){}`},
-	__init__: function(name, options={}){
+	__init__: function(name, func, options={}){
+		if(typeof(func) != 'function'){
+			options = func
+			func = undefined }
 		object.parentCall(PureEvent.prototype.__init__, this,
 			name, 
-			function(handle, trigger){ 
-				trigger === module.TRIGGER 
-					|| handle(false) }, options) },
+			function(handle, trigger, args){ 
+				trigger === module.TRIGGER ?
+					func && func.call(this, handle, ...args)
+					: handle(false) }, options) },
 })
 
 
