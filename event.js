@@ -290,7 +290,7 @@ object.Constructor('PureEvent', Event, {
 			func = undefined }
 		object.parentCall(PureEvent.prototype.__init__, this,
 			name, 
-			function(handle, trigger, args){ 
+			function(handle, trigger, ...args){ 
 				trigger === module.TRIGGER ?
 					func && func.call(this, handle, ...args)
 					: handle(false) }, options) },
