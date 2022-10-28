@@ -2868,6 +2868,10 @@ Handlers can be bound to an eventful method via `.on(<method-name>, ...)`,
 unbound via `.off(<method-name>)`, 
 see: [`event.EventHandlerMixin`](#eventeventhandlermixin) for more info.
 
+```dnf
+<handler>(<event-name>, ...)
+```
+
 
 The event `<func>(..)` gets the `<handle-func>(..)` as first argument 
 followed by the arguments passed to `<method>(..)` when called.
@@ -2960,22 +2964,39 @@ https://github.com/flynx/object.js#mixin
 
 #### `<obj>.on(..)`
 
-<!-- XXX -->
+Bind a handler to an _event_ or an _eventful_ method.
+```dnf
+<obj>.on(<event-name>, <handler>)
+	-> <obj>
+```
 
 
 #### `<obj>.one(..)`
 
-<!-- XXX -->
+Like `<obj>.on(..)` but the `<handler>` will be called only once.
+```dnf
+<obj>.one(<event-name>, <handler>)
+	-> <obj>
+```
 
 
 #### `<obj>.off(..)`
 
-<!-- XXX -->
+Unbind `<handler>` from _event_.
+```dnf
+<obj>.off(<event-name>, <handler>)
+	-> <obj>
+```
 
 
 #### `<obj>.trigger(..)`
 
-<!-- XXX -->
+Trigger an _event_.
+```dnf
+<obj>.trigger(<event-name>)
+<obj>.trigger(<event-name>, ...)
+	-> <obj>
+```
 
 
 
