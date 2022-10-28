@@ -160,6 +160,7 @@ Library of JavaScript type extensions, types and utilities.
   - [Event](#event)
     - [`event.Eventfull(..)`](#eventeventfull)
     - [`event.Event(..)`](#eventevent)
+    - [`event.PureEvent(..)`](#eventpureevent)
     - [`event.TRIGGER`](#eventtrigger)
     - [`event.EventHandlerMixin`](#eventeventhandlermixin)
       - [`<obj>.on(..)`](#objon)
@@ -2829,6 +2830,9 @@ otherwise [`.unorderedRename(..)`](#unique-key-mapunorderedrename) is called.
 
 ## Event
 
+This module defines a set of pure-JavaScript event-like method constructors 
+and utilities.
+
 ```javascript
 var event = require('ig-types/event')
 ```
@@ -2836,25 +2840,122 @@ var event = require('ig-types/event')
 
 ### `event.Eventfull(..)`
 
-<!-- XXX -->
+Create and eventful method.
+```dnf
+event.Eventfull(<name>[, <options>])
+event.Eventfull(<name>, <func>[, <options>])
+	-> <method>
+```
+
+An eventful method is a method that can be called either directly or via
+`.trigger(<method-name>, ..)`.
+
+
+Calling an eventful method will call `<func>(..)` if defined and will 
+trigger the eventful method's handlers trigger, either after `<func>(..)` 
+returns or when `<hander>(..)` is called within `<func>(..)`.
+```dnf
+<method>(..)
+	-> <value>
+```
+
+Note that if `<func>(..)` returns `undefined` then `<method>(..)` will 
+return either `this` or `undefined` depending on `<options>.defaultReturn` 
+being set to `'context'` (default) or `undefined` resp.
+
+
+Handlers can be bound to an eventful method via `.on(<method-name>, ...)`,
+unbound via `.off(<method-name>)`, 
+see: [`event.EventHandlerMixin`](#eventeventhandlermixin) for more info.
+
+
+The event `<func>(..)` gets the `<handle-func>(..)` as first argument 
+followed by the arguments passed to `<method>(..)` when called.
+```dnf
+<func>(<handle-func>, ...)
+	-> <value>
+```
+
+`<handle-func>(..)` controls when the event handlers are called.
+```dnf
+<handle-func>()
+<handle-func>(true)
+	-> true
+	-> false
+
+<handle-func>(true, ...)
+	-> true
+	-> false
+```
+
+Calling `<handle-func>(..)` is optional, if not called the handlers will 
+get triggered after `<func>(..)` returns.
+
+
+Passing `false` to `<handle-func>(..)` will prevent the event handlers 
+from being called.
+```dnf
+<handle-func>(false)
+	-> undefined
+```
+
+
+**Special case: `<event-commands>`**
+
+`<event-command>`s are instances of `EventCommand` that are handled by 
+event methods in a special way.
+
+```dnf
+<method>(<event-command>, ...)
+	-> <value>
+
+<func>(<handle-func>, <event-command>, ...)
+	-> <value>
+```
+
+`EventCommand` instance can be passed as the first argument of `<method>(..)`, 
+in this case the event function will get it but the event handlers 
+will not.
+
+This is done to be able to externally pass commands to event methods
+that get handled in a special way by the function but not passed to 
+the event handlers.
+
+For an example of a built-in `<event-command>` see: [`event.TRIGGER`](#eventtrigger) 
+
 
 
 ### `event.Event(..)`
 
-<!-- XXX -->
+Extends `Eventful(..)` adding ability to bind events via the resulting 
+method directly by passing it a function.
+
+```dnf
+<method>(<handler>)
+	-> <this>
+```
+
+
+### `event.PureEvent(..)`
+
+Like `Event(..)` but produces an event method that can only be triggered 
+via .trigger(name, ...), calling this is a no-op.
+
 
 
 ### `event.TRIGGER`
 
-<!-- XXX -->
-
-
 Special value when passed to an event method as first argument will force it 
 to trigger event if the first argument was a function.
 
+
+
 ### `event.EventHandlerMixin`
 
-<!-- XXX -->
+A _mixin_ defining the basic event API.
+
+For more info on mixins see: 
+https://github.com/flynx/object.js#mixin
 
 
 #### `<obj>.on(..)`
@@ -2877,25 +2978,34 @@ to trigger event if the first argument was a function.
 <!-- XXX -->
 
 
+
 ### `event.EventDocMixin`
 
-<!-- XXX -->
+A _mixin_ defining the basic event introspection API.
+
+For more info on mixins see: 
+https://github.com/flynx/object.js#mixin
 
 
 #### `<obj>.eventfull`
 
-<!-- XXX -->
+Property listing the _eventful_ method names in the current context.
 
 
 #### `<obj>.events`
 
-<!-- XXX -->
+Property listing the _event_ method names in the current context, this 
+also will include _eventful_ method names.
 
 
 ### `event.EventMixin`
 
 Combines [`event.EventHandlerMixin`](#eventeventhandlermixin) and 
 [`event.EventDocMixin`](#eventeventdocmixin).
+
+For more info on mixins see: 
+https://github.com/flynx/object.js#mixin
+
 
 ## Runner
 
