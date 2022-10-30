@@ -2903,6 +2903,21 @@ from being called.
 	-> undefined
 ```
 
+Note that for `async` event `<func>(..)` it might be useful to trigger 
+the handlers after the promise resolves, this can be done by first calling
+`<handle-func>(false)` to prevent the handlers from being triggered as soon
+as the promise is returned and after an appropriate `await`ing calling
+`<handle-func>()` to actually trigger the handlers.
+
+Example:
+```javascript
+var evt = event.Event('evt', async function(handler, ...args){
+	handler(false)
+	var value = await something()
+	handler()
+	return value })
+```
+
 
 **Special case: `<event-commands>`**
 
