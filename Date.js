@@ -15,6 +15,15 @@ var object = require('ig-object')
 var DateMixin =
 module.DateMixin =
 object.Mixin('DateMixin', 'soft', {
+	hires: function(){
+		return typeof(process) != 'undefined' ?
+			performance.timeOrigin + performance.now() 
+			: performance.timing.navigationStart + performance.now() },
+	hiresTimeStamp: function(){
+		var t = this.hires()
+		var date = new this(t)
+		return date.getTimeStamp(true) + (''+(t-date.getTime())).slice(1) },
+
 	timeStamp: function(...args){
 		return (new this()).getTimeStamp(...args) },
 	fromTimeStamp: function(ts){
