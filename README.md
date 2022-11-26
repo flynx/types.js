@@ -636,14 +636,17 @@ Compare to arrays ignoring element order and count.
 Sort array as a different array.
 ```bnf
 <array>.sortAs(<other>)
-<array>.sortAs(<other>, 'tail')
 <array>.sortAs(<other>, 'head')
+    -> <array>
+
+<array>.sortAs(<other>, 'tail')
     -> <array>
 ```
 
 Elements not present in `<other>` retain their relative order and are
-placed after the sorted elements if `'tail'` is passed as second argument 
-(default) and before them if `'tail'` is passed.
+placed after the sorted elements if `'head'` (i.e. _"sorted at head of 
+array"_) is passed as second argument (default) and before them if 
+`'tail'` (_"sorted at tail"_) is passed.
 
 Example:
 ```javascript
