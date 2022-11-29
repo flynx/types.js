@@ -94,6 +94,8 @@ Library of JavaScript type extensions, types and utilities.
     - [Promise proxies](#promise-proxies)
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
+    - [Promise utilities](#promise-utilities)
+      - [`Promise.awaitOrRun(..)`](#promiseawaitorrun)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
     - [The basics](#the-basics)
       - [`generator.Generator`](#generatorgenerator)
@@ -1996,6 +1998,22 @@ When `<promise>` resolves, call the `.<method>(..)` on the resolved value.
 
 `<method-promise>` will resolve the the return value of the `<method>` when 
 the main `<promise>` is resolved.
+
+
+
+### Promise utilities
+
+#### `Promise.awaitOrRun(..)`
+
+Await for inputs if any of them is a promise and then run a function with 
+the results, otherwise run the function in sync.
+
+```dnf
+Promise.awaitOrRun(<value>, <func>)
+Promise.awaitOrRun(<value>, .. , <func>)
+	-> <promise(value)>
+	-> <value>
+```
 
 
 

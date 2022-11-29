@@ -801,6 +801,22 @@ object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
+
+	awaitOrRun: function(data, func){
+		data = [...arguments]
+		func = data.pop()
+		// ceck if we need to await...
+		return data
+				.reduce(function(res, e){
+					return res 
+						|| e instanceof Promise }, false) ?
+			// NOTE: we will not reach this on empty data...
+			(data.length > 1 ?
+				Promise.all(data)
+					.then(function(res){ 
+						return func(...res) })
+				: data[0].then(func))
+			: func(...data) },
 })
 
 PromiseMixin(Promise)
