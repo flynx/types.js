@@ -2009,12 +2009,15 @@ Await for inputs if any of them is a promise and then run a function with
 the results, otherwise run the function in sync.
 
 ```dnf
-Promise.awaitOrRun(<value>, <func>)
-Promise.awaitOrRun(<value>, .. , <func>)
+Promise.awaitOrRun(<value>, <func>[, <onerror>])
+Promise.awaitOrRun(<value>, .. , <func>[, <onerror>])
 	-> <promise(value)>
 	-> <value>
 ```
 
+Note that if the last `<value>` is a function and no `<onerror>` function
+is given then `.awaitOrRun(..)` will confuse the `<value>` for `<func>`,
+to avoid this one needs to explicitly pass `null`/`undefined` as `<onerror>`.
 
 
 ## Generator extensions and utilities

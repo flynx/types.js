@@ -795,16 +795,82 @@ object.Constructor('ProxyPromise', Promise, {
 
 //---------------------------------------------------------------------
 
+// XXX like promise but if a value can be generated sync then this will 
+// 		run in sync otherwise it will fall back to being a promise...
+// 		...not sure where to return the sync value...
+// XXX potential problem is recursion (depth) on the sync stage...
+// XXX not sure if we need this..
+var MaybePromice =
+module.MaybePromice =
+object.Constructor('MaybePromise', Promise, {
+	// XXX can we get into this without either .__error or .__result ???
+	then: function(resolve, reject){
+		if(this.hasOwnProperty('__error')){
+			return this.constructor.reject(
+				reject ?
+					reject(this.__error)
+					: this.__error) }
+		if(this.hasOwnProperty('__result')){
+			return this.constructor.resolve(
+				resolve(this.__result)) } },
+	//catch: function(func){
+	//},
+	//finally: function(func){
+	//},
+
+	//__error: undefined,
+	//__result: undefined,
+	__new__: function(context, func){
+		var result
+		var resolve = function(res){
+			result = res }
+		var error
+		var reject = function(err){
+			error = err }
+
+		try{
+			func(resolve, reject)
+		}catch(err){
+			reject(err) }
+
+		if(error){
+			this.__error = error
+
+		// async...
+		} else if(result instanceof Promise){
+			return result }
+
+		// sync...
+		this.__result = result
+		// XXX
+		var obj = Reflect.construct(
+			MaybePromise.__proto__,
+			[],
+			MaybePromise)
+		return obj
+	},
+})
+
+
+//---------------------------------------------------------------------
+
 var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
-
+	// XXX
+	//maybe: MaybePromise,
+	
+	// XXX need error support...
 	awaitOrRun: function(data, func){
 		data = [...arguments]
 		func = data.pop()
+		var error
+		if(typeof(data.at(-1)) == 'function'){
+			error = func
+			func = data.pop() }
 		// ceck if we need to await...
 		return data
 				.reduce(function(res, e){
@@ -813,9 +879,23 @@ object.Mixin('PromiseMixin', 'soft', {
 			// NOTE: we will not reach this on empty data...
 			(data.length > 1 ?
 				Promise.all(data)
-					.then(function(res){ 
-						return func(...res) })
-				: data[0].then(func))
+					.then(
+						function(res){ 
+							return func(...res) }, 
+						...(error ? 
+							[error] 
+							: []))
+				: data[0].then(
+					func, 
+					...(error ? 
+						[error] 
+						: [])))
+			: error ?
+				function(){
+					try{
+						func(...data)
+					}catch(err){
+						error(err) } }()
 			: func(...data) },
 })
 
