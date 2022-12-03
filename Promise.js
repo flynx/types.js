@@ -893,9 +893,9 @@ object.Mixin('PromiseMixin', 'soft', {
 			: error ?
 				function(){
 					try{
-						func(...data)
+						return func(...data)
 					}catch(err){
-						error(err) } }()
+						return error(err) } }()
 			: func(...data) },
 })
 
