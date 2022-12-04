@@ -94,7 +94,7 @@ Library of JavaScript type extensions, types and utilities.
     - [Promise proxies](#promise-proxies)
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
-    - [Sync/Async promise](#syncasync-promise)
+    - [Sync/async promise](#syncasync-promise)
       - [`Promise.maybe(..)` / `promise.MaybePromice(..)`](#promisemaybe--promisemaybepromice)
       - [`<maybe-promise>.value` / `<maybe-promise>.error`](#maybe-promisevalue--maybe-promiseerror)
     - [Promise utilities](#promise-utilities)
@@ -2007,11 +2007,15 @@ the main `<promise>` is resolved.
 ### Sync/async promise
 
 
-#### `Promise.maybe(..)` / `promise.MaybePromice(..)`
+#### `Promise.sync(..)` / `promise.SyncPromice(..)`
 
 XXX
 
-#### `<maybe-promise>.value` / `<maybe-promise>.error`
+#### `<sync-promise>.value` / `<sync-promise>.error`
+
+XXX
+
+#### `<promise>.sync()`
 
 XXX
 

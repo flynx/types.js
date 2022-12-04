@@ -800,9 +800,9 @@ object.Constructor('ProxyPromise', Promise, {
 // XXX like promise but if a value can be generated sync then this will 
 // 		run in sync otherwise it will fall back to being a promise...
 // XXX should we throw errors in sync mode??? ...option???
-var MaybePromise =
-module.MaybePromise =
-object.Constructor('MaybePromise', Promise, {
+var SyncPromise =
+module.SyncPromise =
+object.Constructor('SyncPromise', Promise, {
 	//value: undefined,
 	//error: undefined,
 
@@ -857,7 +857,7 @@ object.Mixin('PromiseMixin', 'soft', {
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
 	// XXX EXPEREMENTAL...
-	maybe: MaybePromise,
+	sync: SyncPromise,
 	
 	// XXX need error support...
 	awaitOrRun: function(data, func){
@@ -904,6 +904,13 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
+	// XXX revise...
+	sync: function(){
+		if(this instanceof SyncPromise){
+			if('error' in this){
+				throw this.error }
+			return this.value }
+		return this },
 })
 
 PromiseProtoMixin(Promise.prototype)
