@@ -795,6 +795,34 @@ object.Constructor('ProxyPromise', Promise, {
 
 //---------------------------------------------------------------------
 
+var syncAllProxy = 
+function(name){
+	return function(lst){
+		var sync = true
+		for(var e of lst){
+			if(e instanceof Promise 
+					&& !(e instanceof SyncPromise)){
+				sync = false
+				break } }
+		return sync ?
+			this.resolve(lst)
+			: Promise[name](lst) } }
+
+// XXX REVISE/TEST...
+var syncAnyPromise =
+function(name){
+	return function(lst){
+		for(var e of lst){
+			if(e instanceof SyncPromise 
+					&& !('error' in e)){
+				return e }
+			if(!(e instanceof Promise)){
+				return this.resolve(e) } }
+		return Promise[name](list) } }
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 // XXX EXPEREMENTAL...
 // XXX DOCS...
 // XXX like promise but if a value can be generated sync then this will 
@@ -803,6 +831,17 @@ object.Constructor('ProxyPromise', Promise, {
 var SyncPromise =
 module.SyncPromise =
 object.Constructor('SyncPromise', Promise, {
+	// NOTE: we need to overload these as the builtin versions sneak-in 
+	// 		async-ness before we can catch it in .__new__(..)
+	resolve: function(value){
+		return new this(function(resolve){ resolve(value) }) },
+	reject: function(error){
+		return new this(function(_, reject){ reject(error) }) },
+	all: syncAllProxy('all'),
+	allSettled: syncAllProxy('allSettled'),
+	any: syncAnyProxy('any'),
+	race: syncAnyProxy('race'),
+},{
 	//value: undefined,
 	//error: undefined,
 
@@ -821,14 +860,14 @@ object.Constructor('SyncPromise', Promise, {
 	// NOTE: if func calls resolve(..) with a promise then this will return
 	// 		that promise...
 	__new__: function(context, func){
-		var result
+		var value
 		var resolve = function(res){
-			result = res }
+			return (value = res) }
 		var rejected
 		var error
 		var reject = function(err){
 			rejected = true
-			error = err }
+			return (error = err) }
 		// call...
 		try{
 			func(resolve, reject)
@@ -836,12 +875,12 @@ object.Constructor('SyncPromise', Promise, {
 			reject(err) }
 		// async...
 		if(!error 
-				&& result instanceof Promise){
-			return result }
+				&& value instanceof Promise){
+			return value }
 		// sync...
-		var obj = Promise.resolve(result)
+		var obj = Promise.resolve(value)
 		obj.__proto__ = this.prototype
-		obj.value = result
+		obj.value = value
 		rejected
 			&& (obj.error = error)
 		return obj },

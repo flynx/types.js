@@ -98,6 +98,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`Promise.sync(..)` / `promise.SyncPromice(..)`](#promisesync--promisesyncpromice)
       - [`<promise>.sync(..)`](#promisesync)
       - [`<sync-promise>.value` / `<sync-promise>.error`](#sync-promisevalue--sync-promiseerror)
+      - [`Promise.sync.all(..)` / `Promise.sync.allSettled(..)` / `Promise.sync.any(..)` / `Promise.sync.race(..)`](promisesyncall--promisesyncallsettled--promisesyncany--promisesyncrace`)
     - [Promise utilities](#promise-utilities)
       - [`Promise.awaitOrRun(..)`](#promiseawaitorrun)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
@@ -2043,6 +2044,12 @@ if it _rejected_ then re-throw the `<error>`.
 
 `<sync-promise>` attributes that provide access the resolved `.value` and/or
 rejection `.error`.
+
+
+#### `Promise.sync.all(..)` / `Promise.sync.allSettled(..)` / `Promise.sync.any(..)` / `Promise.sync.race(..)`
+
+Equivalents to `Promise`'s version but will run sync if the relevant 
+items in the input are either non-promises or `<sync-promise>`s.
 
 
 
