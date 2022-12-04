@@ -853,7 +853,7 @@ object.Constructor('SyncPromise', Promise, {
 				this.constructor.reject(
 					reject ?
 						reject(this.error)
-						: this.error) }
+						: this.error)
 			: resolve ?
 				this.constructor.resolve(
 					resolve(this.value)) 
