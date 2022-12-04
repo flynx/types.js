@@ -95,8 +95,9 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
     - [Sync/async promise](#syncasync-promise)
-      - [`Promise.maybe(..)` / `promise.MaybePromice(..)`](#promisemaybe--promisemaybepromice)
-      - [`<maybe-promise>.value` / `<maybe-promise>.error`](#maybe-promisevalue--maybe-promiseerror)
+      - [`Promise.sync(..)` / `promise.SyncPromice(..)`](#promisesync--promisesyncpromice)
+      - [`<promise>.sync(..)`](#promisesync)
+      - [`<sync-promise>.value` / `<sync-promise>.error`](#sync-promisevalue--sync-promiseerror)
     - [Promise utilities](#promise-utilities)
       - [`Promise.awaitOrRun(..)`](#promiseawaitorrun)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
@@ -2009,15 +2010,40 @@ the main `<promise>` is resolved.
 
 #### `Promise.sync(..)` / `promise.SyncPromice(..)`
 
-XXX
+```dnf
+Promise.sync(<func>)
+	-> <sync-promise>
 
-#### `<sync-promise>.value` / `<sync-promise>.error`
+<func>(<resolve>, <reject>)
 
-XXX
+<resolve>(<value>)
+
+<reject>(<error>)
+```
+
+Implements the full `Promise` protocol but does it in a sync manner, but
+the execution of `<func>` is done synchronously. If the value passed to 
+`<resolve>(..)` is a promise this will return that and continue asynchronously
+otherwise all the promise API (`.then(..)`/`.catch(..)`/...) is run in sync.
+
+<!--
+Example:
+```javascript
+```
+-->
+
 
 #### `<promise>.sync()`
 
-XXX
+Synchronously return the resolved value if `<sync-promise>` resolved, and
+if it _rejected_ then re-throw the `<error>`.
+
+
+#### `<sync-promise>.value` / `<sync-promise>.error`
+
+`<sync-promise>` attributes that provide access the resolved `.value` and/or
+rejection `.error`.
+
 
 
 ### Promise utilities
