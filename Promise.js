@@ -849,13 +849,16 @@ object.Constructor('SyncPromise', Promise, {
 	// 		mode and thus set .value and possibly .error, soe there is no 
 	// 		need to check for .value...
 	then: function(resolve, reject){
-		if(this.hasOwnProperty('error')){
-			return this.constructor.reject(
-				reject ?
-					reject(this.error)
-					: this.error) }
-		return this.constructor.resolve(
-			resolve(this.value)) },
+		return this.hasOwnProperty('error') ?
+				this.constructor.reject(
+					reject ?
+						reject(this.error)
+						: this.error) }
+			: resolve ?
+				this.constructor.resolve(
+					resolve(this.value)) 
+			// XXX should we return a copy???
+			: this },
 
 	// NOTE: if func calls resolve(..) with a promise then this will return
 	// 		that promise...
@@ -895,10 +898,8 @@ object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
-	// XXX EXPEREMENTAL...
 	sync: SyncPromise,
-	
-	// XXX need error support...
+	// XXX should this be implemented via SyncPromise??? 
 	awaitOrRun: function(data, func){
 		data = [...arguments]
 		func = data.pop()
@@ -943,11 +944,12 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
-	// XXX revise...
-	sync: function(){
+	sync: function(error='throw'){
 		if(this instanceof SyncPromise){
 			if('error' in this){
-				throw this.error }
+				if(typeof(error) != 'function'){
+					throw this.error }
+				return error(this.error) }
 			return this.value }
 		return this },
 })
