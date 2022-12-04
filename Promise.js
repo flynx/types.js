@@ -809,7 +809,7 @@ function(name){
 			: Promise[name](lst) } }
 
 // XXX REVISE/TEST...
-var syncAnyPromise =
+var syncAnyProxy =
 function(name){
 	return function(lst){
 		for(var e of lst){
