@@ -795,6 +795,7 @@ object.Constructor('ProxyPromise', Promise, {
 
 //---------------------------------------------------------------------
 
+// XXX should this support async generators???
 var syncAllProxy = 
 function(name){
 	return function(lst){
@@ -809,6 +810,7 @@ function(name){
 			: Promise[name](lst) } }
 
 // XXX REVISE/TEST...
+// XXX should this support async generators???
 var syncAnyProxy =
 function(name){
 	return function(lst){
@@ -837,6 +839,8 @@ object.Constructor('SyncPromise', Promise, {
 		return new this(function(resolve){ resolve(value) }) },
 	reject: function(error){
 		return new this(function(_, reject){ reject(error) }) },
+	// NOTE: these essentially add a special case where the inputs are
+	// 		either not promises or SyncPromise instances...
 	all: syncAllProxy('all'),
 	allSettled: syncAllProxy('allSettled'),
 	any: syncAnyProxy('any'),
