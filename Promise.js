@@ -799,24 +799,27 @@ object.Constructor('ProxyPromise', Promise, {
 // XXX DOCS...
 // XXX like promise but if a value can be generated sync then this will 
 // 		run in sync otherwise it will fall back to being a promise...
-// XXX potential problem is recursion (depth) on the sync stage...
-// XXX should we throw errors in sync mode???
+// XXX should we throw errors in sync mode??? ...option???
 var MaybePromise =
 module.MaybePromise =
 object.Constructor('MaybePromise', Promise, {
-	//error: undefined,
 	//value: undefined,
+	//error: undefined,
 
+	// NOTE: if this is called it means that .__new__(..) returned in sync 
+	// 		mode and thus set .value and possibly .error, soe there is no 
+	// 		need to check for .value...
 	then: function(resolve, reject){
 		if(this.hasOwnProperty('error')){
 			return this.constructor.reject(
 				reject ?
 					reject(this.error)
 					: this.error) }
-		if(this.hasOwnProperty('value')){
-			return this.constructor.resolve(
-				resolve(this.value)) } },
+		return this.constructor.resolve(
+			resolve(this.value)) },
 
+	// NOTE: if func calls resolve(..) with a promise then this will return
+	// 		that promise...
 	__new__: function(context, func){
 		var result
 		var resolve = function(res){
