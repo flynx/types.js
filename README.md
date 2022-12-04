@@ -94,6 +94,9 @@ Library of JavaScript type extensions, types and utilities.
     - [Promise proxies](#promise-proxies)
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
+    - [Sync/Async promise](#syncasync-promise)
+      - [`Promise.maybe(..)` / `promise.MaybePromice(..)`](#promisemaybe--promisemaybepromice)
+      - [`<maybe-promise>.value` / `<maybe-promise>.error`](#maybe-promisevalue--maybe-promiseerror)
     - [Promise utilities](#promise-utilities)
       - [`Promise.awaitOrRun(..)`](#promiseawaitorrun)
   - [Generator extensions and utilities](#generator-extensions-and-utilities)
@@ -1999,6 +2002,18 @@ When `<promise>` resolves, call the `.<method>(..)` on the resolved value.
 `<method-promise>` will resolve the the return value of the `<method>` when 
 the main `<promise>` is resolved.
 
+
+
+### Sync/async promise
+
+
+#### `Promise.maybe(..)` / `promise.MaybePromice(..)`
+
+XXX
+
+#### `<maybe-promise>.value` / `<maybe-promise>.error`
+
+XXX
 
 
 ### Promise utilities

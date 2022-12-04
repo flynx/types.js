@@ -795,60 +795,53 @@ object.Constructor('ProxyPromise', Promise, {
 
 //---------------------------------------------------------------------
 
+// XXX EXPEREMENTAL...
+// XXX DOCS...
 // XXX like promise but if a value can be generated sync then this will 
 // 		run in sync otherwise it will fall back to being a promise...
-// 		...not sure where to return the sync value...
 // XXX potential problem is recursion (depth) on the sync stage...
-// XXX not sure if we need this..
-var MaybePromice =
-module.MaybePromice =
+// XXX should we throw errors in sync mode???
+var MaybePromise =
+module.MaybePromise =
 object.Constructor('MaybePromise', Promise, {
-	// XXX can we get into this without either .__error or .__result ???
+	//error: undefined,
+	//value: undefined,
+
 	then: function(resolve, reject){
-		if(this.hasOwnProperty('__error')){
+		if(this.hasOwnProperty('error')){
 			return this.constructor.reject(
 				reject ?
-					reject(this.__error)
-					: this.__error) }
-		if(this.hasOwnProperty('__result')){
+					reject(this.error)
+					: this.error) }
+		if(this.hasOwnProperty('value')){
 			return this.constructor.resolve(
-				resolve(this.__result)) } },
-	//catch: function(func){
-	//},
-	//finally: function(func){
-	//},
+				resolve(this.value)) } },
 
-	//__error: undefined,
-	//__result: undefined,
 	__new__: function(context, func){
 		var result
 		var resolve = function(res){
 			result = res }
+		var rejected
 		var error
 		var reject = function(err){
+			rejected = true
 			error = err }
-
+		// call...
 		try{
 			func(resolve, reject)
 		}catch(err){
 			reject(err) }
-
-		if(error){
-			this.__error = error
-
 		// async...
-		} else if(result instanceof Promise){
+		if(!error 
+				&& result instanceof Promise){
 			return result }
-
 		// sync...
-		this.__result = result
-		// XXX
-		var obj = Reflect.construct(
-			MaybePromise.__proto__,
-			[],
-			MaybePromise)
-		return obj
-	},
+		var obj = Promise.resolve(result)
+		obj.__proto__ = this.prototype
+		obj.value = result
+		rejected
+			&& (obj.error = error)
+		return obj },
 })
 
 
@@ -860,8 +853,8 @@ object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
-	// XXX
-	//maybe: MaybePromise,
+	// XXX EXPEREMENTAL...
+	maybe: MaybePromise,
 	
 	// XXX need error support...
 	awaitOrRun: function(data, func){
