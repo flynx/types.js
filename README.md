@@ -2034,10 +2034,29 @@ Example:
 -->
 
 
-#### `<promise>.sync()`
+#### `<promise>.sync(..)`
 
 Synchronously return the resolved value if `<sync-promise>` resolved, and
-if it _rejected_ then re-throw the `<error>`.
+if it _rejected_ then re-throw the `<error>`. Normal promises will return self.
+
+```bnf
+<promise>.sync()
+	-> <value>
+	-> <promise>
+```
+
+To suppress errors pass `false` to `.sync(..)` and to handle them differently 
+pass an error handler function.
+```bnf
+<promise>.sync(false)
+	-> <value>
+
+<promise>.sync(<onerror>)
+	-> <value>
+
+<onerror>(<error>)
+	-> <value>
+```
 
 
 #### `<sync-promise>.value` / `<sync-promise>.error`
@@ -2048,8 +2067,8 @@ rejection `.error`.
 
 #### `Promise.sync.all(..)` / `Promise.sync.allSettled(..)` / `Promise.sync.any(..)` / `Promise.sync.race(..)`
 
-Equivalents to `Promise`'s version but will run sync if the relevant 
-items in the input are either non-promises or `<sync-promise>`s.
+Equivalents to `Promise`'s respective versions but will run sync if the 
+relevant items in the input are either non-promises or `<sync-promise>`s.
 
 
 

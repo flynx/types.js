@@ -948,9 +948,12 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
+	// XXX should we try and return a sync value if normal promise is resolved???
+	// 		...sould need to hook .then(..) to do this...
 	sync: function(error='throw'){
 		if(this instanceof SyncPromise){
-			if('error' in this){
+			if(error !== false 
+					&& 'error' in this){
 				if(typeof(error) != 'function'){
 					throw this.error }
 				return error(this.error) }
