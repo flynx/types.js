@@ -88,6 +88,9 @@ Library of JavaScript type extensions, types and utilities.
       - [Array proxy methods returning `<promise-iter>`](#array-proxy-methods-returning-promise-iter)
       - [Array proxy methods returning a `<promise>`](#array-proxy-methods-returning-a-promise)
       - [`<promise-iter>.then(..)` / `<promise-iter>.catch(..)` / `<promise-iter>.finally(..)`](#promise-iterthen--promise-itercatch--promise-iterfinally)
+      - [`<promise-iter>.iterthen(..)`](#promise-iterthen)
+      - [`<promise-iter>.isSync(..)`](#promise-issync)
+      - [`<promise-iter>.sync(..)`](#promise-sync)
       - [`promise.IterablePromise.STOP` / `promise.IterablePromise.STOP(..)`](#promiseiterablepromisestop--promiseiterablepromisestop)
       - [Advanced handler](#advanced-handler)
       - [Stopping the iteration](#stopping-the-iteration)
@@ -1823,6 +1826,7 @@ These are similar to [`<array>.some(..)`](https://developer.mozilla.org/en-US/do
 and [`<array>.find(..)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find) 
 see them for more info.
 
+
 #### Array proxy methods returning `<promise-iter>`
 
 - `<promise-iter>.sort(..)`
@@ -1885,6 +1889,24 @@ This is `undefined` until the `ig-types/Array` module is loaded.
 
 For more info see: [Stopping the iteration](#stopping-the-iteration) below, and
 [the 'Array' STOP section](#arraystop--arraystop)
+
+
+#### `<promise-iter>.iterthen(..)`
+
+Like `.then(..)` but will return an `IterablePromise` instance.
+
+
+#### `<promise-iter>.isSync()`
+
+Return `true` if all content is resolved, otherwise return `false`.
+
+
+#### `<promise-iter>.sync(..)`
+
+If all content is resolved return the promise value, otherwise return a promise.
+
+For more info see: [`<promise>.sync(..)`](#promisesync)
+
 
 
 #### Advanced handler
