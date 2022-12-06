@@ -70,11 +70,13 @@ function(name){
 		return this.constructor(
 			this.then(function(lst){
 				return lst[name](...args) })) } }
+
 var promiseProxy =
 module.promiseProxy =
 function(name){
 	return async function(...args){
 		return (await this)[name](...args) } }
+
 
 var IterablePromise =
 module.IterablePromise =
@@ -149,7 +151,19 @@ object.Constructor('IterablePromise', Promise, {
 		var pack = function(){
 			return [list].flat()
 				[map](function(elem){
+					// XXX EXPEREMENTAL...
+					return elem instanceof IterablePromise ?
+							(elem.isSync() ?
+								handler(elem.sync())
+								// XXX need to handle this but keep it IterablePromise...
+								: elem.iterthen(handler))
+						: (elem instanceof SyncPromise
+								&& !(elem.sync() instanceof Promise)) ?
+							handler(elem.sync())
+						: elem && elem.then ?
+					/*/
 					return elem && elem.then ?
+					//*/
 							(stoppable ?
 								// stoppable -- need to handle stop async...
 								elem
@@ -238,6 +252,35 @@ object.Constructor('IterablePromise', Promise, {
 							return elem })
 				: [handler(elem)] })
    			.flat() },
+	// XXX EXPEREMENTAL...
+	// XXX this should return IterablePromise if .__packed is partially sync (???)
+	// unpack array (sync/async)...
+	__unpack: function(list){
+		list = list 
+			?? this.__packed
+		// handle promise list...
+		if(list instanceof IterablePromise){
+			return list.__unpack() }
+		if(list instanceof Promise){
+			return list
+				.then(this.__unpack.bind(this)) }
+		var res = []
+		for(var e of list){
+			if(e instanceof IterablePromise){
+				e = e.__unpack() }
+			if(e instanceof SyncPromise){
+				e = e.sync() }
+			// give up on a sync solution...
+			if(e instanceof Promise){
+				// XXX can we return an IterablePromise???
+				// XXX this will cause infinite recursion....
+				//return Promise.iter(list).flat() }
+				return Promise.all(list)
+					.then(function(list){ 
+						return list.flat() }) }
+			res.push(e) }
+		return res.flat() },
+	/*/
 	// unpack array (async)...
 	__unpack: async function(list){
 		list = list 
@@ -248,11 +291,12 @@ object.Constructor('IterablePromise', Promise, {
 			// do the work...
 			: (await Promise.all(list))
 				.flat() },
-
+	//*/
+	
 	[Symbol.asyncIterator]: async function*(){
 		var list = this.__packed
 		if(list instanceof Promise){
-			yield this.__unpack(await list) 
+			yield* await this.__unpack(list) 
 			return }
 		for await(var elem of list){
 			yield* elem instanceof Array ?
@@ -510,7 +554,10 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: this is slightly different from .then(..) in that it can be 
 	// 		called without arguments and return a promise wrapper. This can
 	// 		be useful to hide special promise functionality...
-	then: function (onfulfilled, onrejected){
+	//
+	// NOTE: this is internally linked to the actual (via: ..then.call(this, ..)) 
+	// 		state and will be resolved in .__new__(..) below.
+	then: function(onfulfilled, onrejected){
 		var p = new Promise(
 			function(resolve, reject){
 				Promise.prototype.then.call(this,
@@ -525,6 +572,47 @@ object.Constructor('IterablePromise', Promise, {
 		return arguments.length > 0 ?
 			p.then(...arguments) 
 			: p },
+	// XXX EXPEREMENTAL
+	// Like .then(..) but returns an IterablePromise instance...
+	iterthen: function(onfulfilled, onrejected){
+		if(this.isSync()){
+			var res = onfulfilled ?
+				this.constructor(onfulfilled(this.__unpack()))
+				: this.constructor(this.__unpack()) 
+			onrejected
+				&& res.catch(onrejected) 
+			return res }
+		// XXX we need to feed the output of onfulfilled to the value of 
+		// 		res, but to this without wrapping the whole thing in a 
+		// 		promise (possible???)...
+		return arguments.length > 0 ?
+			this.constructor(this.then(...arguments))
+			: this.constructor(this.__packed, 'raw') },
+
+	// XXX EXPEREMENTAL
+	isSync: function(){
+		return !(this.__packed instanceof Promise
+			|| this.__packed
+				.filter(function(e){
+					return e instanceof IterablePromise ?
+							!e.isSync()
+						: e instanceof Promise 
+								&& !(e instanceof SyncPromise) })
+				.length > 0) },
+	sync: function(error=false){
+		try{
+			var res = this.__unpack()
+		}catch(err){
+			if(error == false){
+				return }
+			if(typeof(error) == 'function'){
+				return error(err) }
+			throw err }
+		return error !== false 
+				&& res instanceof Promise ?
+			// XXX should this be an IterablePromise???
+			res.catch(error)
+			: res },
 
 
 	// constructor...
@@ -584,18 +672,37 @@ object.Constructor('IterablePromise', Promise, {
 			// handle/pack input data...
 			if(handler != 'raw'){
 				list = list instanceof IterablePromise ?
-					this.__handle(list.__packed, handler)
-					: this.__pack(list, handler) }
+					obj.__handle(list.__packed, handler)
+					: obj.__pack(list, handler) }
 			Object.defineProperty(obj, '__packed', {
 				value: list,
 				enumerable: false,
+				// NOTE: this is needed for self-resolve...
+				writable: true,
 			})
 			// handle promise state...
-			this.__unpack(list)
-				.then(function(list){
-					promise.resolve(list) })
-				.catch(promise.reject) }
-
+			try{
+				var res = obj.__unpack(list)
+			}catch(err){
+				promise.reject(err) }
+			res instanceof Promise ?
+				res
+					.then(function(list){
+						promise.resolve(list) })
+					.catch(promise.reject) 
+				: promise.resolve(res) 
+			// XXX EXPEREMENTAL
+			// XXX do we handle errors here???
+			// self-resolve state...
+			list instanceof Promise ?
+				list.then(function(list){
+					obj.__packed = list })
+				: list.forEach(function(elem, i){
+					elem instanceof Promise
+						&& elem.then(function(elem){
+							lst = obj.__packed.slice()
+							lst[i] = elem
+							obj.__packed = lst }) }) }
 		return obj },
 })
 
@@ -863,6 +970,13 @@ object.Constructor('SyncPromise', Promise, {
 					resolve(this.value)) 
 			// XXX should we return a copy???
 			: this },
+	sync: function(error='throw'){
+		if(error !== false 
+				&& 'error' in this){
+			if(typeof(error) != 'function'){
+				throw this.error }
+			return error(this.error) }
+		return this.value },
 
 	// NOTE: if func calls resolve(..) with a promise then this will return
 	// 		that promise...
@@ -892,6 +1006,7 @@ object.Constructor('SyncPromise', Promise, {
 			&& (obj.error = error)
 		return obj },
 })
+
 
 
 //---------------------------------------------------------------------
@@ -948,16 +1063,7 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
-	// XXX should we try and return a sync value if normal promise is resolved???
-	// 		...sould need to hook .then(..) to do this...
-	sync: function(error='throw'){
-		if(this instanceof SyncPromise){
-			if(error !== false 
-					&& 'error' in this){
-				if(typeof(error) != 'function'){
-					throw this.error }
-				return error(this.error) }
-			return this.value }
+	sync: function(){
 		return this },
 })
 

@@ -77,7 +77,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise>.iter()`](#promiseiter)
       - [`<promise-iter>.iter()`](#promise-iteriter)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
-    - [`<promise-iter>.between(..)`](#promise-iterbetween)
+      - [`<promise-iter>.between(..)`](#promise-iterbetween)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
       - [`<promise-iter>.reverse()`](#promise-iterreverse)
       - [`<promise-iter>.concat(..)`](#promise-iterconcat)
@@ -95,7 +95,7 @@ Library of JavaScript type extensions, types and utilities.
       - [`<promise>.as(..)`](#promiseas)
       - [`<promise-proxy>.<method>(..)`](#promise-proxymethod)
     - [Sync/async promise](#syncasync-promise)
-      - [`Promise.sync(..)` / `promise.SyncPromice(..)`](#promisesync--promisesyncpromice)
+      - [`Promise.sync(..)` / `promise.SyncPromise(..)`](#promisesync--promisesyncpromise)
       - [`<promise>.sync(..)`](#promisesync)
       - [`<sync-promise>.value` / `<sync-promise>.error`](#sync-promisevalue--sync-promiseerror)
       - [`Promise.sync.all(..)` / `Promise.sync.allSettled(..)` / `Promise.sync.any(..)` / `Promise.sync.race(..)`](promisesyncall--promisesyncallsettled--promisesyncany--promisesyncrace`)
@@ -1706,7 +1706,7 @@ Note that since `.reduce(..)` handler's execution order can not be known,
 there is no point in implementing `.reduceRigth(..)`.
 
 
-### `<promise-iter>.between(..)`
+#### `<promise-iter>.between(..)`
 
 ```bnf
 <promise-iter>.between(<value>)
@@ -2009,7 +2009,7 @@ the main `<promise>` is resolved.
 ### Sync/async promise
 
 
-#### `Promise.sync(..)` / `promise.SyncPromice(..)`
+#### `Promise.sync(..)` / `promise.SyncPromise(..)`
 
 ```dnf
 Promise.sync(<func>)
