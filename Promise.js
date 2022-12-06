@@ -71,6 +71,7 @@ function(name){
 			this.then(function(lst){
 				return lst[name](...args) })) } }
 
+// XXX ASYNC should this be async or simply return a SyncPromise/Promise???
 var promiseProxy =
 module.promiseProxy =
 function(name){
@@ -273,7 +274,7 @@ object.Constructor('IterablePromise', Promise, {
 			// give up on a sync solution...
 			if(e instanceof Promise){
 				// XXX can we return an IterablePromise???
-				// XXX this will cause infinite recursion....
+				// XXX these will cause infinite recursion....
 				//return Promise.iter(list).flat() }
 				return Promise.all(list)
 					.then(function(list){ 
@@ -431,6 +432,7 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: methods that are guaranteed to return an array will return
 	// 		an iterable promise (created with iterPromiseProxy(..))...
 	//
+	// XXX ASYNC should this be async or simply return a SyncPromise/Promise???
 	at: async function(i){
 		var list = this.__packed
 		return ((i != 0 && i != -1)
@@ -497,6 +499,8 @@ object.Constructor('IterablePromise', Promise, {
 	// 			to resolve...
 	// 		- if no clients are available this can lead to wasted 
 	// 			CPU time...
+	//
+	// XXX ASYNC should this be async or simply return a SyncPromise/Promise???
 	find: async function(func, result='value'){
 		var that = this
 		// NOTE: not using pure await here as this is simpler to actually 
@@ -528,11 +532,13 @@ object.Constructor('IterablePromise', Promise, {
 	findIndex: promiseProxy('findIndex'),
 
 	// NOTE: this is just a special-case of .find(..)
+	// XXX ASYNC should this be async or simply return a SyncPromise/Promise???
 	some: async function(func){
 		return this.find(func, 'bool') },
 	every: promiseProxy('every'),
 
 
+	// XXX ASYNC should this be async or simply return a SyncPromise/Promise???
 	join: async function(){
 		return [...(await this)]
 			.join(...arguments) },
@@ -572,7 +578,7 @@ object.Constructor('IterablePromise', Promise, {
 		return arguments.length > 0 ?
 			p.then(...arguments) 
 			: p },
-	// XXX EXPEREMENTAL
+	// XXX EXPEREMENTAL revise...
 	// Like .then(..) but returns an IterablePromise instance...
 	iterthen: function(onfulfilled, onrejected){
 		if(this.isSync()){
