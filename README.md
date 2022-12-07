@@ -2030,12 +2030,17 @@ the main `<promise>` is resolved.
 
 ### Sync/async promise
 
+The goal of this is to handle both sync and asynchronous data flows with 
+one promise-like API, if all of the data can be obtained in a sync manner 
+this will be sync otherwise we will revert to a normal promise.
+
 
 #### `Promise.sync(..)` / `promise.SyncPromise(..)`
 
 ```dnf
 Promise.sync(<func>)
 	-> <sync-promise>
+	-> <promise>
 
 <func>(<resolve>, <reject>)
 

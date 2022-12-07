@@ -30,7 +30,7 @@
 
 var object = require('ig-object')
 
-//var generator = require('./generator')
+var generator = require('./generator')
 
 
 
@@ -123,18 +123,22 @@ object.Constructor('IterablePromise', Promise, {
 	// 		stop will stop the handlers not yet run and not the next 
 	// 		handlers in sequence.
 	// 		XXX EXPEREMENTAL: STOP...
-	// XXX add support for async generators...
-	// 		...an async generator is not "parallel", i.e. intil one 
-	// 		returned promise is resolved the generator blocks (will not 
-	// 		advance)...
-	// 		...can we feed out a results one by one???
+	// XXX ITER can we unwind (sync/async) generators one by one???
 	__pack: function(list, handler=undefined){
 		var that = this
-		// handle iterable promise list...
+		// handle iterator...
+		// XXX ITER do we unwind the iterator here or wait to unwind later???
+		if(typeof(list) == 'object' 
+				&& Symbol.iterator in list){
+			list = [...list] }
+		// handle iterable promise...
 		if(list instanceof IterablePromise){
 			return this.__handle(list.__packed, handler) }
-		// handle promise list...
-		if(list instanceof Promise){
+		// handle promise / async-iterator...
+		// XXX ITER do we unwind the iterator here or wait to unwind later???
+		if(list instanceof Promise
+				|| (typeof(list) == 'object' 
+					&& Symbol.asyncIterator in list)){
 			return list.then(function(list){
 				return that.__pack(list, handler) }) }
 		// do the work...
@@ -152,6 +156,10 @@ object.Constructor('IterablePromise', Promise, {
 		var pack = function(){
 			return [list].flat()
 				[map](function(elem){
+					// XXX EXPEREMENTAL -- not sure about this yet...
+					//elem = Symbol.iterator in elem ?
+					//	[...elem]
+					//	: elem
 					// XXX EXPEREMENTAL...
 					return elem instanceof IterablePromise ?
 							(elem.isSync() ?
@@ -274,11 +282,16 @@ object.Constructor('IterablePromise', Promise, {
 			// give up on a sync solution...
 			if(e instanceof Promise){
 				// XXX can we return an IterablePromise???
-				// XXX these will cause infinite recursion....
+				// XXX this will cause infinite recursion....
 				//return Promise.iter(list).flat() }
+				// XXX is there a more elegant way to do this???
 				return Promise.all(list)
 					.then(function(list){ 
-						return list.flat() }) }
+						return list.flat() })
+					.iter() }
+				//return Promise.all(list)
+				//	.then(function(list){ 
+				//		return list.flat() }) }
 			res.push(e) }
 		return res.flat() },
 	/*/
@@ -1003,10 +1016,9 @@ object.Constructor('SyncPromise', Promise, {
 		// async...
 		if(!error 
 				&& value instanceof Promise){
-			return value }
+			return object.ASIS(value) }
 		// sync...
 		var obj = Promise.resolve(value)
-		obj.__proto__ = this.prototype
 		obj.value = value
 		rejected
 			&& (obj.error = error)
@@ -1069,7 +1081,12 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
 	iter: function(handler=undefined){
 		return IterablePromise(this, handler) },
-	sync: function(){
+	// unify the general promise API with other promise types...
+	// XXX should this be here???
+	// XXX error if given must return the result... (???)
+	sync: function(error){
+		typeof(error) == 'function'
+			&& this.catch(error)
 		return this },
 })
 
