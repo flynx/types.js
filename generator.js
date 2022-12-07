@@ -583,8 +583,10 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 			if(onerror){
 				if(!(err === STOP || err instanceof STOP)){
 					var res = onerror(err) 
-					if(res){
-						yield res } 
+					if(res !== undefined){
+						yield handler ?
+							handler(res)
+				   			: res } 
 					return } }
 			throw err } }),
 

@@ -133,25 +133,18 @@ object.Constructor('IterablePromise', Promise, {
 			if(!onerror){
 				list = [...list]
 			// handle errors in input generator...
+			// NOTE: this does not offer the most control because semantically 
+			// 		we bust behave in the same manner as <generator>.iter(..)
 			} else {
 				var res = []
 				try{
 					for(var e of list){
 						res.push(e) }
-					list = res
 				}catch(err){
 					var r = onerror(err)
-					if(r === this.constructor.STOP
-							|| r instanceof this.constructor.STOP){
-						r instanceof this.constructor.STOP
-							&& res.push(r.value)
-						list = res 
-					} else {
-						list = r instanceof Array ?
-								r
-							: r ?
-								[r]
-							: [] } } } }
+					r !== undefined
+						&& res.push(r) } 
+				list = res } } 
 		// handle iterable promise...
 		if(list instanceof IterablePromise){
 			return this.__handle(list.__packed, handler, onerror) }
@@ -162,8 +155,8 @@ object.Constructor('IterablePromise', Promise, {
 			return list
 				.iter(handler, onerror) 
 				.then(function(list){
-					return that.__pack(list) }) 
-		} else if(list instanceof Promise){
+					return that.__pack(list) }) } 
+		if(list instanceof Promise){
 			return list
 				.then(function(list){
 					return that.__pack(list, handler, onerror) }) }
