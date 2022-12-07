@@ -157,13 +157,16 @@ object.Constructor('IterablePromise', Promise, {
 			return this.__handle(list.__packed, handler, onerror) }
 		// handle promise / async-iterator...
 		// XXX ITER do we unwind the iterator here or wait to unwind later???
-		if(list instanceof Promise
-				|| (typeof(list) == 'object' 
-					&& Symbol.asyncIterator in list)){
+		if(typeof(list) == 'object' 
+					&& Symbol.asyncIterator in list){
 			return list
 				.iter(handler, onerror) 
 				.then(function(list){
-					return that.__pack(list) }) }
+					return that.__pack(list) }) 
+		} else if(list instanceof Promise){
+			return list
+				.then(function(list){
+					return that.__pack(list, handler, onerror) }) }
 		// do the work...
 		// NOTE: packing and handling are mixed here because it's faster
 		// 		to do them both on a single list traverse...
