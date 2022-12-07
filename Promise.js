@@ -1071,6 +1071,8 @@ object.Mixin('PromiseMixin', 'soft', {
 							...error)
 					: data[0].then(func, ...error))
 			// XXX not sure if we need to expand async generators...
+			// 		...since it has .then(..) it can be treated as a promise...
+			// XXX should we just check for .then(..) ???
 			: (data.length == 1 
 					&& Symbol.asyncIterator in data[0]
 					&& 'then' in data[0]) ?
