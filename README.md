@@ -2117,6 +2117,9 @@ Note that if the last `<value>` is a function and no `<onerror>` function
 is given then `.awaitOrRun(..)` will confuse the `<value>` for `<func>`,
 to avoid this one needs to explicitly pass `null`/`undefined` as `<onerror>`.
 
+_Special-case: this will expand async generators if they define `.then(..)`, 
+this may change in the future._
+
 
 ## Generator extensions and utilities
 

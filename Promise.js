@@ -1049,6 +1049,7 @@ object.Mixin('PromiseMixin', 'soft', {
 	sync: SyncPromise,
 	// XXX should this be implemented via SyncPromise??? 
 	// XXX not sure if we need to expand async generators...
+	// 		(update README if this changes)
 	awaitOrRun: function(data, func, error){
 		data = [...arguments]
 		func = data.pop()
@@ -1073,6 +1074,7 @@ object.Mixin('PromiseMixin', 'soft', {
 			// XXX not sure if we need to expand async generators...
 			// 		...since it has .then(..) it can be treated as a promise...
 			// XXX should we just check for .then(..) ???
+			// XXX update README if this changes...
 			: (data.length == 1 
 					&& Symbol.asyncIterator in data[0]
 					&& 'then' in data[0]) ?
