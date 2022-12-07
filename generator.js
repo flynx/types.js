@@ -308,21 +308,31 @@ var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
 	// XXX use module.iter(..) ???
-	iter: stoppable(function*(handler){ 
-		if(handler){
-			var i = 0
-			for(var elem of this){
-				var res = handler.call(this, elem, i) 
-				// expand iterables...
-				if(typeof(res) == 'object' 
-						&& Symbol.iterator in res){
-					yield* res
-				// as-is...
-				} else {
-					yield res }}
-		// no handler...
-		} else {
-			yield* this } }),
+	iter: stoppable(function*(handler, onerror){ 
+		try{
+			if(handler){
+				var i = 0
+				for(var elem of this){
+					var res = handler.call(this, elem, i) 
+					// expand iterables...
+					if(typeof(res) == 'object' 
+							&& Symbol.iterator in res){
+						yield* res
+					// as-is...
+					} else {
+						yield res }}
+			// no handler...
+			} else {
+				yield* this } 
+		}catch(err){
+			if(onerror){
+				if(!(err === STOP 
+						|| err instanceof STOP)){
+					var res = onerror(err)
+					if(res){
+						yield res
+						return } } }
+			throw err }}),
 	//*/
 
 	at: function(i){
@@ -556,18 +566,27 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 		return this.unwind.finally(...arguments) },
 
 	// XXX might be a good idea to use this approach above...
-	iter: stoppable(async function*(handler=undefined){
-		var i = 0
-		if(handler){
-			for await(var e of this){
-				var res = handler.call(this, e, i++)
-				if(typeof(res) == 'object' 
-						&& Symbol.iterator in res){
-					yield* res
-				} else {
-					yield res } }
-		} else {
-			yield* this } }),
+	iter: stoppable(async function*(handler=undefined, onerror=undefined){
+		try{
+			var i = 0
+			if(handler){
+				for await(var e of this){
+					var res = handler.call(this, e, i++)
+					if(typeof(res) == 'object' 
+							&& Symbol.iterator in res){
+						yield* res
+					} else {
+						yield res } }
+			} else {
+				yield* this } 
+		}catch(err){
+			if(onerror){
+				if(!(err === STOP || err instanceof STOP)){
+					var res = onerror(err) 
+					if(res){
+						yield res } 
+					return } }
+			throw err } }),
 
 	map: async function*(func){
 		yield* this.iter(function(elem, i){

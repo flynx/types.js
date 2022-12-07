@@ -124,23 +124,46 @@ object.Constructor('IterablePromise', Promise, {
 	// 		handlers in sequence.
 	// 		XXX EXPEREMENTAL: STOP...
 	// XXX ITER can we unwind (sync/async) generators one by one???
-	__pack: function(list, handler=undefined){
+	__pack: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		// handle iterator...
 		// XXX ITER do we unwind the iterator here or wait to unwind later???
 		if(typeof(list) == 'object' 
 				&& Symbol.iterator in list){
-			list = [...list] }
+			if(!onerror){
+				list = [...list]
+			// handle errors in input generator...
+			} else {
+				var res = []
+				try{
+					for(var e of list){
+						res.push(e) }
+					list = res
+				}catch(err){
+					var r = onerror(err)
+					if(r === this.constructor.STOP
+							|| r instanceof this.constructor.STOP){
+						r instanceof this.constructor.STOP
+							&& res.push(r.value)
+						list = res 
+					} else {
+						list = r instanceof Array ?
+								r
+							: r ?
+								[r]
+							: [] } } } }
 		// handle iterable promise...
 		if(list instanceof IterablePromise){
-			return this.__handle(list.__packed, handler) }
+			return this.__handle(list.__packed, handler, onerror) }
 		// handle promise / async-iterator...
 		// XXX ITER do we unwind the iterator here or wait to unwind later???
 		if(list instanceof Promise
 				|| (typeof(list) == 'object' 
 					&& Symbol.asyncIterator in list)){
-			return list.then(function(list){
-				return that.__pack(list, handler) }) }
+			return list
+				.iter(handler, onerror) 
+				.then(function(list){
+					return that.__pack(list) }) }
 		// do the work...
 		// NOTE: packing and handling are mixed here because it's faster
 		// 		to do them both on a single list traverse...
@@ -150,16 +173,11 @@ object.Constructor('IterablePromise', Promise, {
 				return [elem] }
 
 		//* XXX EXPEREMENTAL: STOP...
-		var stoppable = false
 		var stop = false
 		var map = 'map'
 		var pack = function(){
 			return [list].flat()
 				[map](function(elem){
-					// XXX EXPEREMENTAL -- not sure about this yet...
-					//elem = Symbol.iterator in elem ?
-					//	[...elem]
-					//	: elem
 					// XXX EXPEREMENTAL...
 					return elem instanceof IterablePromise ?
 							(elem.isSync() ?
@@ -170,10 +188,7 @@ object.Constructor('IterablePromise', Promise, {
 								&& !(elem.sync() instanceof Promise)) ?
 							handler(elem.sync())
 						: elem && elem.then ?
-					/*/
-					return elem && elem.then ?
-					//*/
-							(stoppable ?
+							(handleSTOP ?
 								// stoppable -- need to handle stop async...
 								elem
 									.then(function(res){
@@ -197,9 +212,9 @@ object.Constructor('IterablePromise', Promise, {
 
 		// pack (stoppable)...
 		if(!!this.constructor.STOP){
-			stoppable = true
 			map = 'smap'
 			var handleSTOP = function(err){
+				// handle stop...
 				stop = err
 				if(err === that.constructor.STOP
 						|| err instanceof that.constructor.STOP){
@@ -229,7 +244,7 @@ object.Constructor('IterablePromise', Promise, {
 					: handler(elem) }) },
 		//*/
 	// transform/handle packed array (sync)...
-	__handle: function(list, handler=undefined){
+	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
 			handler = list
@@ -239,7 +254,7 @@ object.Constructor('IterablePromise', Promise, {
 		// handle promise list...
 		if(list instanceof Promise){
 			return list.then(function(list){
-				return that.__handle(list, handler) }) }
+				return that.__handle(list, handler, onerror) }) }
 		// do the work...
 		// NOTE: since each section of the packed .__array is the same 
 		// 		structure as the input we'll use .__pack(..) to handle 
@@ -253,9 +268,9 @@ object.Constructor('IterablePromise', Promise, {
 		return list.map(function(elem){
 		//*/
 			return elem instanceof Array ?
-					that.__pack(elem, handler)
+					that.__pack(elem, handler, onerror)
 				: elem instanceof Promise ?
-					that.__pack(elem, handler)
+					that.__pack(elem, handler, onerror)
 						//.then(function(elem){
 						.then(function([elem]){
 							return elem })
@@ -671,7 +686,7 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: if 'types/Array' is imported this will support throwing STOP,
 	// 		for more info see notes for .__pack(..)
 	// 		XXX EXPEREMENTAL: STOP...
-	__new__: function(_, list, handler){
+	__new__: function(_, list, handler=undefined, onerror=undefined){
 		// instance...
 		var promise
 		var obj = Reflect.construct(
@@ -691,8 +706,8 @@ object.Constructor('IterablePromise', Promise, {
 			// handle/pack input data...
 			if(handler != 'raw'){
 				list = list instanceof IterablePromise ?
-					obj.__handle(list.__packed, handler)
-					: obj.__pack(list, handler) }
+					obj.__handle(list.__packed, handler, onerror)
+					: obj.__pack(list, handler, onerror) }
 			Object.defineProperty(obj, '__packed', {
 				value: list,
 				enumerable: false,
@@ -1037,10 +1052,9 @@ object.Mixin('PromiseMixin', 'soft', {
 	cooperative: CooperativePromise,
 	sync: SyncPromise,
 	// XXX should this be implemented via SyncPromise??? 
-	awaitOrRun: function(data, func){
+	awaitOrRun: function(data, func, error){
 		data = [...arguments]
 		func = data.pop()
-		var error
 		if(typeof(data.at(-1)) == 'function'){
 			error = func
 			func = data.pop() }
@@ -1079,8 +1093,8 @@ var PromiseProtoMixin =
 module.PromiseProtoMixin =
 object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
-	iter: function(handler=undefined){
-		return IterablePromise(this, handler) },
+	iter: function(handler=undefined, onerror=undefined){
+		return IterablePromise(this, handler, onerror) },
 	// unify the general promise API with other promise types...
 	// XXX should this be here???
 	// XXX error if given must return the result... (???)
