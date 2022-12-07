@@ -1048,37 +1048,39 @@ object.Mixin('PromiseMixin', 'soft', {
 	cooperative: CooperativePromise,
 	sync: SyncPromise,
 	// XXX should this be implemented via SyncPromise??? 
+	// XXX not sure if we need to expand async generators...
 	awaitOrRun: function(data, func, error){
 		data = [...arguments]
 		func = data.pop()
 		if(typeof(data.at(-1)) == 'function'){
 			error = func
 			func = data.pop() }
-		// ceck if we need to await...
-		return data
-				.reduce(function(res, e){
+		error = error ? 
+			[error] 
+			: []
+		// check if we need to await...
+		return data.reduce(function(res, e){
 					return res 
 						|| e instanceof Promise }, false) ?
-			// NOTE: we will not reach this on empty data...
-			(data.length > 1 ?
-				Promise.all(data)
-					.then(
-						function(res){ 
-							return func(...res) }, 
-						...(error ? 
-							[error] 
-							: []))
-				: data[0].then(
-					func, 
-					...(error ? 
-						[error] 
-						: [])))
-			: error ?
+				// NOTE: we will not reach this on empty data...
+				(data.length > 1 ?
+					Promise.all(data)
+						.then(
+							function(res){ 
+								return func(...res) }, 
+							...error)
+					: data[0].then(func, ...error))
+			// XXX not sure if we need to expand async generators...
+			: (data.length == 1 
+					&& Symbol.asyncIterator in data[0]
+					&& 'then' in data[0]) ?
+				data[0].then(func, ...error)
+			: error.length > 0 ?
 				function(){
 					try{
 						return func(...data)
 					}catch(err){
-						return error(err) } }()
+						return error[0](err) } }()
 			: func(...data) },
 })
 
