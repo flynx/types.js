@@ -239,7 +239,7 @@ object.Constructor('IterablePromise', Promise, {
 						elem
 					: handler(elem) }) },
 		//*/
-	// transform/handle packed array (sync)...
+	// transform/handle packed array (sync, but can return promises in the list)...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -267,7 +267,6 @@ object.Constructor('IterablePromise', Promise, {
 					that.__pack(elem, handler, onerror)
 				: elem instanceof Promise ?
 					that.__pack(elem, handler, onerror)
-						//.then(function(elem){
 						.then(function([elem]){
 							return elem })
 				: [handler(elem)] })
@@ -739,6 +738,54 @@ object.Constructor('IterablePromise', Promise, {
 
 
 //---------------------------------------------------------------------
+// XXX EXPEREMENTAL...
+
+// XXX we are getting a list with promises triggered outside, we can't
+// 		control order of execution of this but we can control in what 
+// 		order the handler is called...
+// XXX this potentially shows a bug with IterablePromise:
+// 			Promise.seqiter(
+// 				[1, Promise.resolve(2), 3, Promise.resolve(4)], 
+// 				e => (console.log('---', e), e))
+// 		...this will not resolve/replace the 4's promise...
+// 		for context:
+// 			await Promise.resolve(Promise.resolve(Promise.resolve(123)))
+// 				-> 123
+// 		...is this just a nesting issue here???
+// 		Q: what IterablePromise does/should do if a promise resolves to 
+// 			a promise multiple times...
+var IterableSequentialPromise =
+module.IterableSequentialPromise =
+object.Constructor('IterableSequentialPromise', IterablePromise, {
+	__new__: function(_, list, handler=undefined, onerror=undefined){
+		var [_, list, ...rest] = arguments
+		var res = list
+		// format the list...
+		if(list instanceof Array 
+				|| list instanceof Promise){
+
+			var pre_process = function(list, start=0){
+				if(list instanceof Promise){
+					return list.then(pre_process) }
+				res = []
+				for(let [i, e] of list.entries().slice(start)){
+					if(e instanceof Promise){
+						res.push(e.then(function(e){
+							return [e,
+								// XXX need to flatten this...
+								...pre_process(list, i+1)] })) 
+						break }
+					res.push(e) } 
+				return res }
+			//
+			res = pre_process(list).flat() }
+		// XXX use .parentCall(..)...
+		return IterablePromise.prototype.__new__.call(this, _, res, ...rest) },
+})
+
+
+
+//---------------------------------------------------------------------
 // Interactive promise...
 // 
 // Adds ability to send messages to the running promise.
@@ -1044,9 +1091,14 @@ var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
+	// XXX
+	seqiter: IterableSequentialPromise,
+
 	interactive: InteractivePromise,
 	cooperative: CooperativePromise,
+
 	sync: SyncPromise,
+
 	// XXX should this be implemented via SyncPromise??? 
 	// XXX not sure if we need to expand async generators...
 	// 		(update README if this changes)
@@ -1095,8 +1147,13 @@ var PromiseProtoMixin =
 module.PromiseProtoMixin =
 object.Mixin('PromiseProtoMixin', 'soft', {
 	as: ProxyPromise,
+
 	iter: function(handler=undefined, onerror=undefined){
 		return IterablePromise(this, handler, onerror) },
+	// XXX
+	seqiter: function(handler=undefined, onerror=undefined){
+		return IterableSequentialPromise(this, handler, onerror) },
+
 	// unify the general promise API with other promise types...
 	// XXX should this be here???
 	// XXX error if given must return the result... (???)
