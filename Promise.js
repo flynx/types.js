@@ -778,7 +778,12 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 					res.push(e) } 
 				return res }
 			//
-			res = pre_process(list).flat() }
+			res = pre_process(list)
+				
+			//var obj = IterablePromise.prototype.__new__.call(this, _, res, 'raw')
+
+			//return obj
+		}
 		// XXX use .parentCall(..)...
 		return IterablePromise.prototype.__new__.call(this, _, res, ...rest) },
 })
