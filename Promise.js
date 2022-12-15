@@ -738,7 +738,7 @@ object.Constructor('IterablePromise', Promise, {
 
 
 //---------------------------------------------------------------------
-// XXX EXPEREMENTAL...
+// XXX EXPEREMENTAL/HACK...
 
 // XXX we are getting a list with promises triggered outside, we can't
 // 		control order of execution of this but we can control in what 
