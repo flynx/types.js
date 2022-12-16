@@ -255,21 +255,20 @@ object.Constructor('IterablePromise', Promise, {
 		// NOTE: since each section of the packed .__array is the same 
 		// 		structure as the input we'll use .__pack(..) to handle 
 		// 		them, this also keeps all the handling code in one place.
-		//* XXX EXPEREMENTAL: STOP...
+		// XXX EXPEREMENTAL: STOP...
 		var map = !!this.constructor.STOP ?
 			'smap'
 			: 'map'
 		return list[map](function(elem){
-		/*/
-		return list.map(function(elem){
-		//*/
-			return elem instanceof Array ?
+				elem = elem instanceof Array 
+						|| elem instanceof Promise ?
 					that.__pack(elem, handler, onerror)
-				: elem instanceof Promise ?
-					that.__pack(elem, handler, onerror)
-						.then(function([elem]){
-							return elem })
-				: [handler(elem)] })
+					: [handler(elem)]
+				elem = elem instanceof Promise ?
+					elem.then(function([e]){
+						return e })
+					: elem
+				return elem })
    			.flat() },
 	// XXX EXPEREMENTAL...
 	// XXX this should return IterablePromise if .__packed is partially sync (???)
@@ -777,12 +776,12 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 						break }
 					res.push(e) } 
 				return res }
-			//
+			
 			res = pre_process(list)
 				
-			//var obj = IterablePromise.prototype.__new__.call(this, _, res, 'raw')
+			var obj = IterablePromise.prototype.__new__.call(this, _, res, 'raw')
 
-			//return obj
+			return obj
 		}
 		// XXX use .parentCall(..)...
 		return IterablePromise.prototype.__new__.call(this, _, res, ...rest) },
