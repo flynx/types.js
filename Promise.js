@@ -753,6 +753,7 @@ object.Constructor('IterablePromise', Promise, {
 // 		...is this just a nesting issue here???
 // 		Q: what IterablePromise does/should do if a promise resolves to 
 // 			a promise multiple times...
+// XXX not sure if this is a viable strategy....
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
