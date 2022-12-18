@@ -168,7 +168,7 @@ object.Constructor('IterablePromise', Promise, {
 			?? function(elem){ 
 				return [elem] }
 
-		//* XXX EXPEREMENTAL: STOP...
+		// XXX this repeats .__handle(..), need to unify...
 		var stop = false
 		var map = 'map'
 		var pack = function(){
@@ -205,7 +205,6 @@ object.Constructor('IterablePromise', Promise, {
 						: !handle ?
 							elem
 						: handler(elem) }) }
-
 		// pack (stoppable)...
 		if(!!this.constructor.STOP){
 			map = 'smap'
@@ -225,20 +224,6 @@ object.Constructor('IterablePromise', Promise, {
 
 		// pack (non-stoppable)...
 		return pack() },
-		/*/
-		return [list].flat()
-			.map(function(elem){
-				return elem && elem.then ?
-						//that.__pack(elem, handler)
-						elem.then(handler)
-					: elem instanceof Array ?
-						handler(elem)
-					// NOTE: we keep things that do not need protecting 
-					// 		from .flat() as-is...
-					: !handle ?
-						elem
-					: handler(elem) }) },
-		//*/
 	// transform/handle packed array (sync, but can return promises in the list)...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
@@ -255,7 +240,6 @@ object.Constructor('IterablePromise', Promise, {
 		// NOTE: since each section of the packed .__array is the same 
 		// 		structure as the input we'll use .__pack(..) to handle 
 		// 		them, this also keeps all the handling code in one place.
-		// XXX EXPEREMENTAL: STOP...
 		var map = !!this.constructor.STOP ?
 			'smap'
 			: 'map'
@@ -270,7 +254,6 @@ object.Constructor('IterablePromise', Promise, {
 					: elem
 				return elem })
    			.flat() },
-	// XXX EXPEREMENTAL...
 	// XXX this should return IterablePromise if .__packed is partially sync (???)
 	// unpack array (sync/async)...
 	__unpack: function(list){
@@ -303,18 +286,6 @@ object.Constructor('IterablePromise', Promise, {
 				//		return list.flat() }) }
 			res.push(e) }
 		return res.flat() },
-	/*/
-	// unpack array (async)...
-	__unpack: async function(list){
-		list = list 
-			?? this.__packed
-		// handle promise list...
-		return list instanceof Promise ?
-			this.__unpack(await list)
-			// do the work...
-			: (await Promise.all(list))
-				.flat() },
-	//*/
 	
 	[Symbol.asyncIterator]: async function*(){
 		var list = this.__packed
