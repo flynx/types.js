@@ -124,6 +124,7 @@ object.Constructor('IterablePromise', Promise, {
 	// 		handlers in sequence.
 	// 		XXX EXPEREMENTAL: STOP...
 	// XXX ITER can we unwind (sync/async) generators one by one???
+	/* XXX this repeats part of the functionality of .__handle(..)
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		// handle iterator...
@@ -167,7 +168,6 @@ object.Constructor('IterablePromise', Promise, {
 		handler = handler 
 			?? function(elem){ 
 				return [elem] }
-
 		// XXX this repeats .__handle(..), need to unify...
 		var stop = false
 		var map = 'map'
@@ -254,6 +254,104 @@ object.Constructor('IterablePromise', Promise, {
 					: elem
 				return elem })
    			.flat() },
+	/*/
+	// XXX BUG:
+	// 			await Promise.iter([Promise.all([1,2,3])], e => e)
+	// 			await Promise.iter([Promise.iter([1,2,3])], e => e)
+	// 				-> [1]
+	// 		the issue is in .__handle(..)'s 
+	//			elem = elem instanceof Promise ?
+	//				elem.then(function([e]){
+	//					// XXX
+	//					return e })
+	//				: ...
+	__pack: function(list, handler=undefined, onerror=undefined){
+		var that = this
+		// handle iterator...
+		// XXX ITER do we unwind the iterator here or wait to unwind later???
+		if(typeof(list) == 'object' 
+				&& Symbol.iterator in list){
+			if(!onerror){
+				list = [...list]
+			// handle errors in input generator...
+			// NOTE: this does not offer the most control because semantically 
+			// 		we bust behave in the same manner as <generator>.iter(..)
+			} else {
+				var res = []
+				try{
+					for(var e of list){
+						res.push(e) }
+				}catch(err){
+					var r = onerror(err)
+					r !== undefined
+						&& res.push(r) } 
+				list = res } } 
+		// handle iterable promise...
+		if(list instanceof IterablePromise){
+			return this.__handle(list.__packed, handler, onerror) }
+		// handle promise / async-iterator...
+		// XXX ITER do we unwind the iterator here or wait to unwind later???
+		if(typeof(list) == 'object' 
+					&& Symbol.asyncIterator in list){
+			return list
+				.iter(handler, onerror) 
+				.then(function(list){
+					return that.__pack(list) }) } 
+		if(list instanceof Promise){
+			return list
+				.then(function(list){
+					return that.__pack(list, handler, onerror) }) }
+		// pack...
+		list = [list].flat()
+			.map(function(elem){
+				return elem instanceof Array ?
+						[elem]
+					: elem instanceof Promise ?
+						elem.then(function(e){
+							return [e] })
+					: elem })
+		// handle if needed...
+		return handler ?
+			this.__handle(list, handler, onerror)
+			: list },
+	// transform/handle packed array (sync, but can return promises in the list)...
+	__handle: function(list, handler=undefined, onerror=undefined){
+		var that = this
+		if(typeof(list) == 'function'){
+			handler = list
+			list = this.__packed }
+		if(!handler){
+			return list }
+		// handle promise list...
+		if(list instanceof Promise){
+			return list.then(function(list){
+				return that.__handle(list, handler, onerror) }) }
+		// do the work...
+		list = list instanceof Array ?
+			list
+			: [list]
+		var map = !!this.constructor.STOP ?
+			'smap'
+			: 'map'
+		return list
+			[map](function(elem){
+				//elem = elem instanceof Array ?
+				//		handler(elem)
+				//	: elem instanceof Promise ?
+				//		elem.then(handler)
+				//		//that.__handle(elem, handler, onerror)
+				//	: [handler(elem)]
+				elem = elem instanceof Array 
+						|| elem instanceof Promise ?
+					that.__handle(elem, handler, onerror)
+					: [handler(elem)]
+				elem = elem instanceof Promise ?
+					elem.then(function([e]){
+						return e })
+					: elem
+				return elem })
+   			.flat() },
+	//*/
 	// XXX this should return IterablePromise if .__packed is partially sync (???)
 	// unpack array (sync/async)...
 	__unpack: function(list){
@@ -274,16 +372,11 @@ object.Constructor('IterablePromise', Promise, {
 			// give up on a sync solution...
 			if(e instanceof Promise){
 				// XXX can we return an IterablePromise???
-				// XXX this will cause infinite recursion....
-				//return Promise.iter(list).flat() }
 				// XXX is there a more elegant way to do this???
 				return Promise.all(list)
 					.then(function(list){ 
 						return list.flat() })
 					.iter() }
-				//return Promise.all(list)
-				//	.then(function(list){ 
-				//		return list.flat() }) }
 			res.push(e) }
 		return res.flat() },
 	
