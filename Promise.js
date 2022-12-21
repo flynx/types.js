@@ -336,12 +336,7 @@ object.Constructor('IterablePromise', Promise, {
 		return list
 			[map](function(elem){
 				// XXX migrate code from old .__pack(..)...
-				//elem = elem instanceof Array ?
-				//		handler(elem)
-				//	: elem instanceof Promise ?
-				//		elem.then(handler)
-				//		//that.__handle(elem, handler, onerror)
-				//	: [handler(elem)]
+				// XXX
 				elem = elem instanceof Array 
 						|| elem instanceof Promise ?
 					that.__handle(elem, handler, onerror)
