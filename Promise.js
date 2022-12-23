@@ -336,7 +336,38 @@ object.Constructor('IterablePromise', Promise, {
 		return list
 			[map](function(elem){
 				// XXX migrate code from old .__pack(..)...
-				// XXX
+				/*/ XXX
+				return elem instanceof IterablePromise ?
+						(elem.isSync() ?
+							handler(elem.sync())
+							// XXX need to handle this but keep it IterablePromise...
+							: elem.iterthen(handler))
+					: (elem instanceof SyncPromise
+							&& !(elem.sync() instanceof Promise)) ?
+						handler(elem.sync())
+					: elem && elem.then ?
+						(handleSTOP ?
+							// stoppable -- need to handle stop async...
+							elem
+								.then(function(res){
+									return !stop ?
+										handler(res)
+										: [] }) 
+								// NOTE: we are using .catch(..) here
+								// 		instead of directly passing the
+								// 		error handler to be able to catch
+								// 		the STOP from the handler...
+								.catch(handleSTOP)
+							// non-stoppable...
+							: elem.then(handler))
+					: elem instanceof Array ?
+						handler(elem)
+					// NOTE: we keep things that do not need protecting 
+					// 		from .flat() as-is...
+					: !handle ?
+						elem
+					: handler(elem)
+				//*/
 				elem = elem instanceof Array 
 						|| elem instanceof Promise ?
 					that.__handle(elem, handler, onerror)
