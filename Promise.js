@@ -344,6 +344,7 @@ object.Constructor('IterablePromise', Promise, {
 				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], e => [e])
 				// 		this does not flatten the promise:
 				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])]).flat()
+				// XXX need a strict spec...
 				return elem instanceof IterablePromise ?
 						(elem.isSync() ?
 							handler(elem.sync())
