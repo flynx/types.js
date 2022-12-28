@@ -336,21 +336,31 @@ object.Constructor('IterablePromise', Promise, {
 		return list
 			[map](function(elem){
 				//* XXX migrate code from old .__pack(..)...
-				// XXX these are not the same:
+				// XXX examples...
+				// 		correct:
 				// 			await Promise.iter(
-				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])])
-				// 		and:
+				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])])
+				// 				-> ['a','b','c', [3,2,1], [1,2,3]]
+				// 		correct:
 				// 			await Promise.iter(
-				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], 
+				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
+				// 					'raw')
+				// 				-> ['a','b','c', 3,2,1, 1,2,3]
+				// 		should be the same as above (should expand promise):
+				// 			await Promise.iter(
+				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
 				// 					e => e)
-				// 		this produces the correct result:
+				// 				-> ['a','b','c', 3,2,1, [1,2,3]]
+				// 		should be the same as above:
 				// 			await Promise.iter(
-				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], 
+				// 						['a','b','c', [3,2,1], Promise.all([1,2,3])])
+				// 					.flat()
+				// 				-> ['a','b','c', 3,2,1, [1,2,3]]
+				// 		correct:
+				// 			await Promise.iter(
+				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
 				// 					e => [e])
-				// 		this does not flatten the promise:
-				// 			await Promise.iter(
-				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])])
-				// 				.flat()
+				// 				-> ['a','b','c', [3,2,1], [1,2,3]]
 				// XXX need a strict spec...
 				return elem instanceof IterablePromise ?
 						(elem.isSync() ?
