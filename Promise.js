@@ -337,13 +337,20 @@ object.Constructor('IterablePromise', Promise, {
 			[map](function(elem){
 				//* XXX migrate code from old .__pack(..)...
 				// XXX these are not the same:
-				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])])
+				// 			await Promise.iter(
+				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])])
 				// 		and:
-				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], e => e)
+				// 			await Promise.iter(
+				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], 
+				// 					e => e)
 				// 		this produces the correct result:
-				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], e => [e])
+				// 			await Promise.iter(
+				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])], 
+				// 					e => [e])
 				// 		this does not flatten the promise:
-				// 			await Promise.iter(['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])]).flat()
+				// 			await Promise.iter(
+				// 					['a', 'b', 'c', [3,2,1], Promise.all([1,2,3])])
+				// 				.flat()
 				// XXX need a strict spec...
 				return elem instanceof IterablePromise ?
 						(elem.isSync() ?
