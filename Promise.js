@@ -335,32 +335,6 @@ object.Constructor('IterablePromise', Promise, {
 			: 'map'
 		return list
 			[map](function(elem){
-				//* XXX migrate code from old .__pack(..)...
-				// XXX examples...
-				// 		correct:
-				// 			await Promise.iter(
-				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])])
-				// 				-> ['a','b','c', [3,2,1], [1,2,3]]
-				// 		correct:
-				// 			await Promise.iter(
-				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
-				// 					'raw')
-				// 				-> ['a','b','c', 3,2,1, 1,2,3]
-				// 		should be the same as above (should expand promise):
-				// 			await Promise.iter(
-				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
-				// 					e => e)
-				// 				-> ['a','b','c', 3,2,1, [1,2,3]]
-				// 		should be the same as above:
-				// 			await Promise.iter(
-				// 						['a','b','c', [3,2,1], Promise.all([1,2,3])])
-				// 					.flat()
-				// 				-> ['a','b','c', 3,2,1, [1,2,3]]
-				// 		correct:
-				// 			await Promise.iter(
-				// 					['a','b','c', [3,2,1], Promise.all([1,2,3])], 
-				// 					e => [e])
-				// 				-> ['a','b','c', [3,2,1], [1,2,3]]
 				// XXX need a strict spec...
 				return elem instanceof IterablePromise ?
 						(elem.isSync() ?
@@ -370,39 +344,19 @@ object.Constructor('IterablePromise', Promise, {
 					: (elem instanceof SyncPromise
 							&& !(elem.sync() instanceof Promise)) ?
 						handler(elem.sync())
-					//: elem && elem.then ?
-					//	(handleSTOP ?
-					//		// stoppable -- need to handle stop async...
-					//		elem
-					//			.then(function(res){
-					//				return !stop ?
-					//					handler(res)
-					//					: [] }) 
-					//			// NOTE: we are using .catch(..) here
-					//			// 		instead of directly passing the
-					//			// 		error handler to be able to catch
-					//			// 		the STOP from the handler...
-					//			.catch(handleSTOP)
-					//		// non-stoppable...
-					//		: elem.then(handler))
+					: elem && elem.then ?
+						// XXX handle STOP...
+						elem.then(function(elem){
+							return handler(
+								elem.length == 1 ?
+									elem[0]
+									:elem) })
 					: elem instanceof Array ?
-						handler(elem)
-					// NOTE: we keep things that do not need protecting 
-					// 		from .flat() as-is...
-					//: !handle ?
-					//	elem
+						[handler(
+							elem.length == 1 ?
+								elem[0]
+								: elem)]
 					: handler(elem) })
-				/*/
-				elem = elem instanceof Array 
-						|| elem instanceof Promise ?
-					that.__handle(elem, handler, onerror)
-					: [handler(elem)]
-				elem = elem instanceof Promise ?
-					elem.then(function([e]){
-						return e })
-					: elem
-				return elem })
-				//*/
    			.flat() },
 	//*/
 	// XXX this should return IterablePromise if .__packed is partially sync (???)
