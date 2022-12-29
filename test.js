@@ -265,6 +265,32 @@ var cases = test.Cases({
 			await Promise.iter([1, Promise.resolve(2), 3]), 
 			[1, 2, 3], 
 				'promises as elements')
+
+		// XXX need a recursive assert...
+		var should_be = [ [1], [2], [3], [4], [5] ]
+		var got = await Promise.iter([
+				[1,1,1], 
+				Promise.sync.resolve([2,2,2]), 
+				Promise.resolve([3,3,3]), 
+				Promise.iter([4,4,4]), 
+				Promise.all([5,5,5]),
+			], 
+			function(e){
+				return e instanceof Array ? 
+					[[ e[0] ]] 
+					// XXX
+					: e })
+		assert(
+			should_be
+				.reduce(function(res, e, i){
+					//console.log('---', e, got[i])
+					if(res === false){
+						return false }
+					return e instanceof Array 
+						&& got[i] instanceof Array
+						&& e.length == got[i].length
+						&& e[0] == got[i][0] }, true), 
+			'pack/unpack')
 	},
 
 	// Date.js

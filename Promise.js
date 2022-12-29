@@ -306,6 +306,18 @@ object.Constructor('IterablePromise', Promise, {
 			: list },
 	// transform/handle packed array (sync, but can return promises in the list)...
 	// XXX need a strict spec...
+	// XXX BUG???
+	// 			await Promise.iter([
+	// 						Promise.sync.resolve([1,1,1]), 
+	// 						[2,2,2], 
+	// 						Promise.resolve([3,3,3]), 
+	// 						Promise.iter([4,4,4]), 
+	// 						Promise.all([5,5,5]),
+	// 					], 
+	// 					e => e instanceof Array ? [[1,2,3]] : e)
+	// 				-> [ 1, 2, 3, [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+	// 		...the fist result seems odd...
+	// 		XXX FIXED but need to add a test for IterablePromise branch below...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -325,38 +337,42 @@ object.Constructor('IterablePromise', Promise, {
 			'smap'
 			: 'map'
 		var stop = false
+		var unwrap = function(elem){
+			return elem.length == 1 ?
+				elem[0]
+				: elem }
 		return list
 			[map](
 				function(elem){
 					return elem instanceof IterablePromise ?
-							// XXX should this be expanded??? (like Array below)
+							// XXX should elem be expanded??? (like Array below)
 							(elem.isSync() ?
 								handler(elem.sync())
 								// XXX need to handle this but keep it IterablePromise...
 								: elem.iterthen(handler))
+						// sync sync promise...
 						: (elem instanceof SyncPromise
 								&& !(elem.sync() instanceof Promise)) ?
-							// XXX should this be expanded??? (like Array below)
-							handler(elem.sync())
+							[handler(unwrap(elem.sync()))]
 						// promise / promise-like...
 						: elem && elem.then ?
 							// NOTE: when this is explicitly stopped we 
-							// 		do not call any more handlers...
+							// 		do not call any more handlers after 
+							// 		STOP is thrown/returned...
 							// XXX TEST!!!
 							elem.then(function(elem){
 								return !stop ?
-									handler(
-										elem.length == 1 ?
-											elem[0]
-											:elem) 
+									handler(unwrap(elem))
 									: [] })
 						: elem instanceof Array ?
-							[handler(
-								elem.length == 1 ?
-									elem[0]
-									: elem)]
+							// NOTE: we are calling .flat() on the result
+							// 		so we need to keep a handled array as 
+							// 		a single element by wrapping the return 
+							// 		of handled(..)...
+							[handler(unwrap(elem))]
 						: handler(elem) },
-				function(res){
+				// handle STOP...
+				function(){
 					stop = true })
    			.flat() },
 	//*/
