@@ -373,7 +373,8 @@ object.Constructor('IterablePromise', Promise, {
 						: elem instanceof Array ?
 							[handler(unwrap( elem ))]
 						// raw element...
-						: handler(elem) },
+						// NOTE: no need to wrap or unwrap here...
+						: handler( elem ) },
 				// handle STOP...
 				function(){
 					stop = true })
