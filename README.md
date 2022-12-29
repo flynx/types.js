@@ -758,7 +758,25 @@ Resulting array length is strictly equal to the longest input array length.
 
 Return an iterator/generator from the current array.
 
+```bnf
+<array>.iter()
+<array>.iter(<func>)
+<array>.iter(<func>, <onstop>)
+	-> <generator>
+
+<func>(<elem>, <index>)
+	-> <value>
+
+<onstop>(STOP, ...<args>)
+<onstop>(<value>, ...<args>)
+```
+
 This is mostly useful in combination with the [Generator extensions and utilities](#generator-extensions-and-utilities)
+
+Note that all stoppable functions/iterators support `<onstop>` callback as 
+the last argument.
+
+<!-- XXX document <onstop> in all applicable functions -->
 
 
 ### `<array>.between(..)`
@@ -819,6 +837,9 @@ a supporting iterator method will abort further execution and correctly exit.
 
 Like `Array`'s `.map(..)`, `.filter(..)`, `.reduce(..)` and `.forEach(..)` but 
 with added support for aborting iteration by throwing `STOP` or `STOP(<value>)`.
+
+These can be passed a `<onstop>` callback as an additional last argument 
+that will be called if `STOP`/`STOP(<value>)` is returned or thrown.
 
 
 ### Large `Array` iteration (chunked)
@@ -2303,6 +2324,10 @@ var L = [1,2,3,4,5]
         .map(stopAt(3))
         .toArray()
 ```
+
+These also support passing the `<onstop>` callback as additional last 
+argument. It will be called when `STOP`/`STOP(<value>)` is thrown or 
+returned.
 
 
 #### `<generator>.reduce(..)` / `<generator>.greduce(..)`
