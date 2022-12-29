@@ -524,19 +524,27 @@ object.Mixin('ArrayProtoMixin', 'soft', {
 	// XXX this should handle throwing STOP!!!
 	// 		...might also ne a good idea to isolate the STOP mechanics 
 	// 		into a spearate module/package...
-	iter: stoppable(function*(handler=undefined){
-		if(handler){
-			var i = 0
-			for(var e of this){
-				var res = handler.call(this, e, i++) 
-				// treat non-iterables as single elements...
-				if(typeof(res) == 'object' 
-						&& Symbol.iterator in res){
-					yield* res
-				} else {
-					yield res } } 
-		} else {
-			yield* this }}),
+	iter: stoppable(
+		function*(handler=undefined, onstop){
+			if(handler){
+				var i = 0
+				for(var e of this){
+					var res = handler.call(this, e, i++) 
+					// treat non-iterables as single elements...
+					if(typeof(res) == 'object' 
+							&& Symbol.iterator in res){
+						yield* res
+					} else {
+						yield res } } 
+			} else {
+				yield* this }},
+		// handle stops is onstop(..) is defined...
+		function(res, _, onstop){
+			typeof(onstop) == 'function'
+				&& onstop.call(this, 
+					...(res === STOP ? 
+						[] 
+						: [res])) }),
 
 
 	// Stoppable iteration...

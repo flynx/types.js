@@ -91,23 +91,36 @@ function*(lst=[]){
 	} else {
 		yield lst } }
 
+// handle stops is onstop(..) is defined...
+var __onstop =
+function(res, _, ...args){
+	var onstop = args.at(-1)
+	typeof(onstop) == 'function'
+		&& onstop.call(this, 
+			...(res === STOP ? 
+				[] 
+				: [res])) }
+	
+
 // XXX updatae Array.js' version for compatibility...
 // XXX DOCS!!!
 var iter = 
 module.iter = 
 Generator.iter =
-	stoppable(function(lst=[]){
-		// handler -> generator-constructor...
-		if(typeof(lst) == 'function'){
-			// we need to be callable...
-			var that = this instanceof Function ?
-				this
-				// generic root generator...
-				: module.__iter
-			return function*(){
-				yield* that(...arguments).iter(lst) } }
-		// no handler -> generator instance...
-		return module.__iter(lst) })
+	stoppable(
+		function(lst=[]){
+			// handler -> generator-constructor...
+			if(typeof(lst) == 'function'){
+				// we need to be callable...
+				var that = this instanceof Function ?
+					this
+					// generic root generator...
+					: module.__iter
+				return function*(){
+					yield* that(...arguments).iter(lst) } }
+			// no handler -> generator instance...
+			return module.__iter(lst) },
+		__onstop)
 
 // NOTE: we need .iter(..) to both return generators if passed an iterable
 // 		and genereator constructos if passed a function...
@@ -308,31 +321,33 @@ var GeneratorProtoMixin =
 module.GeneratorProtoMixin =
 object.Mixin('GeneratorProtoMixin', 'soft', {
 	// XXX use module.iter(..) ???
-	iter: stoppable(function*(handler, onerror){ 
-		try{
-			if(handler){
-				var i = 0
-				for(var elem of this){
-					var res = handler.call(this, elem, i) 
-					// expand iterables...
-					if(typeof(res) == 'object' 
-							&& Symbol.iterator in res){
-						yield* res
-					// as-is...
-					} else {
-						yield res }}
-			// no handler...
-			} else {
-				yield* this } 
-		}catch(err){
-			if(onerror){
-				if(!(err === STOP 
-						|| err instanceof STOP)){
-					var res = onerror(err)
-					if(res){
-						yield res
-						return } } }
-			throw err }}),
+	iter: stoppable(
+		function*(handler, onerror){ 
+			try{
+				if(handler){
+					var i = 0
+					for(var elem of this){
+						var res = handler.call(this, elem, i) 
+						// expand iterables...
+						if(typeof(res) == 'object' 
+								&& Symbol.iterator in res){
+							yield* res
+						// as-is...
+						} else {
+							yield res }}
+				// no handler...
+				} else {
+					yield* this } 
+			}catch(err){
+				if(onerror){
+					if(!(err === STOP 
+							|| err instanceof STOP)){
+						var res = onerror(err)
+						if(res){
+							yield res
+							return } } }
+				throw err }},
+		__onstop),
 	//*/
 
 	at: function(i){
@@ -396,8 +411,10 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 					yield* func(e, i++, this) } 
 			} else {
 				for(var e of this){
-					yield func(e, i++, this) } } }),
-	filter: stoppable(function*(func){
+					yield func(e, i++, this) } } },
+		__onstop),
+	filter: stoppable(
+		function*(func){
 			var i = 0
 			try{
 				for(var e of this){
@@ -409,28 +426,36 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 					if(!err.value){
 						throw STOP }
 					err.value = e }
-				throw err } }),
+				throw err } },
+		__onstop),
 
-	reduce: stoppable(function(func, res){
-		var i = 0
-		for(var e of this){
-			res = func(res, e, i++, this) }
-		return res }),
+	reduce: stoppable(
+		function(func, res){
+			var i = 0
+			for(var e of this){
+				res = func(res, e, i++, this) }
+			return res },
+		// NOTE: we need to wrap __onstop(..) here to prevent res if it 
+		// 		was passed a function from ever being treated as onstop(..)...
+		function(res, f, _, onstop){
+			return __onstop.call(this, res, onstop) }),
 	greduce: function*(func, res){
 		yield this.reduce(...arguments) },
 
-	between: stoppable(function*(func){
-		var i = 0
-		var j = 0
-		var prev
-		for(var e of this){
-			if(i > 0){
-				yield typeof(func) == 'function' ?
-					func.call(this, [prev, e], i-1, i + j++, this)
-					: func }
-			prev = e
-			yield e
-			i++ } }),
+	between: stoppable(
+		function*(func){
+			var i = 0
+			var j = 0
+			var prev
+			for(var e of this){
+				if(i > 0){
+					yield typeof(func) == 'function' ?
+						func.call(this, [prev, e], i-1, i + j++, this)
+						: func }
+				prev = e
+				yield e
+				i++ } },
+		__onstop),
 
 	// NOTE: this is a special case in that it will unwind the generator...
 	// NOTE: this is different from <array>.forEach(..) in that this will
@@ -566,29 +591,31 @@ object.Mixin('AsyncGeneratorProtoMixin', 'soft', {
 		return this.unwind.finally(...arguments) },
 
 	// XXX might be a good idea to use this approach above...
-	iter: stoppable(async function*(handler=undefined, onerror=undefined){
-		try{
-			var i = 0
-			if(handler){
-				for await(var e of this){
-					var res = handler.call(this, e, i++)
-					if(typeof(res) == 'object' 
-							&& Symbol.iterator in res){
-						yield* res
-					} else {
-						yield res } }
-			} else {
-				yield* this } 
-		}catch(err){
-			if(onerror){
-				if(!(err === STOP || err instanceof STOP)){
-					var res = onerror(err) 
-					if(res !== undefined){
-						yield handler ?
-							handler(res)
-				   			: res } 
-					return } }
-			throw err } }),
+	iter: stoppable(
+		async function*(handler=undefined, onerror=undefined){
+			try{
+				var i = 0
+				if(handler){
+					for await(var e of this){
+						var res = handler.call(this, e, i++)
+						if(typeof(res) == 'object' 
+								&& Symbol.iterator in res){
+							yield* res
+						} else {
+							yield res } }
+				} else {
+					yield* this } 
+			}catch(err){
+				if(onerror){
+					if(!(err === STOP || err instanceof STOP)){
+						var res = onerror(err) 
+						if(res !== undefined){
+							yield handler ?
+								handler(res)
+								: res } 
+						return } }
+				throw err } },
+		__onstop),
 
 	map: async function*(func){
 		yield* this.iter(function(elem, i){
@@ -686,9 +713,11 @@ function*(value=true, stop){
 
 var produce =
 module.produce =
-stoppable(function*(func){
-	while(true){
-		yield func() } })
+stoppable(
+	function*(func){
+		while(true){
+			yield func() } },
+	__onstop)
 
 
 

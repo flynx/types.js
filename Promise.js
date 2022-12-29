@@ -255,16 +255,6 @@ object.Constructor('IterablePromise', Promise, {
 				return elem })
    			.flat() },
 	/*/
-	// XXX BUG:
-	// 			await Promise.iter([Promise.all([1,2,3])], e => e)
-	// 			await Promise.iter([Promise.iter([1,2,3])], e => e)
-	// 				-> [1]
-	// 		the issue is in .__handle(..)'s 
-	//			elem = elem instanceof Promise ?
-	//				elem.then(function([e]){
-	//					// XXX
-	//					return e })
-	//				: ...
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		// handle iterator...
@@ -315,6 +305,7 @@ object.Constructor('IterablePromise', Promise, {
 			this.__handle(list, handler, onerror)
 			: list },
 	// transform/handle packed array (sync, but can return promises in the list)...
+	// XXX need a strict spec...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -335,17 +326,20 @@ object.Constructor('IterablePromise', Promise, {
 			: 'map'
 		return list
 			[map](function(elem){
-				// XXX need a strict spec...
 				return elem instanceof IterablePromise ?
+						// XXX should this be expanded??? (like Array below)
 						(elem.isSync() ?
 							handler(elem.sync())
 							// XXX need to handle this but keep it IterablePromise...
 							: elem.iterthen(handler))
 					: (elem instanceof SyncPromise
 							&& !(elem.sync() instanceof Promise)) ?
+						// XXX should this be expanded??? (like Array below)
 						handler(elem.sync())
+					// promise / promise-like...
 					: elem && elem.then ?
-						// XXX handle STOP...
+						// XXX handle STOP -- no need to call handlers after a STOP...
+						// 		...is there a way to detect STOP from inside .smap(..) ???
 						elem.then(function(elem){
 							return handler(
 								elem.length == 1 ?
