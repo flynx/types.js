@@ -344,6 +344,9 @@ object.Constructor('IterablePromise', Promise, {
 		return list
 			[map](
 				function(elem){
+					// NOTE: we are calling .flat() on the result so we 
+					// 		need to keep a handled array as a single 
+					// 		element by wrapping the return of handled(..)...
 					return elem instanceof IterablePromise ?
 							// XXX should elem be expanded??? (like Array below)
 							(elem.isSync() ?
@@ -353,23 +356,23 @@ object.Constructor('IterablePromise', Promise, {
 						// sync sync promise...
 						: (elem instanceof SyncPromise
 								&& !(elem.sync() instanceof Promise)) ?
-							[handler(unwrap(elem.sync()))]
+							[handler(unwrap( elem.sync() ))]
 						// promise / promise-like...
 						: elem && elem.then ?
 							// NOTE: when this is explicitly stopped we 
 							// 		do not call any more handlers after 
 							// 		STOP is thrown/returned...
+							// NOTE: the promise protects this from .flat()
+							// XXX do we need to wrap the handler(..) result 
+							// 		in an array here??? -- TEST!!!
 							// XXX TEST!!!
 							elem.then(function(elem){
 								return !stop ?
-									handler(unwrap(elem))
+									handler(unwrap( elem ))
 									: [] })
 						: elem instanceof Array ?
-							// NOTE: we are calling .flat() on the result
-							// 		so we need to keep a handled array as 
-							// 		a single element by wrapping the return 
-							// 		of handled(..)...
-							[handler(unwrap(elem))]
+							[handler(unwrap( elem ))]
+						// raw element...
 						: handler(elem) },
 				// handle STOP...
 				function(){
