@@ -324,33 +324,40 @@ object.Constructor('IterablePromise', Promise, {
 		var map = !!this.constructor.STOP ?
 			'smap'
 			: 'map'
+		var stop = false
 		return list
-			[map](function(elem){
-				return elem instanceof IterablePromise ?
-						// XXX should this be expanded??? (like Array below)
-						(elem.isSync() ?
+			[map](
+				function(elem){
+					return elem instanceof IterablePromise ?
+							// XXX should this be expanded??? (like Array below)
+							(elem.isSync() ?
+								handler(elem.sync())
+								// XXX need to handle this but keep it IterablePromise...
+								: elem.iterthen(handler))
+						: (elem instanceof SyncPromise
+								&& !(elem.sync() instanceof Promise)) ?
+							// XXX should this be expanded??? (like Array below)
 							handler(elem.sync())
-							// XXX need to handle this but keep it IterablePromise...
-							: elem.iterthen(handler))
-					: (elem instanceof SyncPromise
-							&& !(elem.sync() instanceof Promise)) ?
-						// XXX should this be expanded??? (like Array below)
-						handler(elem.sync())
-					// promise / promise-like...
-					: elem && elem.then ?
-						// XXX handle STOP -- no need to call handlers after a STOP...
-						// 		...is there a way to detect STOP from inside .smap(..) ???
-						elem.then(function(elem){
-							return handler(
+						// promise / promise-like...
+						: elem && elem.then ?
+							// NOTE: when this is explicitly stopped we 
+							// 		do not call any more handlers...
+							// XXX TEST!!!
+							elem.then(function(elem){
+								return !stop ?
+									handler(
+										elem.length == 1 ?
+											elem[0]
+											:elem) 
+									: [] })
+						: elem instanceof Array ?
+							[handler(
 								elem.length == 1 ?
 									elem[0]
-									:elem) })
-					: elem instanceof Array ?
-						[handler(
-							elem.length == 1 ?
-								elem[0]
-								: elem)]
-					: handler(elem) })
+									: elem)]
+						: handler(elem) },
+				function(res){
+					stop = true })
    			.flat() },
 	//*/
 	// XXX this should return IterablePromise if .__packed is partially sync (???)
