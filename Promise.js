@@ -350,7 +350,7 @@ object.Constructor('IterablePromise', Promise, {
 					return elem instanceof IterablePromise ?
 							// XXX should elem be expanded??? (like Array below)
 							(elem.isSync() ?
-								handler(elem.sync())
+								handler( elem.sync() )
 								// XXX need to handle this but keep it IterablePromise...
 								: elem.iterthen(handler))
 						// sync sync promise...
@@ -365,7 +365,6 @@ object.Constructor('IterablePromise', Promise, {
 							// NOTE: the promise protects this from .flat()
 							// XXX do we need to wrap the handler(..) result 
 							// 		in an array here??? -- TEST!!!
-							// XXX TEST!!!
 							elem.then(function(elem){
 								return !stop ?
 									handler(unwrap( elem ))
