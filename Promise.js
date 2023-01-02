@@ -849,6 +849,11 @@ object.Constructor('IterablePromise', Promise, {
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
+
+	__pack: function(list, handler=undefined, onerror=undefined){
+		// XXX
+	},
+
 	__new__: function(_, list, handler=undefined, onerror=undefined){
 		var [_, list, ...rest] = arguments
 		var res = list
