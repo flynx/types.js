@@ -775,7 +775,8 @@ object.Constructor('IterablePromise', Promise, {
 		// instance...
 		var promise
 		var obj = Reflect.construct(
-			IterablePromise.__proto__, 
+			//IterablePromise.__proto__, 
+			this.constructor.__proto__,
 			[function(resolve, reject){
 				// NOTE: this is here for Promise compatibility...
 				if(typeof(list) == 'function'){
@@ -784,13 +785,17 @@ object.Constructor('IterablePromise', Promise, {
 				if(list === false){
 					return reject() }
 				promise = {resolve, reject} }], 
-			IterablePromise)
+			//IterablePromise)
+			this.constructor)
 
 		// populate new instance...
 		if(promise){
 			// handle/pack input data...
 			if(handler != 'raw'){
-				list = list instanceof IterablePromise ?
+				// XXX for some reason we get here twice...
+				//console.log('!!!!!!!!!!!!!', this.constructor.name)
+				//list = list instanceof IterablePromise ?
+				list = list instanceof this.constructor ?
 					obj.__handle(list.__packed, handler, onerror)
 					: obj.__pack(list, handler, onerror) }
 			Object.defineProperty(obj, '__packed', {
@@ -850,10 +855,30 @@ var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
 
+	// XXX for some reason .__new__(..) does not see this and calls 
+	// 		IterablePromise's version instead...
 	__pack: function(list, handler=undefined, onerror=undefined){
-		// XXX
-	},
+		console.log('!!! SEQITER')
+		var seqiter = this.constructor
+		list = object.parentCall(IterableSequentialPromise.prototype.__pack, this, ...arguments)
 
+		var pack = function(list){
+			var res = []
+			for(var [i, e] of list.entries()){
+				// XXX check for .then(..) instead???
+				if(e instanceof Promise){
+					res.push(seqiter(list.slice(i)))
+					break }
+				res.push(e) }
+			list = res }
+
+		return list instanceof Array ?
+				pack(list)
+			// XXX check for .then(..) instead???
+			: list instanceof Promise ?
+				list.then(pack)
+			: list },
+	/*/
 	__new__: function(_, list, handler=undefined, onerror=undefined){
 		var [_, list, ...rest] = arguments
 		var res = list
@@ -883,6 +908,7 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 		}
 		// XXX use .parentCall(..)...
 		return IterablePromise.prototype.__new__.call(this, _, res, ...rest) },
+	//*/
 })
 
 
