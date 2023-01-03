@@ -306,27 +306,6 @@ object.Constructor('IterablePromise', Promise, {
 			: list },
 	// transform/handle packed array (sync, but can return promises in the list)...
 	// XXX need a strict spec...
-	// XXX BUG???
-	// 			await Promise.iter([
-	// 						Promise.sync.resolve([1,1,1]), 
-	// 						[2,2,2], 
-	// 						Promise.resolve([3,3,3]), 
-	// 						Promise.iter([4,4,4]), 
-	// 						Promise.all([5,5,5]),
-	// 					], 
-	// 					e => e instanceof Array ? [[1,2,3]] : e)
-	// 				-> [ 1, 2, 3, [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ] ]
-	// 		...the fist result seems odd...
-	// 		XXX FIXED but need to add a test for IterablePromise branch below...
-	// XXX BUG: 
-	// 			await Promise.iter([1, Promise.all([2,3]), [4,5]], 'raw')
-	// 					.map(e => e*2)
-	// 				-> [1, NaN, NaN]
-	// 		while:
-	// 			await Promise.iter([1, Promise.all([2,3]), 4], 'raw')
-	// 				-> [1, 2, 3, 4]
-	// 		...this is because [2,3] is passed as a single item to map handler...
-	// 		XXX add test...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -346,10 +325,13 @@ object.Constructor('IterablePromise', Promise, {
 			'smap'
 			: 'map'
 		var stop = false
-		var unwrap = function(elem){
-			return elem.length == 1 ?
-				elem[0]
-				: elem }
+		// XXX do we handle generators here???
+		var each = function(elem){
+			return elem instanceof Array ?
+				elem
+					.map(handler)
+					.flat()
+				: handler(elem) }
 		return list
 			[map](
 				function(elem){
@@ -357,32 +339,26 @@ object.Constructor('IterablePromise', Promise, {
 					// 		need to keep a handled array as a single 
 					// 		element by wrapping the return of handled(..)...
 					return elem instanceof IterablePromise ?
-							// XXX should elem be expanded??? (like Array below)
 							(elem.isSync() ?
-								handler( elem.sync() )
-								// XXX need to handle this but keep it IterablePromise...
-								: elem.iterthen(handler))
+								each(elem.sync())
+								: elem.iterthen(each))
 						// sync sync promise...
 						: (elem instanceof SyncPromise
 								&& !(elem.sync() instanceof Promise)) ?
-							[handler(unwrap( elem.sync() ))]
+							[each(elem.sync())]
 						// promise / promise-like...
 						: elem && elem.then ?
 							// NOTE: when this is explicitly stopped we 
 							// 		do not call any more handlers after 
 							// 		STOP is thrown/returned...
 							// NOTE: the promise protects this from .flat()
-							// XXX do we need to wrap the handler(..) result 
-							// 		in an array here??? -- TEST!!!
 							elem.then(function(elem){
 								return !stop ?
-									handler(unwrap( elem ))
+									each(elem)
 									: [] })
 						: elem instanceof Array ?
-							[handler(unwrap( elem ))]
-						// raw element...
-						// NOTE: no need to wrap or unwrap here...
-						: handler( elem ) },
+							[each(elem)]
+						: each(elem) },
 				// handle STOP...
 				function(){
 					stop = true })
@@ -841,40 +817,11 @@ object.Constructor('IterablePromise', Promise, {
 //---------------------------------------------------------------------
 // XXX EXPEREMENTAL/HACK...
 
-// XXX we are getting a list with promises triggered outside, we can't
-// 		control order of execution of this but we can control in what 
-// 		order the handler is called...
-// XXX this potentially shows a bug with IterablePromise:
-// 			Promise.seqiter(
-// 				[1, Promise.resolve(2), 3, Promise.resolve(4)], 
-// 				e => (console.log('---', e), e))
-// 		...this will not resolve/replace the 4's promise...
-// 		for context:
-// 			await Promise.resolve(Promise.resolve(Promise.resolve(123)))
-// 				-> 123
-// 		...is this just a nesting issue here???
-// 		Q: what IterablePromise does/should do if a promise resolves to 
-// 			a promise multiple times...
 // XXX not sure if this is a viable strategy....
-// XXX use IterableSequentialPromise in .__packed....
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
-
-	// XXX BUG:
-	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4])
-	// 				-> [1, 2, 3, 4]
-	// 		these should be the same as the above:
-	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4], e => [e])
-	// 				-> [1, 2, [3, 4]]
-	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4]).iter(e => [e])
-	// 				-> [1, 2, [3, 4]]
-	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4]).map(e => e)
-	// 				-> [1, 2, [3, 4]]
-	// 		is the problem with seqiter instances not being recognized by .__handle(..) ???
-	// 		this might be related to:
-	// 			await Promise.iter([1,2,Promise.resolve(3), Promise.all([33,44]), 4], 'raw').map(e => e*2)
-	// 				-> [1,2,3,NaN,4]	// [33,44] is passed as-is to the map function...
+	// XXX needs more work...
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var seqiter = this.constructor
 
@@ -906,37 +853,6 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			// XXX this seems to be wrong...
 			this.__handle(list, handler, onerror)
 			: list },
-	/*/
-	__new__: function(_, list, handler=undefined, onerror=undefined){
-		var [_, list, ...rest] = arguments
-		var res = list
-		// format the list...
-		if(list instanceof Array 
-				|| list instanceof Promise){
-
-			var pre_process = function(list, start=0){
-				if(list instanceof Promise){
-					return list.then(pre_process) }
-				res = []
-				for(let [i, e] of list.entries().slice(start)){
-					if(e instanceof Promise){
-						res.push(e.then(function(e){
-							return [e,
-								// XXX need to flatten this...
-								...pre_process(list, i+1)] })) 
-						break }
-					res.push(e) } 
-				return res }
-			
-			res = pre_process(list)
-				
-			var obj = IterablePromise.prototype.__new__.call(this, _, res, 'raw')
-
-			return obj
-		}
-		// XXX use .parentCall(..)...
-		return IterablePromise.prototype.__new__.call(this, _, res, ...rest) },
-	//*/
 })
 
 
