@@ -319,9 +319,9 @@ object.Constructor('IterablePromise', Promise, {
 	// 		...the fist result seems odd...
 	// 		XXX FIXED but need to add a test for IterablePromise branch below...
 	// XXX BUG: 
-	// 			await Promise.iter([1, Promise.all([2,3]), 4], 'raw')
+	// 			await Promise.iter([1, Promise.all([2,3]), [4,5]], 'raw')
 	// 					.map(e => e*2)
-	// 				-> [1, NaN, 4]
+	// 				-> [1, NaN, NaN]
 	// 		while:
 	// 			await Promise.iter([1, Promise.all([2,3]), 4], 'raw')
 	// 				-> [1, 2, 3, 4]
