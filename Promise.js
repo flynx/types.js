@@ -318,6 +318,15 @@ object.Constructor('IterablePromise', Promise, {
 	// 				-> [ 1, 2, 3, [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ] ]
 	// 		...the fist result seems odd...
 	// 		XXX FIXED but need to add a test for IterablePromise branch below...
+	// XXX BUG: 
+	// 			await Promise.iter([1, Promise.all([2,3]), 4], 'raw')
+	// 					.map(e => e*2)
+	// 				-> [1, NaN, 4]
+	// 		while:
+	// 			await Promise.iter([1, Promise.all([2,3]), 4], 'raw')
+	// 				-> [1, 2, 3, 4]
+	// 		...this is because [2,3] is passed as a single item to map handler...
+	// 		XXX add test...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -775,8 +784,8 @@ object.Constructor('IterablePromise', Promise, {
 		// instance...
 		var promise
 		var obj = Reflect.construct(
-			//IterablePromise.__proto__, 
-			this.constructor.__proto__,
+			Promise,
+			//this.constructor.__proto__,
 			[function(resolve, reject){
 				// NOTE: this is here for Promise compatibility...
 				if(typeof(list) == 'function'){
@@ -785,15 +794,12 @@ object.Constructor('IterablePromise', Promise, {
 				if(list === false){
 					return reject() }
 				promise = {resolve, reject} }], 
-			//IterablePromise)
 			this.constructor)
 
 		// populate new instance...
 		if(promise){
 			// handle/pack input data...
 			if(handler != 'raw'){
-				// XXX for some reason we get here twice...
-				//console.log('!!!!!!!!!!!!!', this.constructor.name)
 				//list = list instanceof IterablePromise ?
 				list = list instanceof this.constructor ?
 					obj.__handle(list.__packed, handler, onerror)
@@ -855,28 +861,50 @@ var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
 
-	// XXX for some reason .__new__(..) does not see this and calls 
-	// 		IterablePromise's version instead...
+	// XXX BUG:
+	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4])
+	// 				-> [1, 2, 3, 4]
+	// 		these should be the same as the above:
+	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4], e => [e])
+	// 				-> [1, 2, [3, 4]]
+	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4]).iter(e => [e])
+	// 				-> [1, 2, [3, 4]]
+	// 			await Promise.seqiter([1,2,Promise.resolve(3), 4]).map(e => e)
+	// 				-> [1, 2, [3, 4]]
+	// 		is the problem with seqiter instances not being recognized by .__handle(..) ???
+	// 		this might be related to:
+	// 			await Promise.iter([1,2,Promise.resolve(3), Promise.all([33,44]), 4], 'raw').map(e => e*2)
+	// 				-> [1,2,3,NaN,4]	// [33,44] is passed as-is to the map function...
 	__pack: function(list, handler=undefined, onerror=undefined){
-		console.log('!!! SEQITER')
 		var seqiter = this.constructor
-		list = object.parentCall(IterableSequentialPromise.prototype.__pack, this, ...arguments)
 
-		var pack = function(list){
+		var repack = function(list){
 			var res = []
 			for(var [i, e] of list.entries()){
 				// XXX check for .then(..) instead???
-				if(e instanceof Promise){
-					res.push(seqiter(list.slice(i)))
+				if(e instanceof Promise 
+						// skip last promise -- nothing to wrap...
+						&& i < list.length-1){
+					res.push(e
+						.then(function(e){ 
+							return seqiter([...e, ...list.slice(i+1)]) }))
 					break }
 				res.push(e) }
-			list = res }
+			return res }
 
-		return list instanceof Array ?
-				pack(list)
+		// NOTE: we are not handling the list here...
+		list = object.parentCall(IterableSequentialPromise.prototype.__pack, this, list) 
+
+		list = list instanceof Array ?
+				repack(list)
 			// XXX check for .then(..) instead???
 			: list instanceof Promise ?
-				list.then(pack)
+				list.then(repack)
+			: list 
+
+		return handler ?
+			// XXX this seems to be wrong...
+			this.__handle(list, handler, onerror)
 			: list },
 	/*/
 	__new__: function(_, list, handler=undefined, onerror=undefined){
