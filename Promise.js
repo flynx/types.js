@@ -836,7 +836,7 @@ object.Constructor('IterablePromise', Promise, {
 // NOTE: that here a promise will block handling of later promises even 
 // 		if they are resolved before it.
 //
-// XXX BUG:
+// XXX BUG (FIXED):
 // 			await Promise.seqiter([
 // 						1,
 // 						Promise.resolve(2), 
@@ -847,11 +847,12 @@ object.Constructor('IterablePromise', Promise, {
 // 				-> [ 1, 2, [3], [[4]], [[[5]]] ]
 // 		looks like we need to flatten things...
 // 		XXX FIXED but need more testing...
+// XXX check if this behaves correctly (call order) on concatenation and
+// 		other methods...
 // XXX not sure if this is a viable strategy....
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterablePromise, {
-	// XXX needs more work...
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var seqiter = this.constructor
 
@@ -864,7 +865,8 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 						&& i < list.length-1){
 					res.push(e
 						.then(function(e){ 
-							return seqiter([...e, ...list.slice(i+1)])
+							return seqiter(
+									[...e, ...list.slice(i+1)])
 								.flat() }))
 					break }
 				res.push(e) }
@@ -883,7 +885,6 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			: list 
 
 		return handler ?
-			// XXX this seems to be wrong...
 			this.__handle(list, handler, onerror)
 			: list },
 })
