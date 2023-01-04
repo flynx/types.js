@@ -817,6 +817,36 @@ object.Constructor('IterablePromise', Promise, {
 //---------------------------------------------------------------------
 // XXX EXPEREMENTAL/HACK...
 
+// This like IterablePromise but guarantees handler execution in order 
+// element occurrence.
+//
+// For comparison:
+// 		Promise.all([ .. ]).then(func)
+// 			- func is called on element list
+// 			- func is called when all the elements are resolved
+// 		Promise.iter([ .. ]).iter(func)
+// 			- func per element
+// 			- func is called when an element is resolved/ready 
+// 				in any order
+// 		Promise.seqiter([ .. ]).iter(func)
+// 			- func per element
+// 			- func is called when an element is resolved/ready 
+// 				and when all elements before it are handled
+//
+// NOTE: that here a promise will block handling of later promises even 
+// 		if they are resolved before it.
+//
+// XXX BUG:
+// 			await Promise.seqiter([
+// 						1,
+// 						Promise.resolve(2), 
+// 						Promise.resolve(3)
+// 						Promise.resolve(4)
+// 						Promise.resolve(5)
+// 					])
+// 				-> [ 1, 2, [3], [[4]], [[[5]]] ]
+// 		looks like we need to flatten things...
+// 		XXX FIXED but need more testing...
 // XXX not sure if this is a viable strategy....
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
@@ -834,14 +864,17 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 						&& i < list.length-1){
 					res.push(e
 						.then(function(e){ 
-							return seqiter([...e, ...list.slice(i+1)]) }))
+							return seqiter([...e, ...list.slice(i+1)])
+								.flat() }))
 					break }
 				res.push(e) }
 			return res }
 
 		// NOTE: we are not handling the list here...
 		list = object.parentCall(IterableSequentialPromise.prototype.__pack, this, list) 
-
+		list = list instanceof SyncPromise ?
+			list.sync()
+			: list
 		list = list instanceof Array ?
 				repack(list)
 			// XXX check for .then(..) instead???
