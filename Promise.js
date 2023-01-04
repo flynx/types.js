@@ -836,25 +836,6 @@ object.Constructor('IterablePromise', Promise, {
 // NOTE: that here a promise will block handling of later promises even 
 // 		if they are resolved before it.
 //
-// XXX BUG (FIXED):
-// 			await Promise.seqiter([
-// 						1,
-// 						Promise.resolve(2), 
-// 						Promise.resolve(3),
-// 						Promise.resolve(4),
-// 						Promise.resolve(5),
-// 					])
-// 				-> [ 1, 2, [3], [[4]], [[[5]]] ]
-// 		looks like we need to flatten things...
-// 		XXX FIXED but need more testing...
-// XXX BUG (FIXED):
-// 			await Promise.seqiter([
-// 						[1], 
-// 						Promise.resolve([1]), 
-// 						Promise.resolve([1])
-// 					], 
-// 					e => [e])
-//				-> [ [ 1 ], 1, [ 1 ] ]
 // XXX check if this behaves correctly (call order) on concatenation and
 // 		other methods...
 // XXX not sure if this is a viable strategy....
