@@ -816,6 +816,7 @@ object.Constructor('IterablePromise', Promise, {
 
 //---------------------------------------------------------------------
 // XXX EXPEREMENTAL/HACK...
+// Sequential iterable promise...
 
 // This like IterablePromise but guarantees handler execution in order 
 // element occurrence.
@@ -827,7 +828,7 @@ object.Constructor('IterablePromise', Promise, {
 // 		Promise.iter([ .. ]).iter(func)
 // 			- func per element
 // 			- func is called when an element is resolved/ready 
-// 				in any order
+// 				in order of resolution/readiness
 // 		Promise.seqiter([ .. ]).iter(func)
 // 			- func per element
 // 			- func is called when an element is resolved/ready 
@@ -836,6 +837,13 @@ object.Constructor('IterablePromise', Promise, {
 // NOTE: that here a promise will block handling of later promises even 
 // 		if they are resolved before it.
 //
+// XXX is this correct???
+// 			> g = function*(){ yield* [1,2,3] }
+//			// XXX should this expand the generator???
+//			> await Promise.seqiter([0, g()])
+//				-> [ 0, Object [Generator] {} ]
+//			> await Promise.seqiter([0, g()]).flat()
+//				-> [ 0, 1, 2, 3 ]
 // XXX check if this behaves correctly (call order) on concatenation and
 // 		other methods...
 // XXX not sure if this is a viable strategy....
