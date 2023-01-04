@@ -266,32 +266,40 @@ var cases = test.Cases({
 			[1, 2, 3], 
 				'promises as elements')
 
-		// XXX need a recursive assert...
-		var should_be = [ [1], [2], [3], [4], [5], [6] ]
-		var got = await Promise.iter([
-				[1,1,1], 
-				Promise.sync.resolve([2,2,2]), 
-				Promise.resolve([3,3,3]), 
-				Promise.iter([4,4,4]), 
-				Promise.iter.resolve([5,5,5]), 
-				Promise.all([6,6,6]),
-			], 
-			function(e){
-				return e instanceof Array ? 
-					[[ e[0] ]] 
-					// XXX
-					: e })
-		assert(
-			should_be
-				.reduce(function(res, e, i){
-					//console.log('---', e, got[i])
-					if(res === false){
-						return false }
-					return e instanceof Array 
-						&& got[i] instanceof Array
-						&& e.length == got[i].length
-						&& e[0] == got[i][0] }, true), 
-			'pack/unpack:', got)
+		// XXX split this into separate cases...
+		for(var meth of ['iter', 'seqiter']){
+			// XXX need a recursive assert...
+			var should_be = [ [1], [2], [3], [4], [5], [6] ]
+			var got = await Promise[meth]([
+					[1,1,1], 
+					Promise.sync.resolve([2,2,2]), 
+					Promise.resolve([3,3,3]), 
+					Promise.iter([4,4,4]), 
+					Promise.iter.resolve([5,5,5]), 
+					Promise.all([6,6,6]),
+				], 
+				function(e){
+					return e instanceof Array ? 
+						[[ e[0] ]] 
+						// XXX
+						: e })
+			assert(
+				should_be
+					.reduce(function(res, e, i){
+						//console.log('---', e, got[i])
+						if(res === false){
+							return false }
+						return e instanceof Array 
+							&& got[i] instanceof Array
+							&& e.length == got[i].length
+							&& e[0] == got[i][0] }, true), 
+				'pack/unpack', meth, got)
+
+			assert.array(
+				await Promise[meth]([1, Promise.resolve(2), Promise.resolve(3)]),
+				[1,2,3],
+					'flat unpack', meth)
+		}
 	},
 
 	// Date.js

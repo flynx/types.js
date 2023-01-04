@@ -840,13 +840,21 @@ object.Constructor('IterablePromise', Promise, {
 // 			await Promise.seqiter([
 // 						1,
 // 						Promise.resolve(2), 
-// 						Promise.resolve(3)
-// 						Promise.resolve(4)
-// 						Promise.resolve(5)
+// 						Promise.resolve(3),
+// 						Promise.resolve(4),
+// 						Promise.resolve(5),
 // 					])
 // 				-> [ 1, 2, [3], [[4]], [[[5]]] ]
 // 		looks like we need to flatten things...
 // 		XXX FIXED but need more testing...
+// XXX BUG (FIXED):
+// 			await Promise.seqiter([
+// 						[1], 
+// 						Promise.resolve([1]), 
+// 						Promise.resolve([1])
+// 					], 
+// 					e => [e])
+//				-> [ [ 1 ], 1, [ 1 ] ]
 // XXX check if this behaves correctly (call order) on concatenation and
 // 		other methods...
 // XXX not sure if this is a viable strategy....
@@ -860,13 +868,14 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			var res = []
 			for(var [i, e] of list.entries()){
 				// XXX check for .then(..) instead???
-				if(e instanceof Promise 
+				//if(e instanceof Promise 
+				if(e.then
 						// skip last promise -- nothing to wrap...
 						&& i < list.length-1){
 					res.push(e
 						.then(function(e){ 
 							return seqiter(
-									[...e, ...list.slice(i+1)])
+									[e, ...list.slice(i+1)])
 								.flat() }))
 					break }
 				res.push(e) }
@@ -880,7 +889,8 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 		list = list instanceof Array ?
 				repack(list)
 			// XXX check for .then(..) instead???
-			: list instanceof Promise ?
+			//: list instanceof Promise ?
+			: list.then ?
 				list.then(repack)
 			: list 
 
