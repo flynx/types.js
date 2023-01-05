@@ -856,8 +856,6 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 		var repack = function(list){
 			var res = []
 			for(var [i, e] of list.entries()){
-				// XXX check for .then(..) instead???
-				//if(e instanceof Promise 
 				if(e.then
 						// skip last promise -- nothing to wrap...
 						&& i < list.length-1){
@@ -877,12 +875,9 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			: list
 		list = list instanceof Array ?
 				repack(list)
-			// XXX check for .then(..) instead???
-			//: list instanceof Promise ?
 			: list.then ?
 				list.then(repack)
 			: list 
-
 		return handler ?
 			this.__handle(list, handler, onerror)
 			: list },
