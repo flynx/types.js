@@ -112,9 +112,9 @@ var cases = test.Cases({
 	},
 
 	IterablePromise: test.TestSet(function(){
-		var create = function(assert, value){
+		var create = function(assert, value, expected){
 			return {
-				input: value, 
+				input: expected ?? value, 
 				output: assert(Promise.iter(value), 'Promise.iter(', value, ')'),
 			} }
 
@@ -136,21 +136,17 @@ var cases = test.Cases({
 			array_mixed: function(assert){
 				return create(assert, [1, Promise.resolve(2), 3]) },
 			nested_array_mixed: function(assert){
-				return create(assert, [
-					1, 
-					Promise.resolve(2), 
-					[3], 
-					Promise.resolve([4]),
-				]) },
+				return create(assert, 
+					[1, Promise.resolve(2), [3], Promise.resolve([4])],
+					[1, 2, [3], [4]]) },
 			promise_array_mixed: function(assert){
-				return create(assert, Promise.resolve([1, Promise.resolve(2), 3])) },
+				return create(assert, 
+					Promise.resolve([1, Promise.resolve(2), 3]), 
+					[1, 2, 3]) },
 			promise_nested_array_mixed: function(assert){
-				return create(assert, Promise.resolve([
-					1, 
-					Promise.resolve(2), 
-					[3], 
-					Promise.resolve([4]),
-				])) },
+				return create(assert, 
+					Promise.resolve([1, Promise.resolve(2), [3], Promise.resolve([4])]),
+					[1, 2, [3], [4]]) },
 		})
 		this.Modifier({
 			nest: function(assert, setup){
@@ -182,6 +178,19 @@ var cases = test.Cases({
 					output: setup.output
 						.filter(function(e){ return false }),
 				} },
+			filter_promise_all: function(assert, setup){
+				setup.output = setup.output
+					.filter(function(e){ 
+						return Promise.resolve(true) }) 
+				return setup },
+			filter_promise_none: function(assert, setup){
+				return {
+					input: [],
+					output: setup.output
+						.filter(function(e){ 
+							return Promise.resolve(false) }),
+				} },
+			//*/
 
 			/* XXX need tuning...
 			concat_basic: function(assert, {input, output}){
@@ -300,6 +309,23 @@ var cases = test.Cases({
 				[1,2,3],
 					'flat unpack', meth)
 		}
+
+		var order = []
+		await Promise.seqiter([
+				1,
+				Promise.resolve(2),
+				Promise.all([3,4]),
+				Promise.seqiter([5]),
+				6,
+			])
+			.flat()
+			.map(function(e){
+				order.push(e)
+				return e })
+		assert.array(
+			order,
+			[1,2,3,4,5,6],
+				'Promise.seqiter(..) handle order')
 	},
 
 	// Date.js
@@ -557,8 +583,8 @@ Events.cases({
 
 
 		// test event list...
-		assert.array(obj.events, ['event', 'eventBlank'], '.events')
-		assert.array(obj.eventful, ['bareEvent', 'bareEventBlank'], '.eventful')
+		assert.array(obj.events, ['eventBlank', 'event'], '.events')
+		assert.array(obj.eventful, ['bareEventBlank', 'bareEvent'], '.eventful')
 
 		// bind...
 		var bind = function(evt){
