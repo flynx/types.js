@@ -63,6 +63,9 @@ var generator = require('./generator')
 // XXX add support for async generators...
 // 		
 
+var EMPTY = {doc: 'empty placeholder'}
+
+
 var iterPromiseProxy = 
 module.iterPromiseProxy = 
 function(name){
@@ -165,12 +168,9 @@ object.Constructor('IterablePromise', Promise, {
 			.map(function(elem){
 				return elem instanceof Array ?
 						[elem]
-					/* XXX PROMISE_WRAP 
-					/*/
 					: elem instanceof Promise ?
 						elem.then(function(e){
 							return [e] })
-					//*/
 					: elem })
 		// handle if needed...
 		return handler ?
@@ -178,6 +178,11 @@ object.Constructor('IterablePromise', Promise, {
 			: list },
 	// transform/handle packed array (sync, but can return promises in the list)...
 	// XXX need a strict spec...
+	//
+	// XXX BUG:
+	// 			await Promise.iter([1, [2], Promise.resolve(3), Promise.resolve([4])], e => [[1,2,3]])
+	//				-> [ 1, 2, 3, [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ] ]
+	//		the first item should not be expanded...
 	__handle: function(list, handler=undefined, onerror=undefined){
 		var that = this
 		if(typeof(list) == 'function'){
@@ -201,7 +206,17 @@ object.Constructor('IterablePromise', Promise, {
 		var each = function(elem){
 			return elem instanceof Array ?
 				elem
-					.map(handler)
+					//.map(handler)
+					// XXX can we avoid using EMPTY here and instead use .flat(..) ???
+					.map(function(elem){
+						var res = handler(elem)
+						return res instanceof Promise ?
+							res.then(function(e){
+								return (e instanceof Array 
+										&& e.length == 0) ?
+									EMPTY
+									: e })
+							: res })
 					.flat()
 				: handler(elem) }
 		return list
@@ -226,14 +241,8 @@ object.Constructor('IterablePromise', Promise, {
 							// NOTE: the promise protects this from .flat()
 							elem.then(function(elem){
 								return !stop ?
-									// XXX this should be the same as the non-promise version...
-									// 		(see: .filter(..))
-									/* XXX PROMISE_WRAP
-									[each(elem)]
-									/*/
 									each(elem)
-									//*/
-									: [] })
+									: EMPTY })
 						: elem instanceof Array ?
 							[each(elem)]
 						: each(elem) },
@@ -254,6 +263,8 @@ object.Constructor('IterablePromise', Promise, {
 				.then(this.__unpack.bind(this)) }
 		var res = []
 		for(var e of list){
+			if(e === EMPTY){
+				continue }
 			if(e instanceof IterablePromise){
 				e = e.__unpack() }
 			if(e instanceof SyncPromise){
@@ -263,11 +274,9 @@ object.Constructor('IterablePromise', Promise, {
 				// XXX can we return an IterablePromise???
 				// XXX is there a more elegant way to do this???
 				return Promise.all(list)
-					/* XXX PROMISE_WRAP
-					/*/
 					.then(function(list){ 
+						// XXX do we need to handle EMPTY???
 						return list.flat() })
-					//*/
 					.iter() }
 			res.push(e) }
 		return res.flat() },
@@ -295,15 +304,7 @@ object.Constructor('IterablePromise', Promise, {
 	map: function(func){
 		return this.constructor(this, 
 			function(e){
-				/* XXX PROMISE_WRAP
-				var res = func(e)
-				return res instanceof Promise ?
-					res.then(function(e){
-						return [e] })
-					: [res] }) },
-				/*/
 				return [func(e)] }) },
-				//*/
 	// XXX BUG:
 	//			await Promise.iter([1, [2], 3])
 	//					.filter(e => Promise.resolve(false))
@@ -320,11 +321,7 @@ object.Constructor('IterablePromise', Promise, {
 					res.then(function(res){
 						// XXX this should be the same as the non-promise version...
 						return res ?
-							/* XXX PROMISE_WRAP
-							[e]
-							/*/
 							e
-							//*/
 							: [] })
 					: res ?
 						[e]
