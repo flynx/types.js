@@ -326,6 +326,13 @@ var cases = test.Cases({
 			order,
 			[1,2,3,4,5,6],
 				'Promise.seqiter(..) handle order')
+
+		assert.array(
+			await Promise.iter(
+				[1, [2], Promise.resolve(3), Promise.resolve([4])], 
+				e => Promise.resolve(['moo'])),
+			[ ['moo'], [ 'moo' ], [ 'moo' ], [ 'moo' ] ],
+				'handler returns promise')
 	},
 
 	// Date.js
