@@ -327,19 +327,21 @@ var cases = test.Cases({
 			[1,2,3,4,5,6],
 				'Promise.seqiter(..) handle order')
 
-		// XXX handler...
-		var async_handler = async function(input, output, handler, msg){
+
+		var test_async_handler = async function(input, output, handler, msg){
+			// sanity check...
 			assert.array(
 				await Promise.iter(input, handler),
 				output,
-					msg)
+				msg+' (sanity check)')
 			assert.array(
 				await Promise.iter(input,
 					function(e){ 
-						return handler(e) }),
+						return Promise.resolve(handler(e)) }),
 				await Promise.iter(input, handler),
-					msg) }
-		await async_handler(
+				msg) }
+
+		await test_async_handler(
 			[
 				1, 
 				[2], 
@@ -347,9 +349,10 @@ var cases = test.Cases({
 				Promise.resolve([4]),
 			], 
 			[],
-			function(e){ return [] },
-			'handler returns promise - empty')
-		await async_handler(
+			function(e){ 
+				return [] },
+			'handler returns promise (empty)')
+		await test_async_handler(
 			[
 				1, 
 				[2], 
@@ -357,50 +360,9 @@ var cases = test.Cases({
 				Promise.resolve([4]),
 			], 
 			[ 'moo', 'moo', 'moo', 'moo' ],
-			function(e){ return ['moo'] },
-			'handler returns promise - array')
-
-		/*
-		assert.array(
-			await Promise.iter(
-				[
-					1, 
-					[2], 
-					Promise.resolve(3), 
-					Promise.resolve([4]),
-				], 
-				e => Promise.resolve([])),
-			//[],
-			await Promise.iter(
-				[
-					1, 
-					[2], 
-					Promise.resolve(3), 
-					Promise.resolve([4]),
-				], 
-				e => []),
-				'handler returns promise - empty')
-		assert.array(
-			await Promise.iter(
-				[
-					1, 
-					[2], 
-					Promise.resolve(3), 
-					Promise.resolve([4]),
-				], 
-				e => Promise.resolve(['moo'])),
-			// XXX what should this return???
-			//[ 'moo', 'moo', 'moo', 'moo' ],
-			await Promise.iter(
-				[
-					1, 
-					[2], 
-					Promise.resolve(3), 
-					Promise.resolve([4]),
-				], 
-				e => ['moo']),
-				'handler returns promise - array')
-		//*/
+			function(e){ 
+				return ['moo'] },
+			'handler returns promise (array)')
 	},
 
 	// Date.js

@@ -35,6 +35,45 @@ var generator = require('./generator')
 
 
 //---------------------------------------------------------------------
+// XXX EXPERIMENTING...
+
+//
+//	pack(<array>)
+//	pack(<promise>)
+//		-> <packed>
+//		-> <packed>
+//
+//	<packed> ::=
+//		<packed-array>
+//		| <packed-promise>
+//
+//	<packed-array> ::=
+//		[
+//			<item>
+//			| <array-of-items>
+//			| <promise-item>
+//			| <promise-array-of-items>,
+//			...
+//		]
+//
+var pack =
+module.pack =
+function(list){
+}
+
+var handle =
+module.handle =
+function(list, handler, onerror){
+}
+
+var unpack =
+module.unpack =
+function(list){
+}
+
+
+
+//---------------------------------------------------------------------
 // Iterable promise...
 // 
 // Like Promise.all(..) but adds ability to iterate through results
@@ -198,6 +237,7 @@ object.Constructor('IterablePromise', Promise, {
 		list = list instanceof Array ?
 			list
 			: [list]
+
 		var map = !!this.constructor.STOP ?
 			'smap'
 			: 'map'
@@ -217,6 +257,7 @@ object.Constructor('IterablePromise', Promise, {
 									EMPTY
 									: e })
 							: res })
+					// XXX this will not expand promise results...
 					.flat()
 				: handler(elem) }
 		return list
@@ -269,6 +310,7 @@ object.Constructor('IterablePromise', Promise, {
 				e = e.__unpack() }
 			if(e instanceof SyncPromise){
 				e = e.sync() }
+
 			// give up on a sync solution...
 			if(e instanceof Promise){
 				// XXX can we return an IterablePromise???
@@ -278,6 +320,7 @@ object.Constructor('IterablePromise', Promise, {
 						// XXX do we need to handle EMPTY???
 						return list.flat() })
 					.iter() }
+
 			res.push(e) }
 		return res.flat() },
 	
