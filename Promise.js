@@ -41,7 +41,6 @@ var generator = require('./generator')
 //	pack(<array>)
 //	pack(<promise>)
 //		-> <packed>
-//		-> <packed>
 //
 //	<packed> ::=
 //		<packed-array>
@@ -50,26 +49,105 @@ var generator = require('./generator')
 //	<packed-array> ::=
 //		[
 //			<item>
-//			| <array-of-items>
+//			| <items>				- array
 //			| <promise-item>
-//			| <promise-array-of-items>,
+//			| <promise-items>,
 //			...
 //		]
 //
+// NOTE: when all promises are expanded the packed array can be unpacked 
+// 		by simply calling .flat()
 var pack =
 module.pack =
 function(list){
-}
+	return list
+		.map(function(elem){
+			return elem instanceof Array ?
+					[elem]
+				: elem instanceof Promise ?
+					elem.then(function(elem){
+						return elem instanceof Array ?
+							[elem]
+							: elem })
+				: elem }) }
 
+// XXX BUG:
+// 			await pr.unpack(
+// 					pr.handle([
+// 						1, 
+// 						[[2]], 
+// 						Promise.resolve(3), 
+// 						Promise.resolve([[4]]), 
+// 						[Promise.resolve(5)],
+// 						Promise.resolve([6]), 
+// 					], 
+// 					e => (console.log('---', e), [e])))
+// 				-> [1, [2], 3, [[4]], 5, 6]
+// 		should be:
+// 				-> [1, [2], 3, [4], 5, [6]]
+//		...the issue is that nested promises' return values can not be 
+//		expanded via .flat() until they are resolved (see notes in code)
+// 		possible solutions:
+// 			1) find a sound structural way around this...
+// 			2) mark the result and expand it on resolve and unpack...
+// 			3) live flatten
+// 				i.e. expand all non-array array elements:
+// 					[1, [2, [3], Promise.resolve(..)], 5]
+// 						-> [1, 2, [[3]], Promise.resolve(..), 5]
 var handle =
 module.handle =
 function(list, handler, onerror){
-}
+	return list
+		// NOTE: we do not need to rapack after this because the handlers 
+		// 		will get the correct (unpacked) values and it's their 
+		// 		responsibility to pack them if needed...
+		// XXX promises (promise results) are not affected by this, 
+		// 		i.e. they are not flattened and still need to be expanded 
+		// 		on unpack(..)
+		//		XXX this is also a problem on the next handle(..) run as 
+		//			we need to pass the handler the unpacked value and 
+		//			we have no way distinguish between the first run (when 
+		//			we do not need to unpack) and the rest (when we do)...
+		.flat()
+		.smap(
+			function(elem){
+				return elem instanceof Promise ?
+					elem.then(function(elem){
+						return elem instanceof Array ?
+							elem.map(function(elem){
+								return elem instanceof Promise ?
+									elem.then(handler)
+									: handler(elem) })
+							: handler(elem) })
+					: handler(elem) },
+			...[...arguments].slice(2)) }
 
 var unpack =
 module.unpack =
 function(list){
-}
+	var input = list
+	// NOTE: we expand promises on the first two levels of the packed 
+	// 		list and then flatten the result...
+	for(var [i, elem] of Object.entries(list)){
+		// expand promises in lists...
+		if(elem instanceof Array){
+			for(var e of elem){
+				if(e instanceof Promise){
+					// copy the input (on demand) list as we'll need to 
+					// modify it...
+					list === input
+						&& (list = list.slice())
+					// NOTE: this will immediately be caught by the 
+					// 		Promise condition below...
+					elem = list[i] = 
+						Promise.all(elem)
+					break } } }
+		// expand promises...
+		if(elem instanceof Promise){
+			return Promise.all(list)
+				.then(unpack) } }
+	// the list is expanded here...
+	return list.flat() }
 
 
 
