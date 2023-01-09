@@ -82,6 +82,10 @@ function(list){
 							: elem })
 				: elem }) }
 
+// 
+// 	handle(<packed>, <handler>[, <onerror>])
+// 		-> <packed>
+//
 var handle =
 module.handle =
 function(list, handler, onerror){
@@ -146,6 +150,10 @@ function(list, handler, onerror){
 			// onerror...
 			...handlers.slice(1)) }
 
+//
+// 	unpack(<packed>)
+// 		-> <array>
+//
 var unpack =
 module.unpack =
 function(list){
