@@ -71,29 +71,6 @@ function(list){
 							: elem })
 				: elem }) }
 
-// XXX BUG:
-// 			await pr.unpack(
-// 					pr.handle([
-// 						1, 
-// 						[[2]], 
-// 						Promise.resolve(3), 
-// 						Promise.resolve([[4]]), 
-// 						[Promise.resolve(5)],
-// 						Promise.resolve([6]), 
-// 					], 
-// 					e => (console.log('---', e), [e])))
-// 				-> [1, [2], 3, [[4]], 5, 6]
-// 		should be:
-// 				-> [1, [2], 3, [4], 5, [6]]
-//		...the issue is that nested promises' return values can not be 
-//		expanded via .flat() until they are resolved (see notes in code)
-// 		possible solutions:
-// 			1) find a sound structural way around this...
-// 			2) mark the result and expand it on resolve and unpack...
-// 			3) live flatten
-// 				i.e. expand all non-array array elements:
-// 					[1, [2, [3], Promise.resolve(..)], 5]
-// 						-> [1, 2, [[3]], Promise.resolve(..), 5]
 var handle =
 module.handle =
 function(list, handler, onerror){
@@ -101,25 +78,27 @@ function(list, handler, onerror){
 		// NOTE: we do not need to rapack after this because the handlers 
 		// 		will get the correct (unpacked) values and it's their 
 		// 		responsibility to pack them if needed...
-		// XXX promises (promise results) are not affected by this, 
-		// 		i.e. they are not flattened and still need to be expanded 
-		// 		on unpack(..)
-		//		XXX this is also a problem on the next handle(..) run as 
-		//			we need to pass the handler the unpacked value and 
-		//			we have no way distinguish between the first run (when 
-		//			we do not need to unpack) and the rest (when we do)...
 		.flat()
+		// XXX use map/smap depending on Array.STOP...
 		.smap(
 			function(elem){
 				return elem instanceof Promise ?
 					elem.then(function(elem){
-						return elem instanceof Array ?
-							elem.map(function(elem){
-								return elem instanceof Promise ?
-									elem.then(handler)
-									: handler(elem) })
-							: handler(elem) })
+						return (elem instanceof Array ?
+								// NOTE: do the same thing handle(..) does 
+								// 		but on a single level, without expanding 
+								// 		arrays...
+								elem.map(function(elem){
+									return elem instanceof Promise ?
+										elem.then(handler)
+										: handler(elem) })
+								: handler(elem))
+							// compensate for the outer .flat()...
+							// XXX this might expand things on the wrong level -- test...
+							// XXX BUG: this breaks for promises returned by handler(..)...
+							.flat() })
 					: handler(elem) },
+			// onerror...
 			...[...arguments].slice(2)) }
 
 var unpack =
