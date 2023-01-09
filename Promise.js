@@ -57,9 +57,20 @@ var generator = require('./generator')
 //
 // NOTE: when all promises are expanded the packed array can be unpacked 
 // 		by simply calling .flat()
+//
+// XXX see if we can self-expand promises -- promise replaces self when 
+// 		resolved -- this would solve the issue with promises accumulating 
+// 		issue but would add complexity...
+// 		...to reduce complexity make this a separate function running 
+// 		both in in-place mutate mode as well as a callback getting a 
+// 		copy...
+// XXX add special cases like SyncPromise, ...etc.
+// XXX migrate these back into InteractivePromise...
 var pack =
 module.pack =
 function(list){
+	if(list instanceof Promise){
+		return list.then(pack) }
 	return list
 		.map(function(elem){
 			return elem instanceof Array ?
@@ -74,36 +85,72 @@ function(list){
 var handle =
 module.handle =
 function(list, handler, onerror){
+	var handlers = [...arguments].slice(1)
+
+	if(list instanceof Promise){
+		return list.then(function(list){
+			return handle(list, ...handlers) }) }
+
+	var map = Array.STOP ?
+		'smap'
+		: 'map'
 	return list
 		// NOTE: we do not need to rapack after this because the handlers 
 		// 		will get the correct (unpacked) values and it's their 
 		// 		responsibility to pack them if needed...
 		.flat()
-		// XXX use map/smap depending on Array.STOP...
-		.smap(
+		[map](
 			function(elem){
 				return elem instanceof Promise ?
 					elem.then(function(elem){
-						return (elem instanceof Array ?
+						var has_promise = false
+						var res = 
+							elem instanceof Array ?
+								// un-.flat()-end arrays in promise...
 								// NOTE: do the same thing handle(..) does 
 								// 		but on a single level, without expanding 
 								// 		arrays...
 								elem.map(function(elem){
-									return elem instanceof Promise ?
+									var res = elem instanceof Promise ?
 										elem.then(handler)
-										: handler(elem) })
-								: handler(elem))
-							// compensate for the outer .flat()...
-							// XXX this might mess up the return of handler(..) -- test
-							// XXX this breaks on non-array returns...
-							.flat() })
+										: handler(elem) 
+									has_promise = has_promise
+										|| res instanceof Promise
+									return res })
+								// other...
+								: handler(elem)
+						// compensate for the outer .flat()...
+						return (has_promise 
+									&& res instanceof Array) ?
+								// NOTE: since we are already in a promise 
+								// 		grouping things here is not a big 
+								// 		deal (XXX ???), however this is needed 
+								// 		to link nested promises with the 
+								// 		containing promise...
+								// XXX .all(..) will resolve after all the 
+								// 		contents are resolved, while returning 
+								// 		res.flat() will allow access to all the 
+								// 		values including the individual promises
+								// 		can we combine the two???
+								// 		...can we split this up into promises and
+								// 		other values and Promise.all(..) only
+								// 		the promises???
+								//res.flat()
+								Promise.all(res)
+									.then(function(res){
+										return res.flat() })
+							: res instanceof Array ?
+								res.flat()
+							: res })
 					: handler(elem) },
 			// onerror...
-			...[...arguments].slice(2)) }
+			...handlers.slice(1)) }
 
 var unpack =
 module.unpack =
 function(list){
+	if(list instanceof Promise){
+		return list.then(unpack) }
 	var input = list
 	// NOTE: we expand promises on the first two levels of the packed 
 	// 		list and then flatten the result...
@@ -127,6 +174,55 @@ function(list){
 				.then(unpack) } }
 	// the list is expanded here...
 	return list.flat() }
+
+//
+// 	onResolveItem(<list>, <onupdate>[, <ondone>])
+// 	onResolveItem(<list>, <options>)
+// 		-> <list>
+//
+// 	<onupdate>(<elem>, <index>, <list>)
+//
+// 	<ondone>(<list>)
+//
+// options format:
+// 	{
+// 		onupdate: <func>,
+//
+// 		// optional
+// 		ondone: <func>,
+// 	}
+//
+// XXX rename to Promise.each(..) or Promise.eachPromise(..) ???
+var onResolveItem =
+module.onResolveItem =
+function(list, onupdate, ondone){
+	if(typeof(onupdate) != 'function'){
+		var {onupdate, ondone} = onupdate }
+	typeof(ondone) == 'function'
+		&& Promise.all(list)
+			.then(ondone)
+	for(let [i, elem] of Object.entries(list)){
+		if(elem instanceof Promise){
+			elem.then(function(elem){
+				onupdate(elem, i, list) }) } }
+	return list }
+
+// Like onResolveItem(..) but both onupdate and ondone are optional...
+//
+// XXX do not modify the array after this is called and until ondone(..) is called...
+// XXX should this know how to expand things???
+var selfResolve =
+module.selfResolve =
+function(list, onupdate, ondone){
+	if(onupdate 
+			&& typeof(onupdate) != 'function'){
+		var {onupdate, ondone} = onupdate }
+	return onResolveItem(list, 
+		function(elem, i, list){
+			list[i] = elem 
+			typeof(onupdate) == 'function'
+				&& onupdate(elem, i, list) }, 
+		ondone) }
 
 
 
