@@ -66,11 +66,24 @@ var generator = require('./generator')
 // 		copy...
 // XXX add special cases like SyncPromise, ...etc.
 // XXX migrate these back into InteractivePromise...
+// XXX does this need onerror(..) ???
 var pack =
 module.pack =
 function(list){
+	// promise list...
 	if(list instanceof Promise){
 		return list.then(pack) }
+	// async promise list...
+	if(typeof(list) == 'object' 
+			&& Symbol.asyncIterator in list){
+		return list
+			.then(function(list){
+				return pack(list) }) } 
+	// generator list...
+	if(typeof(list) == 'object' 
+			&& Symbol.iterator in list){
+		list = [...list] }
+	// array...
 	return list
 		.map(function(elem){
 			return elem instanceof Array ?
@@ -86,6 +99,8 @@ function(list){
 // 	handle(<packed>, <handler>[, <onerror>])
 // 		-> <packed>
 //
+// XXX revise nested promise handling...
+// 		...something like simplify(<packed>) -> <packed> ???
 var handle =
 module.handle =
 function(list, handler, onerror){
