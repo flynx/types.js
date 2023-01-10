@@ -64,7 +64,6 @@ var generator = require('./generator')
 // 		...to reduce complexity make this a separate function running 
 // 		both in in-place mutate mode as well as a callback getting a 
 // 		copy...
-// XXX add special cases like SyncPromise, ...etc.
 // XXX migrate these back into InteractivePromise...
 // XXX does this need onerror(..) ???
 var pack =
@@ -81,6 +80,7 @@ function(list){
 				return pack(list) }) } 
 	// generator list... (XXX do a better test...)
 	if(typeof(list) == 'object' 
+			&& !list.map
 			&& Symbol.iterator in list){
 		list = [...list] }
 	// array...
