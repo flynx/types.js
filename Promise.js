@@ -184,8 +184,8 @@ function(list){
 	return list.flat() }
 
 //
-// 	onResolveItem(<list>, <onupdate>[, <ondone>])
-// 	onResolveItem(<list>, <options>)
+// 	itemResolved(<list>, <onupdate>[, <ondone>])
+// 	itemResolved(<list>, <options>)
 // 		-> <list>
 //
 // 	<onupdate>(<elem>, <index>, <list>)
@@ -201,8 +201,8 @@ function(list){
 // 	}
 //
 // XXX rename to Promise.each(..) or Promise.eachPromise(..) ???
-var onResolveItem =
-module.onResolveItem =
+var itemResolved =
+module.itemResolved =
 function(list, onupdate, ondone){
 	if(typeof(onupdate) != 'function'){
 		var {onupdate, ondone} = onupdate }
@@ -215,7 +215,7 @@ function(list, onupdate, ondone){
 				onupdate(elem, i, list) }) } }
 	return list }
 
-// Like onResolveItem(..) but both onupdate and ondone are optional...
+// Like itemResolved(..) but both onupdate and ondone are optional...
 //
 // XXX do not modify the array after this is called and until ondone(..) is called...
 // XXX should this know how to expand things???
@@ -225,7 +225,7 @@ function(list, onupdate, ondone){
 	if(onupdate 
 			&& typeof(onupdate) != 'function'){
 		var {onupdate, ondone} = onupdate }
-	return onResolveItem(list, 
+	return itemResolved(list, 
 		function(elem, i, list){
 			list[i] = elem 
 			typeof(onupdate) == 'function'
