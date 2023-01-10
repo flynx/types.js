@@ -79,7 +79,7 @@ function(list){
 		return list
 			.then(function(list){
 				return pack(list) }) } 
-	// generator list...
+	// generator list... (XXX do a better test...)
 	if(typeof(list) == 'object' 
 			&& Symbol.iterator in list){
 		list = [...list] }
