@@ -202,7 +202,8 @@ module.packed =
 									// 		values including the individual promises
 									// 		can we combine the two???
 									// 		...can we split this up into promises and
-									// 		other values and Promise.all(..) only the promises???
+									// 		other values and Promise.all(..) only 
+									// 		the promises???
 									//res.flat()
 									Promise.all(res)
 										.then(function(res){
