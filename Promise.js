@@ -37,166 +37,168 @@ var generator = require('./generator')
 //---------------------------------------------------------------------
 // XXX EXPERIMENTING...
 
+// packed format API...
 //
-//	pack(<array>)
-//	pack(<promise>)
-//		-> <packed>
-//
-//	<packed> ::=
-//		<packed-array>
-//		| <packed-promise>
-//
-//	<packed-array> ::=
-//		[
-//			<item>
-//			| <items>				- array
-//			| <promise-item>
-//			| <promise-items>,
-//			...
-//		]
-//
-// NOTE: when all promises are expanded the packed array can be unpacked 
-// 		by simply calling .flat()
-//
-// XXX see if we can self-expand promises -- promise replaces self when 
-// 		resolved -- this would solve the issue with promises accumulating 
-// 		issue but would add complexity...
-// 		...to reduce complexity make this a separate function running 
-// 		both in in-place mutate mode as well as a callback getting a 
-// 		copy...
-// XXX migrate these back into InteractivePromise...
-// XXX does this need onerror(..) ???
-var pack =
-module.pack =
-function(list){
-	// promise list...
-	if(list instanceof Promise){
-		return list.then(pack) }
-	// async promise list...
-	if(typeof(list) == 'object' 
-			&& Symbol.asyncIterator in list){
+var packed = 
+module.packed =
+{
+	//
+	//	pack(<array>)
+	//	pack(<promise>)
+	//		-> <packed>
+	//
+	//	<packed> ::=
+	//		<packed-array>
+	//		| <packed-promise>
+	//
+	//	<packed-array> ::=
+	//		[
+	//			<item>
+	//			| <items>				- array
+	//			| <promise-item>
+	//			| <promise-items>,
+	//			...
+	//		]
+	//
+	// NOTE: when all promises are expanded the packed array can be unpacked 
+	// 		by simply calling .flat()
+	//
+	// XXX see if we can self-expand promises -- promise replaces self when 
+	// 		resolved -- this would solve the issue with promises accumulating 
+	// 		issue but would add complexity...
+	// 		...to reduce complexity make this a separate function running 
+	// 		both in in-place mutate mode as well as a callback getting a 
+	// 		copy...
+	// XXX migrate these back into InteractivePromise...
+	// XXX does this need onerror(..) ???
+	pack: function(list){
+		var that = this
+		// promise list...
+		if(list instanceof Promise){
+			return list.then(this.pack.bind(this)) }
+		// async promise list...
+		if(typeof(list) == 'object' 
+				&& Symbol.asyncIterator in list){
+			return list
+				.then(function(list){
+					return that.pack(list) }) } 
+		// generator list... (XXX do a better test...)
+		if(typeof(list) == 'object' 
+				&& !list.map
+				&& Symbol.iterator in list){
+			list = [...list] }
+		// array...
 		return list
-			.then(function(list){
-				return pack(list) }) } 
-	// generator list... (XXX do a better test...)
-	if(typeof(list) == 'object' 
-			&& !list.map
-			&& Symbol.iterator in list){
-		list = [...list] }
-	// array...
-	return list
-		.map(function(elem){
-			return elem instanceof Array ?
-					[elem]
-				: elem instanceof Promise ?
-					elem.then(function(elem){
-						return elem instanceof Array ?
-							[elem]
-							: elem })
-				: elem }) }
+			.map(function(elem){
+				return elem instanceof Array ?
+						[elem]
+					: elem instanceof Promise ?
+						elem.then(function(elem){
+							return elem instanceof Array ?
+								[elem]
+								: elem })
+					: elem }) },
 
-// 
-// 	handle(<packed>, <handler>[, <onerror>])
-// 		-> <packed>
-//
-// XXX revise nested promise handling...
-// 		...something like simplify(<packed>) -> <packed> ???
-var handle =
-module.handle =
-function(list, handler, onerror){
-	var handlers = [...arguments].slice(1)
+	// 
+	// 	handle(<packed>, <handler>[, <onerror>])
+	// 		-> <packed>
+	//
+	// XXX revise nested promise handling...
+	// 		...something like simplify(<packed>) -> <packed> ???
+	handle: function(packed, handler, onerror){
+		var that = this
+		var handlers = [...arguments].slice(1)
 
-	if(list instanceof Promise){
-		return list.then(function(list){
-			return handle(list, ...handlers) }) }
+		if(packed instanceof Promise){
+			return packed.then(function(packed){
+				return that.handle(packed, ...handlers) }) }
 
-	var map = Array.STOP ?
-		'smap'
-		: 'map'
-	return list
-		// NOTE: we do not need to rapack after this because the handlers 
-		// 		will get the correct (unpacked) values and it's their 
-		// 		responsibility to pack them if needed...
-		.flat()
-		[map](
-			function(elem){
-				return elem instanceof Promise ?
-					elem.then(function(elem){
-						var has_promise = false
-						var res = 
-							elem instanceof Array ?
-								// un-.flat()-end arrays in promise...
-								// NOTE: do the same thing handle(..) does 
-								// 		but on a single level, without expanding 
-								// 		arrays...
-								elem.map(function(elem){
-									var res = elem instanceof Promise ?
-										elem.then(handler)
-										: handler(elem) 
-									has_promise = has_promise
-										|| res instanceof Promise
-									return res })
-								// other...
-								: handler(elem)
-						// compensate for the outer .flat()...
-						return (has_promise 
-									&& res instanceof Array) ?
-								// NOTE: since we are already in a promise 
-								// 		grouping things here is not a big 
-								// 		deal (XXX ???), however this is needed 
-								// 		to link nested promises with the 
-								// 		containing promise...
-								// XXX .all(..) will resolve after all the 
-								// 		contents are resolved, while returning 
-								// 		res.flat() will allow access to all the 
-								// 		values including the individual promises
-								// 		can we combine the two???
-								// 		...can we split this up into promises and
-								// 		other values and Promise.all(..) only
-								// 		the promises???
-								//res.flat()
-								Promise.all(res)
-									.then(function(res){
-										return res.flat() })
-							: res instanceof Array ?
-								res.flat()
-							: res })
-					: handler(elem) },
-			// onerror...
-			...handlers.slice(1)) }
+		var map = Array.STOP ?
+			'smap'
+			: 'map'
+		return packed
+			// NOTE: we do not need to rapack after this because the handlers 
+			// 		will get the correct (unpacked) values and it's their 
+			// 		responsibility to pack them if needed...
+			.flat()
+			[map](
+				function(elem){
+					return elem instanceof Promise ?
+						elem.then(function(elem){
+							var has_promise = false
+							var res = 
+								elem instanceof Array ?
+									// un-.flat()-end arrays in promise...
+									// NOTE: do the same thing handle(..) does 
+									// 		but on a single level, without expanding 
+									// 		arrays...
+									elem.map(function(elem){
+										var res = elem instanceof Promise ?
+											elem.then(handler)
+											: handler(elem) 
+										has_promise = has_promise
+											|| res instanceof Promise
+										return res })
+									// other...
+									: handler(elem)
+							// compensate for the outer .flat()...
+							return (has_promise 
+										&& res instanceof Array) ?
+									// NOTE: since we are already in a promise 
+									// 		grouping things here is not a big 
+									// 		deal (XXX ???), however this is needed 
+									// 		to link nested promises with the 
+									// 		containing promise...
+									// XXX .all(..) will resolve after all the 
+									// 		contents are resolved, while returning 
+									// 		res.flat() will allow access to all the 
+									// 		values including the individual promises
+									// 		can we combine the two???
+									// 		...can we split this up into promises and
+									// 		other values and Promise.all(..) only
+									// 		the promises???
+									//res.flat()
+									Promise.all(res)
+										.then(function(res){
+											return res.flat() })
+								: res instanceof Array ?
+									res.flat()
+								: res })
+						: handler(elem) },
+				// onerror...
+				...handlers.slice(1)) },
 
-//
-// 	unpack(<packed>)
-// 		-> <array>
-//
-var unpack =
-module.unpack =
-function(list){
-	if(list instanceof Promise){
-		return list.then(unpack) }
-	var input = list
-	// NOTE: we expand promises on the first two levels of the packed 
-	// 		list and then flatten the result...
-	for(var [i, elem] of Object.entries(list)){
-		// expand promises in lists...
-		if(elem instanceof Array){
-			for(var e of elem){
-				if(e instanceof Promise){
-					// copy the input (on demand) list as we'll need to 
-					// modify it...
-					list === input
-						&& (list = list.slice())
-					// NOTE: this will immediately be caught by the 
-					// 		Promise condition below...
-					elem = list[i] = 
-						Promise.all(elem)
-					break } } }
-		// expand promises...
-		if(elem instanceof Promise){
-			return Promise.all(list)
-				.then(unpack) } }
-	// the list is expanded here...
-	return list.flat() }
+	//
+	// 	unpack(<packed>)
+	// 		-> <array>
+	//
+	unpack: function(packed){
+		if(packed instanceof Promise){
+			return packed.then(this.unpack.bind(this)) }
+		var input = packed
+		// NOTE: we expand promises on the first two levels of the packed 
+		// 		list and then flatten the result...
+		for(var [i, elem] of Object.entries(packed)){
+			// expand promises in lists...
+			if(elem instanceof Array){
+				for(var e of elem){
+					if(e instanceof Promise){
+						// copy the input (on demand) list as we'll need to 
+						// modify it...
+						packed === input
+							&& (packed = packed.slice())
+						// NOTE: this will immediately be caught by the 
+						// 		Promise condition below...
+						elem = packed[i] = 
+							Promise.all(elem)
+						break } } }
+			// expand promises...
+			if(elem instanceof Promise){
+				return Promise.all(packed)
+					.then(this.unpack.bind(this)) } }
+		// the list is expanded here...
+		return packed.flat() },
+}
 
 //
 // 	itemResolved(<list>, <onupdate>[, <ondone>])
