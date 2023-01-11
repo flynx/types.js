@@ -333,7 +333,7 @@ var cases = test.Cases({
 			assert.array(
 				await Promise.iter(input, handler),
 				output,
-				msg+' (sanity check)')
+				msg+' (sanity check -- fix first)')
 			assert.array(
 				await Promise.iter(input,
 					function(e){ 
@@ -363,6 +363,17 @@ var cases = test.Cases({
 			function(e){ 
 				return ['moo'] },
 			'handler returns promise (array)')
+		await test_async_handler(
+			[
+				1, 
+				[2], 
+				Promise.resolve(3), 
+				Promise.resolve([4]),
+			], 
+			[ ['moo'], ['moo'], ['moo'], ['moo'] ],
+			function(e){ 
+				return [['moo']] },
+			'handler returns promise (array-array)')
 	},
 
 	// Date.js

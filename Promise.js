@@ -42,6 +42,31 @@ var generator = require('./generator')
 // XXX should this be a container or just a set of function???
 // 		...for simplicity I'll keep it a stateless set of functions for 
 // 		now, to avoid yet another layer of indirection -- IterablePromise...
+// XXX BUG:
+//		wrong, should be the same as the second example:
+//			await pr.unpack(
+//				pr.handle(
+//					pr.pack([
+//						1, 
+//						[2], 
+//						Promise.resolve(3), 
+//						Promise.resolve([4]),
+//					]), 
+//					e => [[1,2,3]]))
+//				//					    XXX
+//				-> [ [1,2,3], [1,2,3], 1,2,3, [1,2,3] ]
+//		correct:
+//			await pr.unpack(
+//				pr.handle(
+//					pr.pack([
+//						1, 
+//						[2], 
+//						Promise.resolve(3), 
+//						Promise.resolve([4]),
+//					]), 
+//					e => Promise.resolve([[1,2,3]])))
+//				-> [ [1,2,3], [1,2,3], [1,2,3], [1,2,3] ]
+
 var packed = 
 module.packed =
 {
@@ -65,6 +90,13 @@ module.packed =
 	//
 	// NOTE: when all promises are expanded the packed array can be unpacked 
 	// 		by simply calling .flat()
+	// NOTE: if 'types/Array' is imported this will support throwing STOP
+	// 		from the handler.
+	// 		Due to the async nature of promises though the way stops are 
+	// 		handled may be unpredictable -- the handlers can be run out 
+	// 		of order, as the nested promises resolve and thus throwing 
+	// 		stop will stop the handlers not yet run and not the next 
+	// 		handlers in sequence.
 	//
 	// XXX see if we should self-expand promises...
 	// XXX migrate these back into InteractivePromise...
@@ -103,13 +135,13 @@ module.packed =
 								[elem]
 								: elem })
 					: elem }) },
-
 	// 
 	// 	handle(<packed>, <handler>[, <onerror>])
 	// 		-> <packed>
 	//
 	// XXX revise nested promise handling...
 	// 		...something like simplify(<packed>) -> <packed> ???
+	// XXX STOP_PROMISED_HANDLERS -- TEST
 	handle: function(packed, handler, onerror){
 		var that = this
 		var handlers = [...arguments].slice(1)
@@ -118,6 +150,7 @@ module.packed =
 			return packed.then(function(packed){
 				return that.handle(packed, ...handlers) }) }
 
+		var stop = false
 		var map = Array.STOP ?
 			'smap'
 			: 'map'
@@ -130,6 +163,8 @@ module.packed =
 				function(elem){
 					return elem instanceof Promise ?
 						elem.then(function(elem){
+							if(stop){
+								return [] }
 							var has_promise = false
 							var res = 
 								elem instanceof Array ?
@@ -139,7 +174,14 @@ module.packed =
 									// 		arrays...
 									elem.map(function(elem){
 										var res = elem instanceof Promise ?
+											// XXX STOP_PROMISED_HANDLERS do we need this???
+											elem.then(function(elem){
+												if(stop){
+													return [] }
+												return handler(elem) })
+											/*/ 
 											elem.then(handler)
+											//*/
 											: handler(elem) 
 										has_promise = has_promise
 											|| res instanceof Promise
@@ -171,8 +213,14 @@ module.packed =
 								: res })
 						: handler(elem) },
 				// onerror...
-				...handlers.slice(1)) },
-
+				// XXX STOP_PROMISED_HANDLERS
+				function(err){
+					stop = true
+					typeof(onerror)
+						&& onerror(err) }) },
+				/*/
+				...handlers.slice(1)) }, 
+				//*/
 	//
 	// 	unpack(<packed>)
 	// 		-> <array>
@@ -340,21 +388,18 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: these can be useful for debugging and extending...
 	//
 	// pack and oprionally transform/handle an array (sync)...
-	//
-	// NOTE: if 'types/Array' is imported this will support throwing STOP
-	// 		from the handler.
-	// 		Due to the async nature of promises though the way stops are 
-	// 		handled may be unpredictable -- the handlers can be run out 
-	// 		of order, as the nested promises resolve and thus throwing 
-	// 		stop will stop the handlers not yet run and not the next 
-	// 		handlers in sequence.
-	// 		XXX EXPEREMENTAL: STOP...
-	// XXX PACKED: EXPEREMENTAL re-implementation....
 	__pack: function(list, handler=undefined, onerror=undefined){
 		// handle iterable promise...
-		// XXX should this be in packed.pack(..) ???
 		if(list instanceof IterablePromise){
 			return this.__handle(list.__packed, handler, onerror) }
+		// handle promise / async-iterator...
+		if(typeof(list) == 'object' 
+					&& Symbol.asyncIterator in list){
+			return list
+				.iter(handler, onerror) 
+				.then(function(list){
+					return that.__pack(list) }) } 
+
 		// do the packing...
 		var packed = module.packed.pack(list)
 		// handle if needed...
@@ -373,172 +418,13 @@ object.Constructor('IterablePromise', Promise, {
 		return module.packed.handle(packed, ...[...arguments].slice(1)) },
 	// unpack array (sync/async)...
 	__unpack: function(packed){
+		// do .__unpack()
+		packed = packed 
+			?? this.__packed
 		// handle promise list...
 		if(packed instanceof IterablePromise){
 			return packed.__unpack() }
 		return module.packed.unpack(packed) },
-
-	/*/
-	// XXX ITER can we unwind (sync/async) generators one by one???
-	__pack: function(list, handler=undefined, onerror=undefined){
-		var that = this
-		// handle iterator...
-		// XXX ITER do we unwind the iterator here or wait to unwind later???
-		if(typeof(list) == 'object' 
-				&& Symbol.iterator in list){
-			if(!onerror){
-				list = [...list]
-			// handle errors in input generator...
-			// NOTE: this does not offer the most control because semantically 
-			// 		we bust behave in the same manner as <generator>.iter(..)
-			} else {
-				var res = []
-				try{
-					for(var e of list){
-						res.push(e) }
-				}catch(err){
-					var r = onerror(err)
-					r !== undefined
-						&& res.push(r) } 
-				list = res } } 
-		// handle iterable promise...
-		if(list instanceof IterablePromise){
-			return this.__handle(list.__packed, handler, onerror) }
-		// handle promise / async-iterator...
-		// XXX ITER do we unwind the iterator here or wait to unwind later???
-		if(typeof(list) == 'object' 
-					&& Symbol.asyncIterator in list){
-			return list
-				.iter(handler, onerror) 
-				.then(function(list){
-					return that.__pack(list) }) } 
-		if(list instanceof Promise){
-			return list
-				.then(function(list){
-					return that.__pack(list, handler, onerror) }) }
-		// pack...
-		list = [list].flat()
-			.map(function(elem){
-				return elem instanceof Array ?
-						[elem]
-					: elem instanceof Promise ?
-						elem.then(function(e){
-							return [e] })
-					: elem })
-		// handle if needed...
-		return handler ?
-			this.__handle(list, handler, onerror)
-			: list },
-	// transform/handle packed array (sync, but can return promises in the list)...
-	// XXX need a strict spec...
-	//
-	// XXX BUG:
-	// 			await Promise.iter([1, [2], Promise.resolve(3), Promise.resolve([4])], e => [[1,2,3]])
-	//				-> [ 1, 2, 3, [ 1, 2, 3 ], [ 1, 2, 3 ], [ 1, 2, 3 ] ]
-	//		the first item should not be expanded...
-	__handle: function(list, handler=undefined, onerror=undefined){
-		var that = this
-		if(typeof(list) == 'function'){
-			handler = list
-			list = this.__packed }
-		if(!handler){
-			return list }
-		// handle promise list...
-		if(list instanceof Promise){
-			return list.then(function(list){
-				return that.__handle(list, handler, onerror) }) }
-		// do the work...
-		list = list instanceof Array ?
-			list
-			: [list]
-
-		var map = !!this.constructor.STOP ?
-			'smap'
-			: 'map'
-		var stop = false
-		// XXX do we handle generators here???
-		var each = function(elem){
-			return elem instanceof Array ?
-				elem
-					//.map(handler)
-					// XXX can we avoid using EMPTY here and instead use .flat(..) ???
-					.map(function(elem){
-						var res = handler(elem)
-						return res instanceof Promise ?
-							res.then(function(e){
-								return (e instanceof Array 
-										&& e.length == 0) ?
-									EMPTY
-									: e })
-							: res })
-					// XXX this will not expand promise results...
-					.flat()
-				: handler(elem) }
-		return list
-			[map](
-				function(elem){
-					// NOTE: we are calling .flat() on the result so we 
-					// 		need to keep a handled array as a single 
-					// 		element by wrapping the return of handled(..)...
-					return elem instanceof IterablePromise ?
-							(elem.isSync() ?
-								each(elem.sync())
-								: elem.iterthen(each))
-						// sync sync promise...
-						: (elem instanceof SyncPromise
-								&& !(elem.sync() instanceof Promise)) ?
-							[each(elem.sync())]
-						// promise / promise-like...
-						: elem && elem.then ?
-							// NOTE: when this is explicitly stopped we 
-							// 		do not call any more handlers after 
-							// 		STOP is thrown/returned...
-							// NOTE: the promise protects this from .flat()
-							elem.then(function(elem){
-								return !stop ?
-									each(elem)
-									: EMPTY })
-						: elem instanceof Array ?
-							[each(elem)]
-						: each(elem) },
-				// handle STOP...
-				function(){
-					stop = true })
-   			.flat() },
-	// XXX this should return IterablePromise if .__packed is partially sync (???)
-	// unpack array (sync/async)...
-	__unpack: function(list){
-		list = list 
-			?? this.__packed
-		// handle promise list...
-		if(list instanceof IterablePromise){
-			return list.__unpack() }
-		if(list instanceof Promise){
-			return list
-				.then(this.__unpack.bind(this)) }
-		var res = []
-		for(var e of list){
-			if(e === EMPTY){
-				continue }
-			if(e instanceof IterablePromise){
-				e = e.__unpack() }
-			if(e instanceof SyncPromise){
-				e = e.sync() }
-
-			// give up on a sync solution...
-			if(e instanceof Promise){
-				// XXX can we return an IterablePromise???
-				// XXX is there a more elegant way to do this???
-				return Promise.all(list)
-					.then(function(list){ 
-						// XXX do we need to handle EMPTY???
-						return list.flat() })
-					.iter() }
-
-			res.push(e) }
-		return res.flat() },
-	//*/
-	
 
 
 	[Symbol.asyncIterator]: async function*(){
@@ -565,27 +451,14 @@ object.Constructor('IterablePromise', Promise, {
 		return this.constructor(this, 
 			function(e){
 				return [func(e)] }) },
-	// XXX BUG:
-	//			await Promise.iter([1, [2], 3])
-	//					.filter(e => Promise.resolve(false))
-	//				-> [ [] ]
-	//		should be:
-	//				-> []
-	//		...do we flatten the result of promise returned by handler???
-	//		XXX this might require a change in .__handle(..)
 	filter: function(func){
 		return this.constructor(this, 
 			function(e){
 				var res = func(e)
 				return res instanceof Promise ?
 					res.then(function(res){
-						// XXX this should be the same as the non-promise version...
 						return res ?
-							// XXX PACKED
 							[e]
-							/*/
-							e
-							//*/
 							: [] })
 					: res ?
 						[e]
@@ -915,6 +788,7 @@ object.Constructor('IterablePromise', Promise, {
 	// NOTE: if 'types/Array' is imported this will support throwing STOP,
 	// 		for more info see notes for .__pack(..)
 	// 		XXX EXPEREMENTAL: STOP...
+	// XXX use selfResolve(..)
 	__new__: function(_, list, handler=undefined, onerror=undefined){
 		// instance...
 		var promise
@@ -962,12 +836,16 @@ object.Constructor('IterablePromise', Promise, {
 			list instanceof Promise ?
 				list.then(function(list){
 					obj.__packed = list })
+				/*/ XXX use selfResolve(..)
+				: selfResolve(list) }
+				/*/
 				: list.forEach(function(elem, i){
 					elem instanceof Promise
 						&& elem.then(function(elem){
 							lst = obj.__packed.slice()
 							lst[i] = elem
 							obj.__packed = lst }) }) }
+				//*/
 		return obj },
 })
 
