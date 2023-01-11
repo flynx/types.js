@@ -39,6 +39,9 @@ var generator = require('./generator')
 
 // packed format API...
 //
+// XXX should this be a container or just a set of function???
+// 		...for simplicity I'll keep it a stateless set of functions for 
+// 		now, to avoid yet another layer of indirection -- IterablePromise...
 var packed = 
 module.packed =
 {
@@ -63,35 +66,37 @@ module.packed =
 	// NOTE: when all promises are expanded the packed array can be unpacked 
 	// 		by simply calling .flat()
 	//
-	// XXX see if we can self-expand promises -- promise replaces self when 
-	// 		resolved -- this would solve the issue with promises accumulating 
-	// 		issue but would add complexity...
-	// 		...to reduce complexity make this a separate function running 
-	// 		both in in-place mutate mode as well as a callback getting a 
-	// 		copy...
+	// XXX see if we should self-expand promises...
 	// XXX migrate these back into InteractivePromise...
 	// XXX does this need onerror(..) ???
 	pack: function(list){
 		var that = this
-		// promise list...
-		if(list instanceof Promise){
-			return list.then(this.pack.bind(this)) }
-		// async promise list...
-		if(typeof(list) == 'object' 
-				&& Symbol.asyncIterator in list){
+		// list: promise...
+		// XXX should we just test for typeof(list.then) == 'function'???
+		if(list instanceof Promise
+				// list: async promise...
+				|| (typeof(list) == 'object' 
+					&& list.then
+					&& Symbol.asyncIterator in list)){
 			return list
-				.then(function(list){
-					return that.pack(list) }) } 
-		// generator list... (XXX do a better test...)
+				.then(this.pack.bind(this)) }
+		// list: generator...
 		if(typeof(list) == 'object' 
 				&& !list.map
 				&& Symbol.iterator in list){
 			list = [...list] }
-		// array...
+		// list: non-array / non-iterable...
+		if(typeof(list.map) != 'function'){
+			list = [list].flat() }
+		// list: array...
+		// XXX should we self-expand this???
 		return list
 			.map(function(elem){
+				// XXX should we expand generators here???
 				return elem instanceof Array ?
 						[elem]
+					// XXX should we just test for .then(..)???
+					// XXX should we self-expand this???
 					: elem instanceof Promise ?
 						elem.then(function(elem){
 							return elem instanceof Array ?
@@ -199,6 +204,7 @@ module.packed =
 		// the list is expanded here...
 		return packed.flat() },
 }
+
 
 //
 // 	itemResolved(<list>, <onupdate>[, <ondone>])
@@ -343,6 +349,36 @@ object.Constructor('IterablePromise', Promise, {
 	// 		stop will stop the handlers not yet run and not the next 
 	// 		handlers in sequence.
 	// 		XXX EXPEREMENTAL: STOP...
+	// XXX PACKED: EXPEREMENTAL re-implementation....
+	__pack: function(list, handler=undefined, onerror=undefined){
+		// handle iterable promise...
+		// XXX should this be in packed.pack(..) ???
+		if(list instanceof IterablePromise){
+			return this.__handle(list.__packed, handler, onerror) }
+		// do the packing...
+		var packed = module.packed.pack(list)
+		// handle if needed...
+		return handler ?
+			this.__handle(packed, handler, onerror)
+			: packed },
+	// transform/handle packed array (sync, but can return promises in the list)...
+	__handle: function(packed, handler=undefined, onerror=undefined){
+		var that = this
+		// do .__handle(<func>)
+		if(typeof(packed) == 'function'){
+			handler = packed
+			packed = this.__packed }
+		if(!handler){
+			return packed }
+		return module.packed.handle(packed, ...[...arguments].slice(1)) },
+	// unpack array (sync/async)...
+	__unpack: function(packed){
+		// handle promise list...
+		if(packed instanceof IterablePromise){
+			return packed.__unpack() }
+		return module.packed.unpack(packed) },
+
+	/*/
 	// XXX ITER can we unwind (sync/async) generators one by one???
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var that = this
@@ -501,7 +537,10 @@ object.Constructor('IterablePromise', Promise, {
 
 			res.push(e) }
 		return res.flat() },
+	//*/
 	
+
+
 	[Symbol.asyncIterator]: async function*(){
 		var list = this.__packed
 		if(list instanceof Promise){
@@ -542,7 +581,11 @@ object.Constructor('IterablePromise', Promise, {
 					res.then(function(res){
 						// XXX this should be the same as the non-promise version...
 						return res ?
+							// XXX PACKED
+							[e]
+							/*/
 							e
+							//*/
 							: [] })
 					: res ?
 						[e]
