@@ -42,31 +42,6 @@ var generator = require('./generator')
 // XXX should this be a container or just a set of function???
 // 		...for simplicity I'll keep it a stateless set of functions for 
 // 		now, to avoid yet another layer of indirection -- IterablePromise...
-// XXX BUG:
-//		wrong, should be the same as the second example:
-//			await pr.unpack(
-//				pr.handle(
-//					pr.pack([
-//						1, 
-//						[2], 
-//						Promise.resolve(3), 
-//						Promise.resolve([4]),
-//					]), 
-//					e => [[1,2,3]]))
-//				//					    XXX
-//				-> [ [1,2,3], [1,2,3], 1,2,3, [1,2,3] ]
-//		correct:
-//			await pr.unpack(
-//				pr.handle(
-//					pr.pack([
-//						1, 
-//						[2], 
-//						Promise.resolve(3), 
-//						Promise.resolve([4]),
-//					]), 
-//					e => Promise.resolve([[1,2,3]])))
-//				-> [ [1,2,3], [1,2,3], [1,2,3], [1,2,3] ]
-
 var packed = 
 module.packed =
 {
@@ -142,6 +117,30 @@ module.packed =
 	// XXX revise nested promise handling...
 	// 		...something like simplify(<packed>) -> <packed> ???
 	// XXX STOP_PROMISED_HANDLERS -- TEST
+	// XXX BUG:
+	//		wrong, should be the same as the second example:
+	//			await pr.unpack(
+	//				pr.handle(
+	//					pr.pack([
+	//						1, 
+	//						[2], 
+	//						Promise.resolve(3), 
+	//						Promise.resolve([4]),
+	//					]), 
+	//					e => [[1,2,3]]))
+	//				//					    XXX
+	//				-> [ [1,2,3], [1,2,3], 1,2,3, [1,2,3] ]
+	//		correct:
+	//			await pr.unpack(
+	//				pr.handle(
+	//					pr.pack([
+	//						1, 
+	//						[2], 
+	//						Promise.resolve(3), 
+	//						Promise.resolve([4]),
+	//					]), 
+	//					e => Promise.resolve([[1,2,3]])))
+	//				-> [ [1,2,3], [1,2,3], [1,2,3], [1,2,3] ]
 	handle: function(packed, handler, onerror){
 		var that = this
 		var handlers = [...arguments].slice(1)
@@ -176,13 +175,13 @@ module.packed =
 										var res = elem instanceof Promise ?
 											// XXX STOP_PROMISED_HANDLERS do we need this???
 											elem.then(function(elem){
-												if(stop){
-													return [] }
-												return handler(elem) })
+												return !stop ?
+													handler(elem) 
+													: [] })
 											/*/ 
 											elem.then(handler)
 											//*/
-											: handler(elem) 
+											: handler(elem)
 										has_promise = has_promise
 											|| res instanceof Promise
 										return res })
@@ -204,7 +203,8 @@ module.packed =
 									// 		...can we split this up into promises and
 									// 		other values and Promise.all(..) only
 									// 		the promises???
-									//res.flat()
+									// XXX we seem to be over-expanding here in some cases...
+									// 		...or under-wrapping someplace else...
 									Promise.all(res)
 										.then(function(res){
 											return res.flat() })
