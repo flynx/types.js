@@ -194,8 +194,8 @@ module.packed =
 									|| res[0] instanceof Promise }
 
 							// compensate for the outer .flat()...
-							return (has_promise 
-										&& res instanceof Array) ?
+							// NOTE: at this point res is always an array...
+							return has_promise ?
 								// NOTE: since we are already in a promise 
 								// 		grouping things here is not a big 
 								// 		deal, however this is needed to link 
