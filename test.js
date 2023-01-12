@@ -374,6 +374,53 @@ var cases = test.Cases({
 			function(e){ 
 				return [['moo']] },
 			'handler returns promise (array-array)')
+
+		// test STOP...
+		assert.array(
+			await Promise.iter([1,2,3,4], function(e){
+				if(e == 3){
+					throw Array.STOP }
+				return e }),
+			[1,2],
+			'.iter(..): STOP: basic')
+		assert.array(
+			await Promise.iter([1,2,Promise.resolve(3),4], function(e){
+				if(e == 3){
+					throw Array.STOP }
+				return e }),
+			// NOTE: 4 here is present as it was handled before the promise resolved...
+			[1,2,4],
+			'.iter(..): STOP: delayed')
+		assert.array(
+			await Promise.iter([1,2,Promise.resolve(3),4], function(e){
+				if(e == 3){
+					throw Array.STOP('stop') }
+				return e }),
+			// NOTE: 4 here is present as it was handled before the promise resolved...
+			[1,2,'stop',4],
+			'.iter(..): STOP(..): delayed')
+		assert.array(
+			await Promise.seqiter([1,2,3,4], function(e){
+				if(e == 3){
+					throw Array.STOP }
+				return e }),
+			[1,2],
+			'.seqiter(..): STOP: basic')
+		assert.array(
+			await Promise.seqiter([1,2,Promise.resolve(3),4], function(e){
+				if(e == 3){
+					throw Array.STOP }
+				return e }),
+			[1,2],
+			'.seqiter(..): STOP: delayed')
+		assert.array(
+			await Promise.seqiter([1,2,Promise.resolve(3),4], function(e){
+				if(e == 3){
+					throw Array.STOP('stop') }
+				return e }),
+			// NOTE: 4 here is present as it was handled before the promise resolved...
+			[1,2,'stop'],
+			'.seqiter(..): STOP(..): delayed')
 	},
 
 	// Date.js

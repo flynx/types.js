@@ -117,30 +117,6 @@ module.packed =
 	// XXX revise nested promise handling...
 	// 		...something like simplify(<packed>) -> <packed> ???
 	// XXX STOP_PROMISED_HANDLERS -- TEST
-	// XXX BUG:
-	//		wrong, should be the same as the second example:
-	//			await pr.unpack(
-	//				pr.handle(
-	//					pr.pack([
-	//						1, 
-	//						[2], 
-	//						Promise.resolve(3), 
-	//						Promise.resolve([4]),
-	//					]), 
-	//					e => [[1,2,3]]))
-	//				//					    XXX
-	//				-> [ [1,2,3], [1,2,3], 1,2,3, [1,2,3] ]
-	//		correct:
-	//			await pr.unpack(
-	//				pr.handle(
-	//					pr.pack([
-	//						1, 
-	//						[2], 
-	//						Promise.resolve(3), 
-	//						Promise.resolve([4]),
-	//					]), 
-	//					e => Promise.resolve([[1,2,3]])))
-	//				-> [ [1,2,3], [1,2,3], [1,2,3], [1,2,3] ]
 	handle: function(packed, handler, onerror){
 		var that = this
 		var handlers = [...arguments].slice(1)
@@ -148,6 +124,14 @@ module.packed =
 		if(packed instanceof Promise){
 			return packed.then(function(packed){
 				return that.handle(packed, ...handlers) }) }
+
+		var handleSTOP = function(err){
+			if(err && err === Array.STOP){
+				stop = true
+				return []
+			} else if(err && err instanceof Array.STOP){
+				return err.value }
+			throw err }
 
 		var stop = false
 		var map = Array.STOP ?
@@ -166,55 +150,53 @@ module.packed =
 						elem.then(function(elem){
 							if(stop){
 								return [] }
-							var has_promise = false
-							// NOTE: do the same thing handle(..) does 
-							// 		but on a single level, without expanding 
-							// 		arrays...
-							if(elem instanceof Array){
-								var res = elem.map(function(elem){
-									var res = elem instanceof Promise ?
-										// XXX STOP_PROMISED_HANDLERS do we need this???
-										elem.then(function(elem){
-											return !stop ?
-												handler(elem) 
-												: [] })
-										/*/ 
-										elem.then(handler)
-										//*/
-										: handler(elem)
-									has_promise = has_promise
-										|| res instanceof Promise
-									return res })
-							// non-arrays...
-							} else {
-								// NOTE: we are wrapping the result in an array to 
-								// 		normalize it with the above...
-								res = [handler(elem)]
-								has_promise = has_promise 
-									|| res[0] instanceof Promise }
+							try{
+								var has_promise = false
+								// NOTE: do the same thing handle(..) does 
+								// 		but on a single level, without expanding 
+								// 		arrays...
+								if(elem instanceof Array){
+									var res = elem.map(function(elem){
+										var res = elem instanceof Promise ?
+											elem.then(function(elem){
+												try{
+													return !stop ?
+														handler(elem) 
+														: [] 
+												} catch(err){
+													return handleSTOP(err) } })
+											: handler(elem)
+										has_promise = has_promise
+											|| res instanceof Promise
+										return res })
+								// non-arrays...
+								} else {
+									// NOTE: we are wrapping the result in an array to 
+									// 		normalize it with the above...
+									res = [handler(elem)]
+									has_promise = has_promise 
+										|| res[0] instanceof Promise }
 
-							// compensate for the outer .flat()...
-							// NOTE: at this point res is always an array...
-							return has_promise ?
-								// NOTE: since we are already in a promise 
-								// 		grouping things here is not a big 
-								// 		deal, however this is needed to link 
-								// 		nested promises with the containing 
-								// 		promise...
-								Promise.all(res)
-									.then(function(res){
-										return res.flat() })
-								: res.flat() })
+								// compensate for the outer .flat()...
+								// NOTE: at this point res is always an array...
+								return has_promise ?
+									// NOTE: since we are already in a promise 
+									// 		grouping things here is not a big 
+									// 		deal, however this is needed to link 
+									// 		nested promises with the containing 
+									// 		promise...
+									Promise.all(res)
+										.then(function(res){
+											return res.flat() })
+									: res.flat() 
+							} catch(err){
+								return handleSTOP(err) } })
 						: handler(elem) },
 				// onerror...
-				// XXX STOP_PROMISED_HANDLERS
 				function(err){
 					stop = true
-					typeof(onerror)
+					typeof(onerror) == 'function'
 						&& onerror(err) }) },
-				/*/
-				...handlers.slice(1)) }, 
-				//*/
 	//
 	// 	unpack(<packed>)
 	// 		-> <array>
