@@ -157,6 +157,8 @@ module.packed =
 			// NOTE: we do not need to rapack after this because the handlers 
 			// 		will get the correct (unpacked) values and it's their 
 			// 		responsibility to pack them if needed...
+			// NOTE: this removes the need to handle sub-arrays unless they are
+			// 		in a promise...
 			.flat()
 			[map](
 				function(elem){
@@ -165,53 +167,44 @@ module.packed =
 							if(stop){
 								return [] }
 							var has_promise = false
-							var res = 
-								elem instanceof Array ?
-									// un-.flat()-end arrays in promise...
-									// NOTE: do the same thing handle(..) does 
-									// 		but on a single level, without expanding 
-									// 		arrays...
-									elem.map(function(elem){
-										var res = elem instanceof Promise ?
-											// XXX STOP_PROMISED_HANDLERS do we need this???
-											elem.then(function(elem){
-												return !stop ?
-													handler(elem) 
-													: [] })
-											/*/ 
-											elem.then(handler)
-											//*/
-											: handler(elem)
-										has_promise = has_promise
-											|| res instanceof Promise
-										return res })
-									// other...
-									: handler(elem)
+							// NOTE: do the same thing handle(..) does 
+							// 		but on a single level, without expanding 
+							// 		arrays...
+							if(elem instanceof Array){
+								var res = elem.map(function(elem){
+									var res = elem instanceof Promise ?
+										// XXX STOP_PROMISED_HANDLERS do we need this???
+										elem.then(function(elem){
+											return !stop ?
+												handler(elem) 
+												: [] })
+										/*/ 
+										elem.then(handler)
+										//*/
+										: handler(elem)
+									has_promise = has_promise
+										|| res instanceof Promise
+									return res })
+							// non-arrays...
+							} else {
+								// NOTE: we are wrapping the result in an array to 
+								// 		normalize it with the above...
+								res = [handler(elem)]
+								has_promise = has_promise 
+									|| res[0] instanceof Promise }
+
 							// compensate for the outer .flat()...
 							return (has_promise 
 										&& res instanceof Array) ?
-									// NOTE: since we are already in a promise 
-									// 		grouping things here is not a big 
-									// 		deal (XXX ???), however this is needed 
-									// 		to link nested promises with the 
-									// 		containing promise...
-									// XXX .all(..) will resolve after all the 
-									// 		contents are resolved, while returning 
-									// 		res.flat() will allow access to all the 
-									// 		values including the individual promises
-									// 		can we combine the two???
-									// 		...can we split this up into promises and
-									// 		other values and Promise.all(..) only 
-									// 		the promises???
-									// XXX we seem to be over-expanding here in some cases...
-									// 		...or under-wrapping someplace else...
-									Promise.all(res)
-										.then(function(res){
-											return res.flat() })
-								// XXX the over-expand problem appears to be here...
-								: res instanceof Array ?
-									res.flat()
-								: res })
+								// NOTE: since we are already in a promise 
+								// 		grouping things here is not a big 
+								// 		deal, however this is needed to link 
+								// 		nested promises with the containing 
+								// 		promise...
+								Promise.all(res)
+									.then(function(res){
+										return res.flat() })
+								: res.flat() })
 						: handler(elem) },
 				// onerror...
 				// XXX STOP_PROMISED_HANDLERS
