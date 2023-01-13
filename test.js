@@ -145,16 +145,33 @@ var cases = test.Cases({
 					[1, 2, 3]) },
 			promise_nested_array_mixed: function(assert){
 				return create(assert, 
-					Promise.resolve([1, Promise.resolve(2), [3], Promise.resolve([4])]),
+					Promise.resolve([
+						1, 
+						Promise.resolve(2), 
+						[3],
+						Promise.resolve([4]),
+					]),
 					[1, 2, [3], [4]]) },
 		})
 		this.Modifier({
 			nest: function(assert, setup){
 				setup.output = Promise.iter(setup.output)
 				return setup },
-			iter: function(assert, setup){
+			iter_noargs: function(assert, setup){
 				setup.output = setup.output.iter()
 				return setup },
+			iter_asis: function(assert, setup){
+				setup.output = setup.output
+					.iter(function(e){ 
+						return [e] })
+				return setup },
+			iter_clear: function(assert, setup){
+				return {
+					input: [],
+					output: setup.output
+						.iter(function(e){ 
+							return [] }),
+				} },
 
 			map_asis: function(assert, setup){
 				setup.output = setup.output
