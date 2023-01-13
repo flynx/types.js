@@ -35,10 +35,53 @@ var generator = require('./generator')
 
 
 //---------------------------------------------------------------------
-// XXX EXPERIMENTING...
 
 // packed format API...
 //
+// This is separate from IterablePromise to enable low-level testing and
+// experimentation.
+//
+// Packed format
+// 	[
+// 		<value>,
+//
+// 		[
+// 			<value>,
+//
+// 			<promise( <value> )>,
+//
+// 			.. 
+// 		],
+//
+// 		<promise( <value> )>,
+//
+// 		<promise( [ <value>, .. ] )>,
+//
+// 		..
+// 	]
+//
+// 	<packed> ::=
+// 		<value>
+// 		| <packed-array>
+// 		| <promise( <value> )>
+// 		| <promise( <packed-array> )>
+//
+// 	<packed-array> ::=
+// 		[ <packed-item>, .. ]
+//
+// 	<packed-item> ::=
+// 		<value>
+// 		| [ <nested-value>, .. ]
+// 		| <promise( <value> )>
+// 		| <promise( [ <value>, .. ] )>
+//
+// 	<nested-value> ::=
+// 		<value>
+// 		| <promise( <value> )>
+//		
+// 	
+//
+// XXX revise bnf...
 // XXX should this be a container or just a set of function???
 // 		...for simplicity I'll keep it a stateless set of functions for 
 // 		now, to avoid yet another layer of indirection -- IterablePromise...
@@ -50,19 +93,6 @@ module.packed =
 	//	pack(<promise>)
 	//		-> <packed>
 	//
-	//	<packed> ::=
-	//		<packed-array>
-	//		| <packed-promise>
-	//
-	//	<packed-array> ::=
-	//		[
-	//			<item>
-	//			| <items>				- array
-	//			| <promise-item>
-	//			| <promise-items>,
-	//			...
-	//		]
-	//
 	// NOTE: when all promises are expanded the packed array can be unpacked 
 	// 		by simply calling .flat()
 	// NOTE: if 'types/Array' is imported this will support throwing STOP
@@ -73,8 +103,6 @@ module.packed =
 	// 		stop will stop the handlers not yet run and not the next 
 	// 		handlers in sequence.
 	//
-	// XXX see if we should self-expand promises...
-	// XXX migrate these back into InteractivePromise...
 	// XXX does this need onerror(..) ???
 	pack: function(list){
 		var that = this
@@ -114,9 +142,6 @@ module.packed =
 	// 	handle(<packed>, <handler>[, <onerror>])
 	// 		-> <packed>
 	//
-	// XXX revise nested promise handling...
-	// 		...something like simplify(<packed>) -> <packed> ???
-	// XXX STOP_PROMISED_HANDLERS -- TEST
 	handle: function(packed, handler, onerror){
 		var that = this
 		var handlers = [...arguments].slice(1)
@@ -229,6 +254,8 @@ module.packed =
 		return packed.flat() },
 }
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 //
 // 	itemResolved(<list>, <onupdate>[, <ondone>])
