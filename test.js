@@ -172,7 +172,7 @@ var cases = test.Cases({
 						.iter(function(e){ 
 							return [] }),
 				} },
-			/* XXX does not account forpromises as input...
+			/* XXX does not account for promises as input...
 			iter_flat: async function(assert, setup){
 				return {
 					input: setup.input instanceof Array ?
