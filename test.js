@@ -172,6 +172,17 @@ var cases = test.Cases({
 						.iter(function(e){ 
 							return [] }),
 				} },
+			/* XXX does not account forpromises as input...
+			iter_flat: async function(assert, setup){
+				return {
+					input: setup.input instanceof Array ?
+						(await Promise.all(setup.input)).flat()
+						: [await setup.input],
+					output: setup.output
+						.iter(function(e){ 
+							return e }),
+				} },
+			//*/
 
 			map_asis: function(assert, setup){
 				setup.output = setup.output
