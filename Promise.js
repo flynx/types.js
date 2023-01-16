@@ -102,12 +102,14 @@ module.packed =
 	// 		of order, as the nested promises resolve and thus throwing 
 	// 		stop will stop the handlers not yet run and not the next 
 	// 		handlers in sequence.
-	//
 	// XXX does this need onerror(..) ???
+	// 		...essentially this can make sense only in generator expansion,
+	// 		but not sure if this should be done here as it is sync...
 	pack: function(list){
 		var that = this
 		// list: promise...
 		// XXX should we just test for typeof(list.then) == 'function'???
+		// XXX should we expand async generators here???
 		if(list instanceof Promise
 				// list: async promise...
 				|| (typeof(list) == 'object' 
@@ -120,18 +122,28 @@ module.packed =
 				&& !list.map
 				&& Symbol.iterator in list){
 			list = [...list] }
+		/* XXX on one hand this should be here and on the other I'm not 
+		// 		sure how are we going to thread handler and onerror to 
+		// 		here...
+		// list: promise / async-iterator...
+		if(typeof(list) == 'object' 
+					&& Symbol.asyncIterator in list){
+			return list
+				// XXX
+				.iter(handler, onerror) 
+				.then(function(list){
+					return that.pack(list) }) } 
+		//*/
 		// list: non-array / non-iterable...
 		if(typeof(list.map) != 'function'){
 			list = [list].flat() }
 		// list: array...
-		// XXX should we self-expand this???
 		return list
 			.map(function(elem){
 				// XXX should we expand generators here???
 				return elem instanceof Array ?
 						[elem]
 					// XXX should we just test for .then(..)???
-					// XXX should we self-expand this???
 					: elem instanceof Promise ?
 						elem.then(function(elem){
 							return elem instanceof Array ?
