@@ -409,7 +409,7 @@ object.Constructor('Queue', Array, {
 		// collect results...
 		this.collect_results
 			&& res !== module.SKIP
-			&& (this.__results = this.__results || []).push(res)
+			&& (this.__results = this.__results ?? []).push(res)
 
 		// handle task results...
 		//
@@ -573,13 +573,15 @@ object.Constructor('FinalizableQueue', Queue, {
 
 	done: events.Event('done', function(handle){
 		// abort only once...
-		if(this.state == 'aborted' || this.state == 'done'){
+		if(this.state == 'aborted' 
+				|| this.state == 'done'){
 			return handle(false) }
 		this.__state = 'done' 
 		Object.freeze(this) }),
 	abort: events.Event('abort', function(handle){
 		// abort only once...
-		if(this.state == 'aborted' || this.state == 'done'){
+		if(this.state == 'aborted' 
+				|| this.state == 'done'){
 			return handle(false) }
 		this.__state = 'aborted' 
 		Object.freeze(this) }),
@@ -587,18 +589,22 @@ object.Constructor('FinalizableQueue', Queue, {
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
 	promise: function(){
-		var that = this
-		return new Promise(function(resolve, reject){
-			that
-				.one('done', function(){
-					resolve(...(that.collect_results ? 
-						[that.__results || []]
-						: [])) })
-				.one('abort', reject) }) },
+		return this.__promise },
 	then: function(onresolve, onreject){
 		return this.promise().then(...arguments) },
 	catch: function(onreject){
 		return this.promise().catch(...arguments) },
+
+	__init__: function(options){
+		var that = this
+		this.__promise = new Promise(function(resolve, reject){
+			that
+				.one('done', function(){
+					resolve(...(that.collect_results ? 
+						[that.__results ?? []]
+						: [])) })
+				.one('abort', reject) })
+		return object.parentCall(FinalizableQueue.prototype.__init__, this, ...arguments) },
 })
 
 
