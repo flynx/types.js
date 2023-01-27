@@ -12,6 +12,8 @@
 * 		- ...
 * 	would be nice to make the task just a slightly extended or better
 * 	defined function/generator, ideally to make them interchangable...
+* XXX BUG: there seems to be an odd bug somplace here where each item 
+* 	gets processed once per "thread"... (ImageGrid.Viewer export)
 *
 **********************************************/  /* c8 ignore next 2 */
 ((typeof define)[0]=='u'?function(f){module.exports=f(require)}:define)
