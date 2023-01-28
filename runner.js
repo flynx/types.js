@@ -362,6 +362,7 @@ object.Constructor('Queue', Array, {
 			// report...
 			that.trigger('taskCompleted', task, res) }
 		var fail = {doc: 'fail runningDone(..)'}
+		// XXX should this also remove .__running when empty???
 		var runningDone = function(mode){
 			running.splice(0, running.length, 
 				// NOTE: there can be multiple occurrences of res...
@@ -518,6 +519,9 @@ object.Constructor('Queue', Array, {
 	//
 	// NOTE: this helps get around the argument number limitation in JS...
 	add: function(tasks){
+		tasks = tasks instanceof Array ?
+			tasks
+			: [tasks]
 		// handle too large a number of args...
 		var MAX_ARGS = 10000
 		if(tasks.length > MAX_ARGS){
@@ -570,6 +574,14 @@ module.FinalizableQueue =
 object.Constructor('FinalizableQueue', Queue, {
 	auto_stop: true,
 
+	// not for direct use...
+	__freeze: function(){
+		Object.freeze(this)
+		// XXX do we remove/freeze .__running???
+		this.__results
+			&& Object.freeze(this.__results) 
+		return this },
+
 	__onempty__: function(){
 		return this.trigger('done') },
 
@@ -579,14 +591,14 @@ object.Constructor('FinalizableQueue', Queue, {
 				|| this.state == 'done'){
 			return handle(false) }
 		this.__state = 'done' 
-		Object.freeze(this) }),
+		this.__freeze() }),
 	abort: events.Event('abort', function(handle){
 		// abort only once...
 		if(this.state == 'aborted' 
 				|| this.state == 'done'){
 			return handle(false) }
 		this.__state = 'aborted' 
-		Object.freeze(this) }),
+		this.__freeze() }),
 
 	// NOTE: each handler will get called once when the next time the 
 	// 		queue is emptied...
