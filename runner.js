@@ -575,11 +575,11 @@ object.Constructor('FinalizableQueue', Queue, {
 	auto_stop: true,
 
 	// not for direct use...
+	// NOTE: we are intentionally not freezing .__results to allow them 
+	// 		to be consumed by the client...
+	// 		XXX is this correct???
 	__freeze: function(){
 		Object.freeze(this)
-		// XXX do we remove/freeze .__running???
-		this.__results
-			&& Object.freeze(this.__results) 
 		return this },
 
 	__onempty__: function(){
