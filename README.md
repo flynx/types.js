@@ -76,6 +76,10 @@ Library of JavaScript type extensions, types and utilities.
       - [`Promise.iter(..)` / `promise.IterablePromise(..)`](#promiseiter--promiseiterablepromise)
       - [`<promise>.iter()`](#promiseiter)
       - [`<promise-iter>.iter()`](#promise-iteriter)
+      - [`Promise.seqiter(..)` / `promise.IterableSequentialPromise(..)`](#promiseseqiter--iterablesequentialpromise)
+      - [`<promise>.seqiter()` / `<promise-iter>.seqiter()`](#promiseseqiter--promise-iterseqiter)
+      - [`Promise.seqstartiter(..)` / `promise.IterableSequentialStartPromise(..)`](#promiseseqiter--iterablesequentialstartpromise)
+      - [`<promise>.seqstartiter()` / `<promise-iter>.seqstartiter()`](#promiseseqstartiter--promise-iterseqstartiter)
       - [`<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`](#promise-itermap--promise-iterfilter--promise-iterreduce)
       - [`<promise-iter>.between(..)`](#promise-iterbetween)
       - [`<promise-iter>.flat(..)`](#promise-iterflat)
@@ -1679,6 +1683,16 @@ Return a shallow copy of the current promise iterator.
 <promise-iter>.iter()
     -> <promise-iter>
 ```
+
+
+#### `Promise.seqiter(..)` / `promise.IterableSequentialPromise(..)`
+
+#### `<promise>.seqiter()` / `<promise-iter>.seqiter()`
+
+#### `Promise.seqstartiter(..)` / `promise.IterableSequentialStartPromise(..)`
+
+#### `<promise>.seqstartiter()` / `<promise-iter>.seqstartiter()`
+
 
 
 #### `<promise-iter>.map(..)` / `<promise-iter>.filter(..)` / `<promise-iter>.reduce(..)`

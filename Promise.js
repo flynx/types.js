@@ -880,7 +880,10 @@ object.Constructor('IterablePromise', Promise, {
 // 		Promise.iter([ .. ]).iter(func)
 // 			- func per element
 // 			- func is called when an element is resolved/ready 
-// 				in order of resolution/readiness
+// 				in order of resolution
+// 		Promise.seqstartiter([ .. ]).iter(func)
+// 			- func per element
+// 			- func is called when an element is resolved/ready
 // 		Promise.seqiter([ .. ]).iter(func)
 // 			- func per element
 // 			- func is called when an element is resolved/ready 
@@ -899,9 +902,9 @@ object.Constructor('IterablePromise', Promise, {
 // XXX check if this behaves correctly (call order) on concatenation and
 // 		other methods...
 // XXX not sure if this is a viable strategy....
-var IterableSequentialPromise =
-module.IterableSequentialPromise =
-object.Constructor('IterableSequentialPromise', IterablePromise, {
+var IterableSequentialStartPromise =
+module.IterableSequentialStartPromise =
+object.Constructor('IterableSequentialStartPromise', IterablePromise, {
 	__pack: function(list, handler=undefined, onerror=undefined){
 		var seqiter = this.constructor
 
@@ -924,7 +927,7 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			return res }
 
 		// NOTE: we are not handling the list here...
-		list = object.parentCall(IterableSequentialPromise.prototype.__pack, this, list) 
+		list = object.parentCall(IterableSequentialStartPromise.prototype.__pack, this, list) 
 		list = list instanceof SyncPromise ?
 			list.sync()
 			: list
@@ -939,6 +942,46 @@ object.Constructor('IterableSequentialPromise', IterablePromise, {
 			: list },
 })
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// XXX might also be a good idea to implement a version of the above to
+// 		handle the next element only after the promise returned by the
+// 		previous handler is resolved -- depth first...
+// 		...this would help prevent the await execution uncertainty, i.e.:
+//			console.log(1)
+//			// note that we are NOTE await'ing for the function here...
+//			(async function f(){ 
+//				console.log(2)})()
+//			console.log(3)
+//				-> prints 1, 2, 3
+//		and:
+//			console.log(1)
+//			(async function f(){ 
+//				// note the await -- this is the only difference...
+//				console.log(await 2)})()
+//			console.log(3)
+//				-> prints 1, 3, 2
+//		this is bad because of a handler has two execution paths one with
+//		an await and one without the order of actual handler execution can
+//		not be controlled unless we wait for the whole thing to resolve...
+// 		
+var IterableSequentialPromise =
+module.IterableSequentialPromise =
+object.Constructor('IterableSequentialPromise', IterableSequentialStartPromise, {
+	__handle: function(list, handler, onerror){
+		var prev = undefined
+		return object.parentCall(IterableSequentialPromise.prototype.__handle, this, 
+			list, 
+			// call the next handler only when the promise returned by 
+			// the previous handler is resolved...
+			function(elem){
+				if(prev instanceof Promise){
+					return (prev = prev
+						.then(function(){
+							return handler(elem) })) }
+				return (prev = handler(elem)) },
+			...[...arguments].slice(2)) },
+})
 
 
 //---------------------------------------------------------------------
@@ -1247,7 +1290,7 @@ var PromiseMixin =
 module.PromiseMixin =
 object.Mixin('PromiseMixin', 'soft', {
 	iter: IterablePromise,
-	// XXX
+	seqstartiter: IterableSequentialStartPromise,
 	seqiter: IterableSequentialPromise,
 
 	interactive: InteractivePromise,
@@ -1306,7 +1349,8 @@ object.Mixin('PromiseProtoMixin', 'soft', {
 
 	iter: function(handler=undefined, onerror=undefined){
 		return IterablePromise(this, handler, onerror) },
-	// XXX
+	seqstartiter: function(handler=undefined, onerror=undefined){
+		return IterableSequentialStartPromise(this, handler, onerror) },
 	seqiter: function(handler=undefined, onerror=undefined){
 		return IterableSequentialPromise(this, handler, onerror) },
 
