@@ -944,27 +944,30 @@ object.Constructor('IterableSequentialStartPromise', IterablePromise, {
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-// XXX might also be a good idea to implement a version of the above to
-// 		handle the next element only after the promise returned by the
-// 		previous handler is resolved -- depth first...
-// 		...this would help prevent the await execution uncertainty, i.e.:
-//			console.log(1)
-//			// note that we are NOTE await'ing for the function here...
-//			(async function f(){ 
-//				console.log(2)})()
-//			console.log(3)
-//				-> prints 1, 2, 3
-//		and:
-//			console.log(1)
-//			(async function f(){ 
-//				// note the await -- this is the only difference...
-//				console.log(await 2)})()
-//			console.log(3)
-//				-> prints 1, 3, 2
-//		this is bad because of a handler has two execution paths one with
-//		an await and one without the order of actual handler execution can
-//		not be controlled unless we wait for the whole thing to resolve...
-// 		
+// Like IterableSequentialStartPromise(..) but each handler will be 
+// called after the previous handler's return value is resolved (if it
+// is a promise).
+//
+// This is needed to control the "unpredictable" behavior of await's in 
+// JavaScript, here is a trivial example with an async function starting 
+// as if it was sync and as a promise on the next execution frame:
+// 		console.log(1)
+// 		// note that we are NOTE await'ing for the function here...
+// 		(async function f(){ 
+// 			console.log(2)})()
+// 		console.log(3)
+// 			-> prints 1, 2, 3
+// and:
+// 		console.log(1)
+// 		(async function f(){ 
+// 			// note the await -- this is the only difference...
+// 			console.log(await 2)})()
+// 		console.log(3)
+// 			-> prints 1, 3, 2
+// this is bad because if a handler has two execution paths one with
+// an await and one without the order of actual handler execution can
+// not be controlled predictably unless we wait for the whole thing to 
+// resolve...
 var IterableSequentialPromise =
 module.IterableSequentialPromise =
 object.Constructor('IterableSequentialPromise', IterableSequentialStartPromise, {
