@@ -449,6 +449,8 @@ var cases = test.Cases({
 			// NOTE: 4 here is present as it was handled before the promise resolved...
 			[1,2,'stop'],
 			'.seqiter(..): STOP(..): delayed')
+
+		// XXX test .seqstartiter(..)
 	},
 
 	// Date.js

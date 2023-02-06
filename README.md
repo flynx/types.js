@@ -1651,6 +1651,69 @@ XXX should we support generators as input?
 XXX should we support infinite generators as input?
 -->
 
+Promise iteration supports three modes of synchronization:
+
+1. handle on ready
+  ```
+    .iter(
+        [value, promise, promise, value], handler)
+           +	   .		.		+
+           |				R		|
+           +	   R		|		+
+		   		   |		+
+				   + - - - - - - - - - - - - - - - -> resolve
+
+				   								  R - input resolved
+  ```
+  A handler is started as soon as it's value is ready/resolved, i.e. 
+  for non-promise values start immediately.
+
+
+2. handle sequentially when value is ready and previous handler is started
+  ```
+    .seqstartiter(
+        [value, promise, promise, value], handler)
+           +      .         .       .        |
+           |                R              <-+ 
+           ++- - >R         .       .        |
+            |     |                        <-+ 
+            +     ++ - - - >+       .        |
+            .      |        |              <-+
+                   +        + - - > +        |
+            .      .                |      <-+
+                                    + - - - - - - - > resolve
+            ^      ^
+            +------+-- returned promise
+				   								  R - input resolved
+  ```
+  A handler is started as soon as all previous handlers are started 
+  and the current value is ready/resolved.
+
+
+3. handle sequentially when value is ready and previous handler is resolved
+  ```
+    .seqiter(
+        [value, promise, promise, value], handler)
+           +      .         .       .        |
+           |                R              <-+
+           ++- - >R         .       .        |
+            |     |                        <-+
+            +     ++        .       .        |
+            .      |                         |
+                   + - - - >+       .        |
+            .      .        |              <-+
+                            + - - > +        |
+            .      .                |      <-+
+                                    + - - - - - - - > resolve
+            ^      ^
+            +------+-- returned promise
+				   								  R - input resolved
+  ```
+  A handler is started as soon as all previous handlers are done, their
+  return values are resolved and the current value is ready/resolved.
+
+
+
 
 #### `Promise.iter(..)` / `promise.IterablePromise(..)`
 
@@ -1686,46 +1749,6 @@ Return a shallow copy of the current promise iterator.
 
 
 #### `Promise.seqiter(..)` / `promise.IterableSequentialPromise(..)`
-
-```
-	.iter()
-	[value, promise, promise, value]
-	   + - - > + - - - >+ - - >	+
-	   |	   |		|		|
-	   v	   v		v		v
-```
-
-```
-	.seqstartiter()
-	[value, promise, promise, value]
-	   +	  .			.		.
-	   |	   			 		 
-	   + - - >+			.		.
-	   		  |			 		 
-			  + - - - >	+		.
-			  |			|		
-			  +			+ - - >	+
-						|		|
-						+		+
-```
-
-```
-	.seqiter()
-	[value, promise, promise, value]
-	   +	  .			.		.
-	   |	 
-	   + - - >+			.		.
-	   		  |
-			  +			.		.
-			  |
-			  + - - - >	+		.
-						|
-						+		.
-						|
-			   			+ - - >	+
-								|
-								+
-```
 
 #### `<promise>.seqiter()` / `<promise-iter>.seqiter()`
 
