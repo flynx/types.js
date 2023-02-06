@@ -1687,6 +1687,46 @@ Return a shallow copy of the current promise iterator.
 
 #### `Promise.seqiter(..)` / `promise.IterableSequentialPromise(..)`
 
+```
+	.iter()
+	[value, promise, promise, value]
+	   + - - > + - - - >+ - - >	+
+	   |	   |		|		|
+	   v	   v		v		v
+```
+
+```
+	.seqstartiter()
+	[value, promise, promise, value]
+	   +	  .			.		.
+	   |	   			 		 
+	   + - - >+			.		.
+	   		  |			 		 
+			  + - - - >	+		.
+			  |			|		
+			  +			+ - - >	+
+						|		|
+						+		+
+```
+
+```
+	.seqiter()
+	[value, promise, promise, value]
+	   +	  .			.		.
+	   |	 
+	   + - - >+			.		.
+	   		  |
+			  +			.		.
+			  |
+			  + - - - >	+		.
+						|
+						+		.
+						|
+			   			+ - - >	+
+								|
+								+
+```
+
 #### `<promise>.seqiter()` / `<promise-iter>.seqiter()`
 
 #### `Promise.seqstartiter(..)` / `promise.IterableSequentialStartPromise(..)`
