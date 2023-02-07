@@ -1330,8 +1330,8 @@ object.Mixin('PromiseMixin', 'soft', {
 			// XXX should we just check for .then(..) ???
 			// XXX update README if this changes...
 			: (data.length == 1 
-					&& Symbol.asyncIterator in data[0]
-					&& 'then' in data[0]) ?
+					&& data[0][Symbol.asyncIterator]
+					&& data[0].then) ?
 				data[0].then(func, ...error)
 			: error.length > 0 ?
 				function(){
