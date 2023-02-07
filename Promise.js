@@ -375,6 +375,11 @@ function(name){
 		return (await this)[name](...args) } }
 
 
+// XXX if onerror(..) is triggered, does it write it's return value to 
+// 		.__packed and in what format???
+// XXX should .__packed be undefined if something breaks???
+// XXX revise how .__packed is handled by metods...
+// XXX might be a good idea to use Symbols for .__value and .__packed...
 var IterablePromise =
 module.IterablePromise =
 object.Constructor('IterablePromise', Promise, {
@@ -867,9 +872,9 @@ object.Constructor('IterablePromise', Promise, {
 				if(onerror){
 					var res = onerror(err)
 					// XXX do we use .__pack(..) here???
-					obj.__packed = undefined
+					//obj.__packed = undefined
 					// XXX this is wrong -- need to store the value as-is...
-					//obj.__packed = [res]
+					obj.__packed = [res]
 					promise.resolve(res)
 				} else {
 					promise.reject(err) } }
