@@ -163,8 +163,8 @@ module.packed =
 				return that.handle(packed, ...handlers) }) }
 
 		var handleSTOP = function(err){
+			stop = true
 			if(err && err === Array.STOP){
-				stop = true
 				return []
 			} else if(err && err instanceof Array.STOP){
 				return err.value }
@@ -174,66 +174,78 @@ module.packed =
 		var map = Array.STOP ?
 			'smap'
 			: 'map'
-		return packed
-			// NOTE: we do not need to rapack after this because the handlers 
-			// 		will get the correct (unpacked) values and it's their 
-			// 		responsibility to pack them if needed...
-			// NOTE: this removes the need to handle sub-arrays unless they are
-			// 		in a promise...
-			.flat()
-			[map](
-				function(elem){
-					return elem instanceof Promise ?
-						elem.then(function(elem){
-							if(stop){
-								return [] }
-							try{
-								var has_promise = false
-								// NOTE: do the same thing handle(..) does 
-								// 		but on a single level, without expanding 
-								// 		arrays...
-								if(elem instanceof Array){
-									var res = elem.map(function(elem){
-										var res = elem instanceof Promise ?
-											elem.then(function(elem){
-												try{
-													return !stop ?
-														handler(elem) 
-														: [] 
-												} catch(err){
-													return handleSTOP(err) } })
-											: handler(elem)
-										has_promise = has_promise
-											|| res instanceof Promise
-										return res })
-								// non-arrays...
-								} else {
-									// NOTE: we are wrapping the result in an array to 
-									// 		normalize it with the above...
-									res = [handler(elem)]
-									has_promise = has_promise 
-										|| res[0] instanceof Promise }
+		try{
+			return packed
+				// NOTE: we do not need to rapack after this because the handlers 
+				// 		will get the correct (unpacked) values and it's their 
+				// 		responsibility to pack them if needed...
+				// NOTE: this removes the need to handle sub-arrays unless they are
+				// 		in a promise...
+				.flat()
+				[map](
+					function(elem){
+						return elem instanceof Promise ?
+							elem
+								.then(function(elem){
+									if(stop){
+										return [] }
+									try{
+										var has_promise = false
+										// NOTE: do the same thing handle(..) does 
+										// 		but on a single level, without expanding 
+										// 		arrays...
+										if(elem instanceof Array){
+											var res = elem
+												.map(function(elem){
+													var res = elem instanceof Promise ?
+														elem.then(function(elem){
+															try{
+																return !stop ?
+																	handler(elem) 
+																	: [] 
+															}catch(err){
+																return handleSTOP(err) } })
+														: handler(elem)
+													has_promise = has_promise
+														|| res instanceof Promise
+													return res })
+										// non-arrays...
+										} else {
+											// NOTE: we are wrapping the result in an array to 
+											// 		normalize it with the above...
+											res = [handler(elem)]
+											has_promise = has_promise 
+												|| res[0] instanceof Promise }
 
-								// compensate for the outer .flat()...
-								// NOTE: at this point res is always an array...
-								return has_promise ?
-									// NOTE: since we are already in a promise 
-									// 		grouping things here is not a big 
-									// 		deal, however this is needed to link 
-									// 		nested promises with the containing 
-									// 		promise...
-									Promise.all(res)
-										.then(function(res){
-											return res.flat() })
-									: res.flat() 
-							} catch(err){
-								return handleSTOP(err) } })
-						: handler(elem) },
-				// onerror...
-				function(err){
-					stop = true
-					typeof(onerror) == 'function'
-						&& onerror(err) }) },
+										// compensate for the outer .flat()...
+										// NOTE: at this point res is always an array...
+										return has_promise ?
+											// NOTE: since we are already in a promise 
+											// 		grouping things here is not a big 
+											// 		deal, however this is needed to link 
+											// 		nested promises with the containing 
+											// 		promise...
+											Promise.all(res)
+												.then(function(res){
+													return res.flat() })
+											: res.flat() 
+									} catch(err){
+										return handleSTOP(err) } })
+								// err...
+								.catch(function(err){
+									stop = true
+									typeof(onerror) == 'function'
+										&& onerror(err)
+									return [] })
+							: handler(elem) }) 
+				}catch(err){
+					// err
+					if(err !== Array.STOP 
+							&& !(err instanceof Array.STOP)
+							&& typeof(onerror) == 'function'){
+						onerror(err) 
+						return [] }
+					throw err } },
 	//
 	// 	unpack(<packed>)
 	// 		-> <array>
@@ -822,12 +834,17 @@ object.Constructor('IterablePromise', Promise, {
 
 		// populate new instance...
 		if(promise){
+			// handle onerror(..)
+			var handleError = function(err){
+				onerror ?
+					promise.resolve(onerror(err))
+					: promise.reject(err) }
 			// handle/pack input data...
 			if(handler != 'raw'){
 				//list = list instanceof IterablePromise ?
 				list = list instanceof this.constructor ?
-					obj.__handle(list.__packed, handler, onerror)
-					: obj.__pack(list, handler, onerror) }
+					obj.__handle(list.__packed, handler, handleError)
+					: obj.__pack(list, handler, handleError) }
 			Object.defineProperty(obj, '__packed', {
 				value: list,
 				enumerable: false,

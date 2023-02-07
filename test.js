@@ -451,6 +451,51 @@ var cases = test.Cases({
 			'.seqiter(..): STOP(..): delayed')
 
 		// XXX test .seqstartiter(..)
+		
+
+
+		// error...
+		for(var iter of ['iter', 'seqiter', 'seqstartiter']){
+			assert(
+				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+						function(e){
+							if(e == 2){
+								throw 'ERROR' }
+							return e })
+					.catch(function(err){
+						return 'done' })
+				== 'done',
+				`.${iter}(..): .catch(..)`)
+			assert(
+				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+					function(e){
+						if(e == 2){
+							throw 'ERROR' }
+						return e },
+					function(err){
+						return 'done' })
+				== 'done',
+				`.${iter}(..): onerror(..)`)
+			assert(
+				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+					function(e){
+						if(e == 3){
+							throw 'ERROR' }
+						return e },
+					function(err){
+						return 'done' })
+				== 'done',
+				`.${iter}(..): edge onerror(..)`)
+			assert(
+				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+					function(e){
+						if(e == 4){
+							throw 'ERROR' }
+						return e },
+					function(err){
+						return 'done' })
+				== 'done',
+				`.${iter}(..): late onerror(..)`) }
 	},
 
 	// Date.js
