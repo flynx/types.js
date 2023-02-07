@@ -851,33 +851,29 @@ object.Constructor('IterablePromise', Promise, {
 				// NOTE: this is needed for self-resolve...
 				writable: true,
 			})
+
 			// handle promise state...
 			try{
 				var res = obj.__unpack(list)
 			}catch(err){
 				promise.reject(err) }
-			res instanceof Promise ?
-				res
-					.then(function(list){
-						promise.resolve(list) })
-					.catch(promise.reject) 
-				: promise.resolve(res) 
-			// XXX EXPEREMENTAL
-			// XXX do we handle errors here???
-			// self-resolve state...
-			list instanceof Promise ?
-				list.then(function(list){
-					obj.__packed = list })
-				/*/ XXX use selfResolve(..)
-				: selfResolve(list) }
-				/*/
-				: list.forEach(function(elem, i){
+
+			if(res instanceof Promise){
+				res.then(
+					function(list){
+						promise.resolve(list) 
+						// self-resolve...
+						obj.__packed = list },
+					handleError) 
+			} else {
+				promise.resolve(res) 
+				// self-resolve...
+				res.forEach(function(elem, i){
 					elem instanceof Promise
 						&& elem.then(function(elem){
 							lst = obj.__packed.slice()
 							lst[i] = elem
-							obj.__packed = lst }) }) }
-				//*/
+							obj.__packed = lst }) }) } }
 		return obj },
 })
 

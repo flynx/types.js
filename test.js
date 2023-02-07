@@ -495,7 +495,21 @@ var cases = test.Cases({
 					function(err){
 						return 'done' })
 				== 'done',
-				`.${iter}(..): late onerror(..)`) }
+				`.${iter}(..): late onerror(..)`) 
+			assert(
+				await Promise[iter](
+					(function*(){
+						yield* [1,2,3]
+						throw 'ERROR' })(),
+					function(e){
+						if(e == 4){
+							throw 'ERROR' }
+						return e },
+					function(err){
+						return 'done' })
+				== 'done',
+				`.${iter}(..): late onerror(..)`) 
+		}
 	},
 
 	// Date.js
