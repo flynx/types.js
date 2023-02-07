@@ -236,6 +236,14 @@ object.Mixin('GeneratorMixin', 'soft', {
 	reduce: makeGenerator('reduce'),
 	reduceRight: makeGenerator('reduceRight'),
 
+	// XXX
+	smap: makeGenerator('smap'),
+	sfilter: makeGenerator('sfilter'),
+	sreduce: makeGenerator('sreduce'),
+	sreduceRight: makeGenerator('sreduceRight'),
+	sforEach: makeGenerator('sforEach'),
+	//*/
+
 	between: makeGenerator('between'),
 
 	// XXX EXPERIMENTAL
@@ -413,6 +421,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 				for(var e of this){
 					yield func(e, i++, this) } } },
 		__onstop),
+	smap: function*(func){
+		yield* this.map(...arguments) },
 	filter: stoppable(
 		function*(func){
 			var i = 0
@@ -428,6 +438,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 					err.value = e }
 				throw err } },
 		__onstop),
+	sfilter: function*(func){
+		yield* this.filter(...arguments) },
 
 	reduce: stoppable(
 		function(func, res){
@@ -439,6 +451,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 		// 		was passed a function from ever being treated as onstop(..)...
 		function(res, f, _, onstop){
 			return __onstop.call(this, res, onstop) }),
+	sreduce: function*(func, res){
+		yield* this.reduce(...arguments) },
 	greduce: function*(func, res){
 		yield this.reduce(...arguments) },
 
@@ -463,6 +477,8 @@ object.Mixin('GeneratorProtoMixin', 'soft', {
 	// XXX EXPERIMENTAL
 	forEach: function(func){
 		return [...this].map(func) },
+	sforEach: function(func){
+		return this.forEach(func) },
 
 	pop: function(){
 		return [...this].pop() },

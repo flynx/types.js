@@ -117,11 +117,6 @@ module.packed =
 					&& Symbol.asyncIterator in list)){
 			return list
 				.then(this.pack.bind(this)) }
-		// list: generator...
-		if(typeof(list) == 'object' 
-				&& !list.map
-				&& Symbol.iterator in list){
-			list = [...list] }
 		/* XXX on one hand this should be here and on the other I'm not 
 		// 		sure how are we going to thread handler and onerror to 
 		// 		here...
@@ -419,6 +414,17 @@ object.Constructor('IterablePromise', Promise, {
 		// handle iterable promise...
 		if(list instanceof IterablePromise){
 			return this.__handle(list.__packed, handler, onerror) }
+		// list: generator...
+		if(typeof(list) == 'object' 
+				// XXX this will cause a break later on...
+				//&& !list.map
+				&& Symbol.iterator in list){
+			try{
+				list = [...list] 
+			} catch(err){
+				if(typeof(onerror) == 'function'){
+					return onerror(err) }
+				throw err } }
 		// handle promise / async-iterator...
 		if(typeof(list) == 'object' 
 					&& Symbol.asyncIterator in list){
@@ -429,6 +435,7 @@ object.Constructor('IterablePromise', Promise, {
 
 		// do the packing...
 		var packed = module.packed.pack(list)
+
 		// handle if needed...
 		return handler ?
 			this.__handle(packed, handler, onerror)
@@ -753,16 +760,28 @@ object.Constructor('IterablePromise', Promise, {
 			: this.constructor(this.__packed, 'raw') },
 
 	// XXX EXPEREMENTAL
+	// XXX handle rejected state...
 	isSync: function(){
-		return !(this.__packed instanceof Promise
-			|| this.__packed
-				.filter(function(e){
-					return e instanceof IterablePromise ?
-							!e.isSync()
-						: e instanceof Promise 
-								&& !(e instanceof SyncPromise) })
-				.length > 0) },
+		return '__value' in this
+			|| (this.__packed instanceof Array 
+				&& !(this.__packed
+					.filter(function(e){
+						return e instanceof IterablePromise ?
+								!e.isSync()
+							: e instanceof Promise 
+									&& !(e instanceof SyncPromise) })
+					.length > 0)) },
+	// XXX BUG: if sync is called before .__handle(..) is done it will
+	// 		do things that we do not want yet like unwinding generators 
+	// 		etc...
 	sync: function(error=false){
+		if('__value' in this){
+			return this.__value }
+		if(!this.isSync()){
+			return error ?
+				this.catch(error)
+				: this }
+		// try and unpack...
 		try{
 			var res = this.__unpack()
 		}catch(err){
@@ -834,11 +853,26 @@ object.Constructor('IterablePromise', Promise, {
 
 		// populate new instance...
 		if(promise){
+			// XXX EXPEREMENTAL...
+			obj.then(function(value){
+				Object.defineProperty(obj, '__value', {
+					value,
+					enumerable: false,
+				}) })
+
 			// handle onerror(..)
+			var error = false
 			var handleError = function(err){
-				onerror ?
-					promise.resolve(onerror(err))
-					: promise.reject(err) }
+				error = true
+				if(onerror){
+					var res = onerror(err)
+					// XXX do we use .__pack(..) here???
+					obj.__packed = undefined
+					// XXX this is wrong -- need to store the value as-is...
+					//obj.__packed = [res]
+					promise.resolve(res)
+				} else {
+					promise.reject(err) } }
 			// handle/pack input data...
 			if(handler != 'raw'){
 				//list = list instanceof IterablePromise ?
@@ -851,6 +885,10 @@ object.Constructor('IterablePromise', Promise, {
 				// NOTE: this is needed for self-resolve...
 				writable: true,
 			})
+
+			// list generator broke...
+			if(error){
+				return obj }
 
 			// handle promise state...
 			try{
@@ -939,18 +977,20 @@ object.Constructor('IterableSequentialStartPromise', IterablePromise, {
 				res.push(e) }
 			return res }
 
-		// NOTE: we are not handling the list here...
-		list = object.parentCall(IterableSequentialStartPromise.prototype.__pack, this, list) 
+		// NOTE: we are not handling the list here yet...
+		// NOTE: if packing breaks but the error is handled this will return undefined...
+		list = object.parentCall(IterableSequentialStartPromise.prototype.__pack, this, 
+			list, undefined, onerror) 
 		list = list instanceof SyncPromise ?
 			list.sync()
 			: list
 		// repack...
 		list = list instanceof Array ?
 				repack(list)
-			: list.then ?
+			: list && list.then ?
 				list.then(repack)
 			: list 
-		return handler ?
+		return list && handler ?
 			this.__handle(list, handler, onerror)
 			: list },
 })

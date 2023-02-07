@@ -304,7 +304,7 @@ var cases = test.Cases({
 				'promises as elements')
 
 		// XXX split this into separate cases...
-		for(var meth of ['iter', 'seqiter']){
+		for(var meth of ['iter', 'seqiter', 'seqstartiter']){
 			// XXX need a recursive assert...
 			var should_be = [ [1], [2], [3], [4], [5], [6] ]
 			var got = await Promise[meth]([
@@ -336,6 +336,12 @@ var cases = test.Cases({
 				await Promise[meth]([1, Promise.resolve(2), Promise.resolve(3)]),
 				[1,2,3],
 					'flat unpack', meth)
+
+			assert.array(
+				await Promise[meth](
+					(function*(){ yield* [1, Promise.resolve(2), Promise.resolve(3)] })()),
+				[1,2,3],
+					'generator input', meth)
 		}
 
 		var order = []
@@ -457,7 +463,8 @@ var cases = test.Cases({
 		// error...
 		for(var iter of ['iter', 'seqiter', 'seqstartiter']){
 			assert(
-				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+				await Promise[iter](
+						[1,2,Promise.resolve(3),4,5], 
 						function(e){
 							if(e == 2){
 								throw 'ERROR' }
@@ -467,7 +474,8 @@ var cases = test.Cases({
 				== 'done',
 				`.${iter}(..): .catch(..)`)
 			assert(
-				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+				await Promise[iter](
+					[1,2,Promise.resolve(3),4,5], 
 					function(e){
 						if(e == 2){
 							throw 'ERROR' }
@@ -477,7 +485,8 @@ var cases = test.Cases({
 				== 'done',
 				`.${iter}(..): onerror(..)`)
 			assert(
-				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+				await Promise[iter](
+					[1,2,Promise.resolve(3),4,5], 
 					function(e){
 						if(e == 3){
 							throw 'ERROR' }
@@ -487,7 +496,8 @@ var cases = test.Cases({
 				== 'done',
 				`.${iter}(..): edge onerror(..)`)
 			assert(
-				await Promise[iter]([1,2,Promise.resolve(3),4,5], 
+				await Promise[iter](
+					[1,2,Promise.resolve(3),4,5], 
 					function(e){
 						if(e == 4){
 							throw 'ERROR' }
@@ -499,17 +509,56 @@ var cases = test.Cases({
 			assert(
 				await Promise[iter](
 					(function*(){
-						yield* [1,2,3]
-						throw 'ERROR' })(),
+						yield* [1,2,3] })(),
 					function(e){
-						if(e == 4){
+						if(e == 2){
 							throw 'ERROR' }
 						return e },
 					function(err){
 						return 'done' })
 				== 'done',
-				`.${iter}(..): late onerror(..)`) 
+				`.${iter}(..): input generator, onerror(..) in handler`) 
+			assert(
+				(pr = await Promise[iter](
+					(function*(){
+						yield* [1,2,3]
+						throw 'ERROR' })(),
+					function(e){
+						return e },
+					function(err){
+						return 'done' }))
+				== 'done',
+				`.${iter}(..): onerror(..) in input generator`, pr) 
+			assert(
+				await (pr = Promise[iter](
+						(function*(){
+							yield* [1,2,3]
+							throw 'ERROR' })(),
+						function(e){
+							if(e == 4){
+								throw 'ERROR' }
+							return e },
+						function(err){
+							return 'done' })
+					.sync())
+				=== 'done',
+				`.${iter}(..): onerror(..) on input generator + .sync()`, pr) 
+			assert(
+				await Promise.iter(
+					(function*(){ 
+						yield* [1,2,3]
+						throw 'ERROR' })(), 
+					function(e){ 
+						return new Promise(function(ok, err){ 
+							if(e == 2){ 
+								err('moo!') }
+							ok(e) })}, 
+					function(err){ 
+						return 333 })
+				== 333,
+				`.${iter}(..): onerror(..) with promise handler`) 
 		}
+
 	},
 
 	// Date.js
