@@ -10,6 +10,7 @@
 var object = require('ig-object')
 
 // Extend built-in types...
+require('./Number')
 require('./Object')
 require('./Array')
 require('./Set')
