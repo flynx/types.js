@@ -1359,22 +1359,34 @@ object.Mixin('PromiseMixin', 'soft', {
 
 	sync: SyncPromise,
 
+	//
+	// 	.awaitOrRun(<data>, .. , <func>)
+	// 	.awaitOrRun(<data>, .. , <func>, <onerror>)
+	// 	.awaitOrRun(<data>, .. , <func>, null)
+	// 		-> <value>
+	// 		-> <promise>
+	//
 	// XXX should this be implemented via SyncPromise??? 
 	// XXX not sure if we need to expand async generators...
 	// 		(update README if this changes)
+	// XXX add ability to skip array internals checking...
 	awaitOrRun: function(data, func, error){
+		var mode = 'deep'
 		data = [...arguments]
 		func = data.pop()
-		if(typeof(data.at(-1)) == 'function'){
+		if(data.length > 1 
+				&& (typeof(data.at(-1)) == 'function' 
+					|| func == null)){
 			error = func
 			func = data.pop() }
 		error = error ? 
 			[error] 
 			: []
 		// check if we need to await...
-		return data.reduce(function(res, e){
-					return res 
-						|| e instanceof Promise }, false) ?
+		return (mode == 'deep' 
+					&& data.reduce(function(res, e){
+						return res 
+							|| e instanceof Promise }, false)) ?
 				// NOTE: we will not reach this on empty data...
 				(data.length > 1 ?
 					Promise.all(data)
