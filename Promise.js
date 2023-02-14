@@ -416,6 +416,7 @@ object.Constructor('IterablePromise', Promise, {
 	//
 	// pack and oprionally transform/handle an array (sync)...
 	__pack: function(list, handler=undefined, onerror=undefined){
+		var that = this
 		// handle iterable promise...
 		if(list instanceof IterablePromise){
 			return this.__handle(list.__packed, handler, onerror) }
