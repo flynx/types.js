@@ -2201,14 +2201,19 @@ relevant items in the input are either non-promises or `<sync-promise>`s.
 
 #### `Promise.awaitOrRun(..)`
 
-Await for inputs if any of them is a promise and then run a function with 
-the results, otherwise run the function in sync.
+Await for inputs passing their resolved values to a function, either 
+directly returning the result, if none of the inputs was a promise (sync), 
+or returning a promise resolving to the function's return value, if any of 
+the inputs was a promise.
 
 ```dnf
 Promise.awaitOrRun(<value>, <func>[, <onerror>])
 Promise.awaitOrRun(<value>, .. , <func>[, <onerror>])
 	-> <promise(value)>
 	-> <value>
+	
+<func>(<value>, .. )
+	-> value
 ```
 
 Note that if the last `<value>` is a function and no `<onerror>` function
