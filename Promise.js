@@ -1367,6 +1367,9 @@ object.Mixin('PromiseMixin', 'soft', {
 	// 		-> <value>
 	// 		-> <promise>
 	//
+	// XXX BUG:
+	// 		Promise.awaitOrRun(1,2,3, function(){ throw new Error('moo') })
+	// 			-> TypeError: error[0] is not a functon
 	// XXX should this be implemented via SyncPromise??? 
 	// XXX not sure if we need to expand async generators...
 	// 		(update README if this changes)
@@ -1375,6 +1378,7 @@ object.Mixin('PromiseMixin', 'soft', {
 		var mode = 'deep'
 		data = [...arguments]
 		func = data.pop()
+		error = null
 		if(data.length > 1 
 				&& (typeof(data.at(-1)) == 'function' 
 					|| func == null)){
